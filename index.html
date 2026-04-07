@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casih & Asociados — Sistema de Gestión</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- Google Calendar API -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#000000;--bg2:#0D0D0D;--bg3:#141414;--bg4:#1A1A1A;
+  --border:#2A2A2A;--border2:#3A3A3A;
+  --text:#FFFFFF;--text2:#C0C0C0;--text3:#888888;
+  --blue:#4A90E2;--blue-bg:#1A2D4A;
+  --green:#3DD68C;--green-bg:#0D2B1E;
+  --orange:#F5A623;--orange-bg:#2B1E0A;
+  --red:#E25454;--red-bg:#2B0F0F;
+  --purple:#9B7FE8;--purple-bg:#1E1535;
+  --radius:10px;--radius-lg:14px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;}
+.app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* LOGIN */
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;width:380px;max-width:95vw;}
+.login-brand{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:4px;}
+.login-brand span{color:var(--blue);}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:2rem;}
+.login-error{font-size:12px;color:var(--red);margin-top:8px;min-height:18px;}
+.user-badge{display:flex;align-items:center;gap:8px;}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+.user-name{font-size:12px;color:var(--text2);}
+.btn-logout{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* NAV */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:50;}
+.nav-brand{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);}
+.nav-brand span{color:var(--blue);}
+.nav-links{display:flex;gap:4px;}
+.nav-btn{font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 14px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.nav-btn:hover{background:var(--bg3);color:var(--text);}
+.nav-btn.active{background:var(--blue-bg);color:var(--blue);}
+
+/* MAIN */
+.main{flex:1;padding:1.5rem;max-width:1200px;margin:0 auto;width:100%;}
+.section{display:none;}.section.active{display:block;}
+.page-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--text);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:1.5rem;}
+.metrics-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:1.5rem;}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;}
+.metric-label{font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;}
+.metric-val{font-size:26px;font-weight:600;color:var(--text);}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:12px;}
+.card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:1rem;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;text-transform:uppercase;letter-spacing:0.04em;}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-green{background:var(--green-bg);color:var(--green);}
+.b-orange{background:var(--orange-bg);color:var(--orange);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+.b-gray{background:#1A2030;color:var(--text2);}
+.row-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.row-item:last-child{border-bottom:none;}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+.av-blue{background:var(--blue-bg);color:var(--blue);}
+.av-green{background:var(--green-bg);color:var(--green);}
+.av-purple{background:var(--purple-bg);color:var(--purple);}
+.av-orange{background:var(--orange-bg);color:var(--orange);}
+.row-info{flex:1;min-width:0;}
+.row-name{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row-sub{font-size:11px;color:var(--text3);}
+.tabs{display:flex;gap:4px;margin-bottom:1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;width:fit-content;}
+.tab{font-size:12px;font-weight:500;padding:6px 16px;border-radius:7px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.tab.active{background:var(--bg4);color:var(--text);}
+.btn-primary{font-size:12px;padding:7px 16px;border-radius:var(--radius);border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;}
+.btn-primary:hover{opacity:0.88;}
+.btn-sm{font-size:11px;padding:4px 10px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-sm:hover{background:var(--bg3);}
+.btn-danger{font-size:11px;padding:4px 8px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-done{font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid #1E3A25;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-done:hover{background:#153020;}
+.btn-cal{font-size:12px;padding:6px 14px;border-radius:var(--radius);border:1px solid #1E3A25;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sec-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin:1rem 0 6px;}
+.sec-lbl:first-child{margin-top:0;}
+.empty-state{text-align:center;padding:2.5rem;color:var(--text3);font-size:13px;}
+.en-desarrollo{display:inline-block;font-size:10px;padding:2px 8px;border-radius:6px;background:#1A2030;color:var(--text3);margin-left:6px;font-family:'DM Sans',sans-serif;font-weight:400;text-transform:none;letter-spacing:0;}
+.causas-ph{background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-lg);padding:2rem;text-align:center;color:var(--text3);}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-size:11px;font-weight:600;color:var(--text3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.05em;}
+td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg3);}
+.fg{margin-bottom:12px;}
+.fl{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;}
+.fi{width:100%;font-size:14px;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;}
+.fi::placeholder{color:var(--text3);}
+.fs{width:100%;font-size:14px;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;}
+.fta{width:100%;font-size:14px;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;resize:vertical;min-height:60px;}
+.fta::placeholder{color:var(--text3);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.client-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;border-left:3px solid transparent;}
+.client-card.estudio{border-left-color:var(--purple);}
+.client-card.publicidad{border-left-color:var(--blue);}
+.client-card.posible{border-left-color:var(--orange);}
+.cc-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.cc-motivo{font-size:11px;color:var(--text3);margin-bottom:8px;}
+.cc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;}
+.cc-notes{font-size:11px;color:var(--text2);background:var(--bg3);border-radius:6px;padding:6px 8px;line-height:1.4;margin-bottom:8px;}
+.cc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px;}
+.cc-expte{font-size:10px;color:var(--text3);font-style:italic;}
+.btn-cest{font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--purple-bg);background:transparent;color:var(--purple);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-cpub{font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--blue-bg);background:transparent;color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.task-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;transition:opacity 0.3s,transform 0.3s;}
+.task-body{flex:1;min-width:0;}
+.task-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:5px;}
+.task-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.task-detail{font-size:11px;color:var(--text3);margin-top:4px;}
+.task-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
+.agenda-layout{display:grid;grid-template-columns:300px 1fr;gap:16px;}
+.ev-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.ev-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.ev-item:last-child{border-bottom:none;}
+.pin-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:420px;}
+.pin-icon{width:56px;height:56px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;}
+.pin-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:6px;}
+.pin-sub{font-size:13px;color:var(--text2);margin-bottom:2rem;}
+.pin-dots{display:flex;gap:12px;margin-bottom:2rem;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;transition:background 0.15s;}
+.pin-dot.filled{background:var(--text);border-color:var(--text);}
+.pin-dot.error{background:var(--red);border-color:var(--red);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,64px);gap:10px;}
+.pin-btn{width:64px;height:64px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);font-size:20px;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;}
+.pin-btn:hover{background:var(--bg3);}
+.pin-error{font-size:13px;color:var(--red);margin-top:1rem;min-height:20px;}
+.balance-bar{background:var(--bg3);border-radius:6px;height:8px;margin-top:8px;overflow:hidden;}
+.balance-fill{height:8px;border-radius:6px;transition:width 0.4s;}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.cat-btn{padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;text-align:left;transition:all 0.15s;}
+.cat-btn.sel{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
+.cat-desc{display:none;}.cat-desc.vis{display:block;margin-top:8px;}
+.gasto-row{display:none;margin-top:8px;}.gasto-row.vis{display:flex;gap:8px;align-items:center;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;width:460px;max-width:95vw;max-height:88vh;overflow-y:auto;}
+.modal h3{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);margin-bottom:1.25rem;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green-bg);border:1px solid var(--green);color:var(--green);padding:12px 20px;border-radius:var(--radius);font-size:13px;font-weight:500;z-index:300;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:2rem;color:var(--text3);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator{
+  filter:invert(1) brightness(3) !important;
+  cursor:pointer;
+  opacity:1 !important;
+  width:18px;height:18px;
+}
+input[type="date"],input[type="time"],input[type="datetime-local"]{
+  color-scheme:dark !important;
+  background:var(--bg3);
+  color:var(--text);
+}
+</style>
+</head>
+<body>
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <div class="login-brand">Casih <span>&amp;</span> Asociados</div>
+    <div class="login-sub">Sistema de gestión · Derecho laboral</div>
+    <div class="fg"><div class="fl">Email</div><input class="fi" id="login-email" type="email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="fg"><div class="fl">Contraseña</div><input class="fi" id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-primary" style="width:100%;margin-top:4px" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div id="main-app" class="app" style="display:none">
+<nav class="nav">
+  <div class="nav-brand">Casih <span>&amp;</span> Asociados</div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="goTo('dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="goTo('clientes')">Clientes</button>
+    <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
+    <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
+    <button class="nav-btn" onclick="goTo('admin')">Administración</button>
+  </div>
+  <div class="user-badge">
+    <div class="user-avatar" id="nav-avatar">--</div>
+    <span class="user-name" id="nav-username">--</span>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div class="section active" id="sec-dashboard">
+  <div class="page-title">Panel general</div>
+  <div class="page-sub" id="dash-fecha">Derecho laboral · Córdoba</div>
+  <div class="metrics" style="margin-bottom:1.5rem;grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="metric"><div class="metric-label">Eventos hoy</div><div class="metric-val" id="dm-eventos-hoy">0</div><div class="metric-sub">en agenda</div></div>
+    <div class="metric"><div class="metric-label">Clientes totales</div><div class="metric-val" id="dm-clientes">—</div><div class="metric-sub">cargados</div></div>
+    <div class="metric"><div class="metric-label">Tareas hoy</div><div class="metric-val" id="dm-tareas">—</div><div class="metric-sub">para el equipo</div></div>
+    
+  </div>
+
+  <!-- CALENDARIO FULL WIDTH -->
+  <div class="card" style="margin-bottom:16px;padding:1rem">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span>Calendario semanal</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="openModal('m-evento-rapido')" style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">+ Nuevo evento</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <span id="cal-label2" style="font-size:12px;color:var(--text3)">Conectando...</span>
+        </div>
+      </div>
+    </div>
+    <iframe
+      src="https://calendar.google.com/calendar/embed?src=casihyasociados%40gmail.com&ctz=America%2FArgentina%2FCordoba&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=WEEK&bgcolor=%23000000&color=%234A90E2"
+      style="width:100%;height:560px;border:none;border-radius:10px;display:block;"
+      frameborder="0" scrolling="no">
+    </iframe>
+  </div>
+
+  <!-- TAREAS + GASTOS FULL WIDTH 2 COLS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+    <!-- TAREAS DEL DÍA -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="margin-bottom:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span style="font-size:16px;font-weight:600;color:var(--text)">Tareas del día</span>
+          <button onclick="goTo('tareas')" style="font-size:13px;padding:8px 18px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
+        </div>
+        <div id="dash-tareas">
+          <div style="font-size:14px;color:var(--text3);padding:8px 0">Sin tareas para hoy ✓</div>
+        </div>
+      </div>
+      <!-- ACCESOS RÁPIDOS -->
+      <div class="card" style="margin-bottom:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span style="font-size:16px;font-weight:600;color:var(--text)">Accesos rápidos</span>
+          <button onclick="openModal('m-link-rapido')" style="font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">+ Agregar link</button>
+        </div>
+        <div id="links-rapidos-list"><div style="font-size:13px;color:var(--text3)">Sin accesos cargados. Usá "+ Agregar link".</div></div>
+      </div>
+    </div>
+
+    <!-- CARGAR GASTO -->
+    <div class="card" style="margin-bottom:0">
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px">Cargar gasto</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <button class="cat-btn" id="cg-servicios" onclick="selCat('servicios')" style="padding:14px;font-size:13px">💡 Servicios</button>
+        <button class="cat-btn" id="cg-oficina" onclick="selCat('oficina')" style="padding:14px;font-size:13px">🖨️ Gastos de oficina</button>
+        <button class="cat-btn" id="cg-procesales" onclick="selCat('procesales')" style="padding:14px;font-size:13px">⚖️ Gastos procesales</button>
+        <button class="cat-btn" id="cg-varios" onclick="selCat('varios')" style="padding:14px;font-size:13px">📋 Gastos varios</button>
+      </div>
+      <div class="cat-desc" id="cd-servicios"><textarea class="fta" id="ct-servicios" placeholder="Descripción del gasto..."></textarea></div>
+      <div class="cat-desc" id="cd-oficina"><textarea class="fta" id="ct-oficina" placeholder="Descripción del gasto..."></textarea></div>
+      <div class="cat-desc" id="cd-procesales"><textarea class="fta" id="ct-procesales" placeholder="Descripción del gasto..."></textarea></div>
+      <div class="cat-desc" id="cd-varios"><textarea class="fta" id="ct-varios" placeholder="Descripción del gasto..."></textarea></div>
+      <div class="gasto-row" id="gasto-row">
+        <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:14px">
+        <button class="btn-primary" onclick="guardarGasto()" style="font-size:14px;padding:9px 20px">Guardar gasto</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- HONORARIOS PENDIENTES DASHBOARD -->
+  <div class="card" style="margin-top:16px;margin-bottom:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:16px;font-weight:600;color:var(--text)">Honorarios pendientes</span>
+      <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:8px 18px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
+    </div>
+    <div id="dash-honorarios-list">
+      <div style="font-size:14px;color:var(--text3);padding:8px 0">Sin honorarios pendientes.</div>
+    </div>
+  </div>
+</div>
+<!-- CLIENTES -->
+<div class="section" id="sec-clientes">
+  <div class="page-header">
+    <div><div class="page-title">Clientes</div><div class="page-sub">Del estudio · Publicidad · Posibles</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sm" onclick="crearCarpetasClientesExistentes()" style="border-color:var(--blue);color:var(--blue)">📁 Crear carpetas Drive</button>
+      <button class="btn-primary" onclick="openModal('m-cliente')">+ Nuevo cliente</button>
+    </div>
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Total</div><div class="metric-val" id="cs-total">—</div></div>
+    <div class="metric"><div class="metric-label">Del estudio</div><div class="metric-val" style="color:var(--purple)" id="cs-est">—</div></div>
+    <div class="metric"><div class="metric-label">Publicidad</div><div class="metric-val" style="color:var(--blue)" id="cs-pub">—</div></div>
+    <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" style="color:var(--orange)" id="cs-pos">—</div></div>
+  </div>
+  <div class="tabs" id="c-tabs">
+    <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
+    <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
+    <button class="tab" onclick="setCtab('posible')">Posibles clientes</button>
+  </div>
+  <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
+  <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
+</div>
+
+<!-- TAREAS -->
+<div class="section" id="sec-tareas">
+  <div class="page-header">
+    <div><div class="page-title">Tareas</div><div class="page-sub">Panel del equipo · al completar, se borra</div></div>
+    <div style="display:flex;gap:8px"><button class="btn-sm" onclick="exportarTareasDia()" style="border-color:var(--green);color:var(--green)">📋 Exportar día</button><button class="btn-primary" onclick="openModal('m-tarea')">+ Nueva tarea</button></div>
+  </div>
+  <div class="metrics-3">
+    <div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val" id="ts-total">—</div></div>
+    <div class="metric"><div class="metric-label">Prioridad alta</div><div class="metric-val" style="color:var(--red)" id="ts-alta">—</div></div>
+    <div class="metric"><div class="metric-label">Para hoy</div><div class="metric-val" id="ts-hoy">—</div></div>
+  </div>
+  <div id="task-container"><div class="loading"><div class="spinner"></div>Cargando tareas...</div></div>
+</div>
+
+<!-- AGENDA -->
+<div class="section" id="sec-agenda">
+  <div class="page-header">
+    <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · casihyasociados@gmail.com</div></div>
+    <div id="cal-status" style="display:flex;align-items:center;gap:8px"><div id="cal-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div><span id="cal-label" style="font-size:12px;color:var(--text3)">Conectando calendario...</span></div>
+  </div>
+  <div class="agenda-layout">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Nuevo evento</div>
+      <div class="fg"><div class="fl">Tipo</div><select class="fs" id="ev-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
+      <div class="fg"><div class="fl">Título *</div><input class="fi" id="ev-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
+      <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="ev-cliente"><option value="">— Sin cliente —</option></select></div>
+      <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="ev-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="ev-hora" type="time"></div></div>
+      <div class="fg"><div class="fl">Lugar</div><input class="fi" id="ev-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
+      <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="ev-notas" placeholder="Detalles adicionales..."></textarea></div>
+      <button class="btn-primary" style="width:100%" onclick="addEvento()">Crear evento</button>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Próximos eventos</div>
+      <div id="ev-list"><div class="empty-state">Sin eventos cargados.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMINISTRACIÓN -->
+<div class="section" id="sec-admin">
+  <div id="adm-locked">
+    <div class="pin-screen">
+      <div class="pin-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#8A9BC0" stroke-width="1.5"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#8A9BC0" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#8A9BC0"/></svg></div>
+      <div class="pin-title">Administración</div>
+      <div class="pin-sub">Ingresá el PIN para acceder</div>
+      <div class="pin-dots" id="pin-dots"><div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div><div class="pin-dot" id="pd4"></div><div class="pin-dot" id="pd5"></div></div>
+      <div class="pin-pad">
+        <button class="pin-btn" onclick="addPin('1')">1</button><button class="pin-btn" onclick="addPin('2')">2</button><button class="pin-btn" onclick="addPin('3')">3</button>
+        <button class="pin-btn" onclick="addPin('4')">4</button><button class="pin-btn" onclick="addPin('5')">5</button><button class="pin-btn" onclick="addPin('6')">6</button>
+        <button class="pin-btn" onclick="addPin('7')">7</button><button class="pin-btn" onclick="addPin('8')">8</button><button class="pin-btn" onclick="addPin('9')">9</button>
+        <div></div><button class="pin-btn" onclick="addPin('0')">0</button><button class="pin-btn" style="font-size:14px;color:var(--text2)" onclick="delPin()">⌫</button>
+      </div>
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+  </div>
+  <div id="adm-unlocked" style="display:none">
+    <div class="page-header">
+      <div><div class="page-title">Administración</div><div class="page-sub">Ingresos · Gastos · Honorarios · Análisis anual</div></div>
+      <button class="btn-sm" onclick="lockAdm()">Cerrar sesión</button>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Ingresos — <span id="adm-mes-lbl">este mes</span></div><div class="metric-val" style="color:var(--green)" id="adm-ing">$0</div><div class="balance-bar"><div class="balance-fill" id="bar-ing" style="width:0%;background:var(--green)"></div></div></div>
+      <div class="metric"><div class="metric-label">Gastos — <span id="adm-mes-lbl2">este mes</span></div><div class="metric-val" style="color:var(--red)" id="adm-gas">$0</div><div class="balance-bar"><div class="balance-fill" id="bar-gas" style="width:0%;background:var(--red)"></div></div></div>
+      <div class="metric"><div class="metric-label">Resultado neto</div><div class="metric-val" id="adm-neto">$0</div><div class="metric-sub" id="adm-neto-sub">—</div></div>
+      <div class="metric"><div class="metric-label">Honorarios sin cobrar</div><div class="metric-val" style="color:var(--orange)" id="adm-honor">$0</div><div class="metric-sub" id="adm-honor-sub">—</div></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div class="tabs" style="margin-bottom:0" id="adm-tabs">
+        <button class="tab active" onclick="setAdmTab('ingresos')">Ingresos</button>
+        <button class="tab" onclick="setAdmTab('gastos')">Gastos</button>
+        <button class="tab" onclick="setAdmTab('honorarios')">Honorarios</button>
+        <button class="tab" onclick="setAdmTab('anual')">Análisis anual</button>
+      </div>
+      <select class="fs" id="adm-mes" onchange="updateAdm()" style="width:auto;padding:6px 10px;font-size:12px">
+        <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+    </div>
+    <div id="adm-ingresos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Ingresos del mes</div><button class="btn-primary" onclick="openModal('m-ingreso')">+ Agregar ingreso</button></div>
+      <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Cliente</th><th>Categoría</th><th>Monto</th><th></th></tr><tbody id="ing-table"></tbody></table></div>
+    </div>
+    <div id="adm-gastos" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Todos los gastos del mes (incluye los del dashboard)</div><button class="btn-primary" onclick="openModal('m-gasto')">+ Agregar gasto</button></div>
+      <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Cargado por</th><th>Monto</th><th></th></tr><tbody id="gas-table"></tbody></table></div>
+    </div>
+    <div id="adm-honorarios" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Registro de honorarios y estado de cobro</div><button class="btn-primary" onclick="openModal('m-honorario')">+ Registrar honorario</button></div>
+      <div class="card"><table><tr><th>Cliente</th><th>Causa</th><th>Total</th><th>Cobrado</th><th>Saldo</th><th>Estado</th><th></th></tr><tbody id="hon-table"></tbody></table></div>
+    </div>
+    <div id="adm-anual" style="display:none">
+      <div class="card"><div class="card-title">Resumen anual 2026</div><table><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th><th>Margen</th></tr><tbody id="anual-table"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end app -->
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL EVENTO RÁPIDO DASHBOARD -->
+<div class="modal-bg" id="m-evento-rapido" onclick="if(event.target===this)closeModal('m-evento-rapido')">
+  <div class="modal"><h3>Nuevo evento</h3>
+    <div class="fg"><div class="fl">Tipo</div><select class="fs" id="er-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
+    <div class="fg"><div class="fl">Título *</div><input class="fi" id="er-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="er-cliente"><option value="">— Sin cliente —</option></select></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="er-fecha" type="date"></div>
+      <div class="fg"><div class="fl">Hora</div><input class="fi" id="er-hora" type="time"></div>
+    </div>
+    <div class="fg"><div class="fl">Lugar</div><input class="fi" id="er-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="er-notas" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-evento-rapido')">Cancelar</button><button class="btn-primary" onclick="saveEventoRapido()">Guardar evento</button></div>
+  </div>
+</div>
+
+<!-- MODAL LINK RÁPIDO -->
+<div class="modal-bg" id="m-link-rapido" onclick="if(event.target===this)closeModal('m-link-rapido')">
+  <div class="modal"><h3>Agregar acceso rápido</h3>
+    <div class="fg"><div class="fl">Nombre del link *</div><input class="fi" id="lr-nombre" placeholder="Ej: Poder Judicial Córdoba"></div>
+    <div class="fg"><div class="fl">URL *</div><input class="fi" id="lr-url" placeholder="https://..."></div>
+    <div class="fg"><div class="fl">Ícono (emoji opcional)</div><input class="fi" id="lr-icon" placeholder="⚖️" style="max-width:80px"></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-link-rapido')">Cancelar</button><button class="btn-primary" onclick="saveLinkRapido()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL HONORARIO DASHBOARD -->
+<div class="modal-bg" id="m-honorario-dash" onclick="if(event.target===this)closeModal('m-honorario-dash')">
+  <div class="modal"><h3>Cargar honorario pendiente</h3>
+    <div class="fg"><div class="fl">Cliente *</div><select class="fs" id="hd-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Causa</div><input class="fi" id="hd-causa" placeholder="Ej: c/ Transporte Norte SA"></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Monto total acordado *</div><input class="fi" id="hd-total" type="number" placeholder="0"></div>
+      <div class="fg"><div class="fl">Cantidad de cuotas</div><input class="fi" id="hd-cuotas" type="number" placeholder="1" min="1"></div>
+    </div>
+    <div class="fg"><div class="fl">Monto ya cobrado</div><input class="fi" id="hd-cobrado" type="number" placeholder="0"></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha de vencimiento (opcional)</div><input class="fi" id="hd-vence" type="date"></div>
+      <div class="fg"><div class="fl">Día del mes de cobro</div><input class="fi" id="hd-dia-cobro" type="number" min="1" max="31" placeholder="Ej: 5"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-honorario-dash')">Cancelar</button><button class="btn-primary" onclick="saveHonorarioDash()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL EXPORT TAREAS -->
+<div class="modal-bg" id="m-export-tareas" onclick="if(event.target===this)closeModal('m-export-tareas')">
+  <div class="modal" style="width:520px"><h3>Reporte del día para WhatsApp</h3>
+    <textarea class="fta" id="export-preview" style="min-height:200px;font-size:13px;font-family:monospace" readonly></textarea>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('m-export-tareas')">Cerrar</button>
+      <button class="btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('export-preview').value).then(function(){showToast('Copiado ✓');})">Copiar para WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUBIR DOCUMENTO -->
+<div class="modal-bg" id="m-subir-doc" onclick="if(event.target===this)closeModal('m-subir-doc')">
+  <div class="modal"><h3>Subir documento</h3>
+    <div id="subir-doc-info" style="font-size:14px;color:var(--text2);margin-bottom:16px;padding:10px;background:var(--bg3);border-radius:8px"></div>
+    <div class="fg">
+      <div class="fl">Seleccionar archivo</div>
+      <input type="file" id="doc-file" class="fi" style="padding:6px;cursor:pointer" multiple>
+    </div>
+    <div id="upload-progress" style="display:none;margin-top:8px">
+      <div style="font-size:13px;color:var(--text2)" id="upload-status">Subiendo...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('m-subir-doc')">Cancelar</button>
+      <button class="btn-primary" onclick="confirmarSubida()">Subir a Drive</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALES -->
+<div class="modal-bg" id="m-cliente" onclick="if(event.target===this)closeModal('m-cliente')">
+  <div class="modal"><h3>Nuevo cliente</h3>
+    <div class="g2"><div class="fg"><div class="fl">Nombre *</div><input class="fi" id="cn-n" placeholder="Apellido, Nombre"></div><div class="fg"><div class="fl">Teléfono</div><input class="fi" id="cn-t" placeholder="351 6 123456"></div></div>
+    <div class="fg"><div class="fl">Tipo de cliente</div><select class="fs" id="cn-tipo"><option value="posible">Posible cliente</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
+    <div class="g2"><div class="fg"><div class="fl">Motivo</div><select class="fs" id="cn-m"><option value="Art">ART</option><option value="Despidos">Despidos</option><option value="Enfermedades profesionales">Enf. profesionales</option><option value="Accidente de trabajo">Accidente de trabajo</option><option value="Jubilacion">Jubilación</option><option value="Otro">Otro</option></select></div><div class="fg"><div class="fl">Etapa</div><select class="fs" id="cn-e"><option value="Cita">Cita</option><option value="Tramite">Trámite</option><option value="Examemes medicos">Exáms. médicos</option><option value="Telegrama">Telegrama</option></select></div></div>
+    <div class="fg"><div class="fl">N° de expediente</div><input class="fi" id="cn-exp" placeholder="Ej: 45.231/2025"></div>
+    <div class="fg"><div class="fl">Última actualización</div><input class="fi" id="cn-f" type="date"></div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar el cliente.</div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="cn-no" placeholder="Estado actual..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-tarea" onclick="if(event.target===this)closeModal('m-tarea')">
+  <div class="modal"><h3>Nueva tarea</h3>
+    <div class="fg"><div class="fl">Descripción *</div><input class="fi" id="tn-ti" placeholder="Ej: Llamar a García para confirmar audiencia"></div>
+    <div class="g2"><div class="fg"><div class="fl">Tipo</div><select class="fs" id="tn-tp"><option value="llamado">Llamado a cliente</option><option value="turno">Turno / cita</option><option value="documento">Envío de documento</option><option value="vencimiento">Control de vencimiento</option><option value="cobro">Cobro / recordatorio</option><option value="tramite">Trámite en tribunales</option></select></div><div class="fg"><div class="fl">Prioridad</div><select class="fs" id="tn-pr"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></div></div>
+    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="tn-fe" type="date"></div><div class="fg"><div class="fl">Hora (opcional)</div><input class="fi" id="tn-ho" type="time"></div></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="tn-cl"><option value="">— Sin cliente —</option></select></div>
+    <div class="fg"><div class="fl">Asignada a</div><select class="fs" id="tn-as"><option value="todos">Todo el equipo</option><option value="secretaria">Secretaría</option><option value="abogado">Abogado</option></select></div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="tn-no" placeholder="Detalles..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-tarea')">Cancelar</button><button class="btn-primary" onclick="saveTarea()">Guardar tarea</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-ingreso" onclick="if(event.target===this)closeModal('m-ingreso')">
+  <div class="modal"><h3>Agregar ingreso</h3>
+    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="in-fe" type="date"></div><div class="fg"><div class="fl">Monto *</div><input class="fi" id="in-mo" type="number" placeholder="0"></div></div>
+    <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="in-co" placeholder="Ej: Cobro honorarios García 1° cuota"></div>
+    <div class="fg"><div class="fl">Cliente</div><input class="fi" id="in-cl" placeholder="Apellido, Nombre"></div>
+    <div class="fg"><div class="fl">Categoría</div><select class="fs" id="in-cat"><option value="honorarios">Cobro de honorarios</option><option value="anticipo">Anticipo</option><option value="reintegro">Reintegro</option><option value="otro">Otro</option></select></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-ingreso')">Cancelar</button><button class="btn-primary" onclick="saveIngreso()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-gasto" onclick="if(event.target===this)closeModal('m-gasto')">
+  <div class="modal"><h3>Agregar gasto</h3>
+    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="ga-fe" type="date"></div><div class="fg"><div class="fl">Monto *</div><input class="fi" id="ga-mo" type="number" placeholder="0"></div></div>
+    <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="ga-co" placeholder="Ej: Alquiler oficina"></div>
+    <div class="fg"><div class="fl">Categoría</div><select class="fs" id="ga-cat"><option value="servicios">Servicios</option><option value="oficina">Gastos de oficina</option><option value="procesales">Gastos procesales</option><option value="varios">Gastos varios</option><option value="fijo">Fijo (alquiler, sueldos)</option><option value="impuesto">Impuestos</option></select></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-gasto')">Cancelar</button><button class="btn-primary" onclick="saveGasto()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-honorario" onclick="if(event.target===this)closeModal('m-honorario')">
+  <div class="modal"><h3>Registrar honorario</h3>
+    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="ho-cl" placeholder="Apellido, Nombre"></div>
+    <div class="fg"><div class="fl">Causa</div><input class="fi" id="ho-ca" placeholder="Ej: c/ Transporte Norte SA"></div>
+    <div class="g2"><div class="fg"><div class="fl">Monto total acordado *</div><input class="fi" id="ho-to" type="number" placeholder="0"></div><div class="fg"><div class="fl">Monto ya cobrado</div><input class="fi" id="ho-co" type="number" placeholder="0"></div></div>
+    <div class="fg"><div class="fl">Estado</div><select class="fs" id="ho-es"><option value="pendiente">Pendiente</option><option value="parcial">Cobrado parcialmente</option><option value="cobrado">Cobrado total</option></select></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-honorario')">Cancelar</button><button class="btn-primary" onclick="saveHonorario()">Guardar</button></div>
+  </div>
+</div>
+
+<script>
+// ─── FIREBASE CONFIG ───
+const firebaseConfig = {
+  apiKey: "AIzaSyAJgmhuG2v6Bnun37mgqLUA0f0KLdcnvY8",
+  authDomain: "sistemacasih.firebaseapp.com",
+  projectId: "sistemacasih",
+  storageBucket: "sistemacasih.firebasestorage.app",
+  messagingSenderId: "1052384245593",
+  appId: "1:1052384245593:web:404c936023498e60ef3e48"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ─── USUARIOS AUTORIZADOS (nombres para mostrar) ───
+const USUARIOS = {
+  'juancruz@casih.com': {nombre:'Juan Cruz', rol:'admin'},
+  'casih@casih.com': {nombre:'Dr. Casih', rol:'admin'},
+  'secretaria1@casih.com': {nombre:'Secretaría 1', rol:'secretaria'},
+  'secretaria2@casih.com': {nombre:'Secretaría 2', rol:'secretaria'},
+  'secretaria3@casih.com': {nombre:'Secretaría 3', rol:'secretaria'},
+  'secretaria4@casih.com': {nombre:'Secretaría 4', rol:'secretaria'},
+};
+
+let currentUser = null;
+let currentUserData = null;
+
+// ─── AUTH ───
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    currentUser = user;
+    currentUserData = USUARIOS[user.email] || {nombre: user.email, rol: 'secretaria'};
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'flex';
+    var initials = currentUserData.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('nav-username').textContent = currentUserData.nombre;
+    initApp();
+  } else {
+    currentUser = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+  }
+});
+
+function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pass = document.getElementById('login-pass').value;
+  document.getElementById('login-error').textContent = '';
+  if (!email || !pass) { document.getElementById('login-error').textContent = 'Completá email y contraseña.'; return; }
+  auth.signInWithEmailAndPassword(email, pass).catch(function(e) {
+    document.getElementById('login-error').textContent = 'Email o contraseña incorrectos.';
+  });
+}
+
+function doLogout() {
+  auth.signOut();
+}
+
+// ─── UTILS ───
+var today = new Date(); today.setHours(0,0,0,0);
+function fmt(d){var x=new Date(d);return x.getFullYear()+'-'+p2(x.getMonth()+1)+'-'+p2(x.getDate());}
+function p2(n){return n<10?'0'+n:''+n;}
+function addD(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function fmtDisp(f){if(!f)return '';var d=new Date(f+'T00:00:00'),diff=Math.round((d-today)/864e5);if(diff===0)return 'Hoy';if(diff===1)return 'Mañana';if(diff<0)return 'Hace '+Math.abs(diff)+' días';return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});}
+function fmtARS(n){return '$'+Math.round(n).toLocaleString('es-AR');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(function(){t.className='toast';},2500);}
+function openModal(id){document.getElementById(id).className='modal-bg open';}
+function closeModal(id){document.getElementById(id).className='modal-bg';}
+
+// ─── NAV ───
+function goTo(s){
+  document.querySelectorAll('.section').forEach(function(x){x.className='section';});
+  document.getElementById('sec-'+s).className='section active';
+  ['dashboard','clientes','tareas','agenda','admin'].forEach(function(n,i){
+    document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
+  });
+  if(s==='clientes')renderClientes();
+  if(s==='tareas')renderTareas();
+  if(s==='agenda')renderEventos();
+  if(s==='dashboard'){renderDashTareas();renderDashEventos();}
+}
+
+// ─── FECHA ───
+function setFecha(){
+  var d=new Date();
+  var dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var str=dias[d.getDay()]+' '+d.getDate()+' de '+meses[d.getMonth()]+', '+d.getFullYear();
+  document.getElementById('dash-fecha').textContent='Derecho laboral · Córdoba · '+str;
+  var mesActual=p2(d.getMonth()+1);
+  var sel=document.getElementById('adm-mes');
+  if(sel)sel.value=mesActual;
+}
+
+// ─── GASTO RÁPIDO ───
+var curCat=null;
+function selCat(cat){
+  ['servicios','oficina','procesales','varios'].forEach(function(c){
+    document.getElementById('cg-'+c).className='cat-btn'+(c===cat?' sel':'');
+    document.getElementById('cd-'+c).className='cat-desc'+(c===cat?' vis':'');
+  });
+  curCat=cat;
+  document.getElementById('gasto-row').className='gasto-row vis';
+}
+function guardarGasto(){
+  if(!curCat)return;
+  var monto=parseFloat(document.getElementById('gasto-monto').value);
+  var detalle=document.getElementById('gasto-desc').value.trim();
+  var catDesc=document.getElementById('ct-'+curCat).value.trim();
+  var concepto=detalle||(catDesc||({servicios:'Servicios',oficina:'Gastos de oficina',procesales:'Gastos procesales',varios:'Gastos varios'}[curCat]));
+  if(!monto){alert('Ingresá el monto.');return;}
+  db.collection('gastos').add({
+    fecha:fmt(today),concepto:concepto,cat:curCat,
+    cargadoPor:currentUserData.nombre,monto:monto,
+    mes:p2(today.getMonth()+1),
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    document.getElementById('ct-'+curCat).value='';
+    document.getElementById('gasto-monto').value='';
+    document.getElementById('gasto-desc').value='';
+    ['servicios','oficina','procesales','varios'].forEach(function(cat){
+      document.getElementById('cg-'+cat).className='cat-btn';
+      document.getElementById('cd-'+cat).className='cat-desc';
+    });
+    document.getElementById('gasto-row').className='gasto-row';
+    curCat=null;
+    showToast('Gasto registrado correctamente ✓');
+  });
+}
+
+// ─── PIN ───
+var pinVal='';
+function addPin(d){if(pinVal.length>=6)return;pinVal+=d;updDots();if(pinVal.length===6)setTimeout(checkPin,200);}
+function delPin(){pinVal=pinVal.slice(0,-1);updDots(false);document.getElementById('pin-error').textContent='';}
+function updDots(err){for(var i=0;i<6;i++){var dot=document.getElementById('pd'+i);dot.className='pin-dot'+(err===true?' error':i<pinVal.length?' filled':'');}}
+function checkPin(){
+  if(pinVal==='230999'){
+    document.getElementById('adm-locked').style.display='none';
+    document.getElementById('adm-unlocked').style.display='block';
+    pinVal='';updDots();updateAdm();
+  } else {
+    updDots(true);document.getElementById('pin-error').textContent='PIN incorrecto.';
+    setTimeout(function(){pinVal='';updDots();document.getElementById('pin-error').textContent='';},1200);
+  }
+}
+function lockAdm(){document.getElementById('adm-locked').style.display='block';document.getElementById('adm-unlocked').style.display='none';pinVal='';updDots();}
+
+// ─── ADMINISTRACIÓN (Firestore) ───
+var mesesNombre={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
+var catLbl={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',varios:'Varios',fijo:'Fijo',impuesto:'Impuesto',honorarios:'Honorarios',anticipo:'Anticipo',reintegro:'Reintegro',otro:'Otro'};
+var catCls={servicios:'b-blue',oficina:'b-purple',procesales:'b-orange',varios:'b-gray',fijo:'b-blue',impuesto:'b-red',honorarios:'b-green',anticipo:'b-green'};
+
+function setAdmTab(t){
+  ['ingresos','gastos','honorarios','anual'].forEach(function(x){document.getElementById('adm-'+x).style.display=x===t?'block':'none';});
+  document.querySelectorAll('#adm-tabs .tab').forEach(function(b,i){b.className='tab'+(['ingresos','gastos','honorarios','anual'][i]===t?' active':'');});
+  if(t==='anual')renderAnual();
+}
+
+function updateAdm(){
+  var mes=document.getElementById('adm-mes').value;
+  var lbl=mesesNombre[mes]+' 2026';
+  document.getElementById('adm-mes-lbl').textContent=lbl;
+  document.getElementById('adm-mes-lbl2').textContent=lbl;
+  // Ingresos del mes
+  db.collection('ingresos').where('mes','==',mes).get().then(function(snap){
+    var ing=0,list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);ing+=x.monto||0;});
+    document.getElementById('adm-ing').textContent=fmtARS(ing);
+    renderIngTable(list);
+    // Gastos
+    db.collection('gastos').where('mes','==',mes).get().then(function(snap2){
+      var gas=0,list2=[];
+      snap2.forEach(function(d){var x=d.data();x.id=d.id;list2.push(x);gas+=x.monto||0;});
+      document.getElementById('adm-gas').textContent=fmtARS(gas);
+      var neto=ing-gas;
+      document.getElementById('adm-neto').textContent=fmtARS(neto);
+      document.getElementById('adm-neto').style.color=neto>=0?'var(--green)':'var(--red)';
+      document.getElementById('adm-neto-sub').textContent=neto>=0?'superávit':'déficit';
+      var max=Math.max(ing,gas,1);
+      document.getElementById('bar-ing').style.width=Math.round(ing/max*100)+'%';
+      document.getElementById('bar-gas').style.width=Math.round(gas/max*100)+'%';
+      renderGasTable(list2);
+    });
+  });
+  // Honorarios
+  db.collection('honorarios').get().then(function(snap){
+    var ph=0,pc=0,list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);if(x.estado!=='cobrado'){ph+=((x.total||0)-(x.cobrado||0));pc++;}});
+    document.getElementById('adm-honor').textContent=fmtARS(ph);
+    document.getElementById('adm-honor-sub').textContent=pc+' causas sin cobrar';
+    renderHonTable(list);
+  });
+}
+
+function renderIngTable(list){
+  document.getElementById('ing-table').innerHTML=list.length===0?'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:1.5rem">Sin ingresos este mes.</td></tr>':
+    list.map(function(i){return '<tr><td>'+(i.fecha||'').slice(8)+'/'+(i.fecha||'').slice(5,7)+'</td><td>'+i.concepto+'</td><td style="color:var(--text3)">'+(i.cliente||'')+'</td><td><span class="badge '+(catCls[i.cat]||'b-gray')+'">'+(catLbl[i.cat]||i.cat)+'</span></td><td style="color:var(--green);font-weight:600">'+fmtARS(i.monto)+'</td><td><button class="btn-danger" onclick="delDoc(\'ingresos\',\''+i.id+'\')">✕</button></td></tr>';}).join('');
+}
+function renderGasTable(list){
+  document.getElementById('gas-table').innerHTML=list.length===0?'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:1.5rem">Sin gastos este mes.</td></tr>':
+    list.map(function(g){return '<tr><td>'+(g.fecha||'').slice(8)+'/'+(g.fecha||'').slice(5,7)+'</td><td>'+g.concepto+'</td><td><span class="badge '+(catCls[g.cat]||'b-gray')+'">'+(catLbl[g.cat]||g.cat)+'</span></td><td style="color:var(--text3)">'+(g.cargadoPor||'Administración')+'</td><td style="color:var(--red);font-weight:600">'+fmtARS(g.monto)+'</td><td><button class="btn-danger" onclick="delDoc(\'gastos\',\''+g.id+'\')">✕</button></td></tr>';}).join('');
+}
+function renderHonTable(list){
+  var eCls={pendiente:'b-red',parcial:'b-orange',cobrado:'b-green'};
+  var eLbl={pendiente:'Pendiente',parcial:'Parcial',cobrado:'Cobrado'};
+  document.getElementById('hon-table').innerHTML=!list||list.length===0?'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:1.5rem">Sin honorarios registrados.</td></tr>':
+    list.map(function(h){return '<tr><td>'+h.cliente+'</td><td style="color:var(--text3)">'+(h.causa||'')+'</td><td>'+fmtARS(h.total||0)+'</td><td style="color:var(--green)">'+fmtARS(h.cobrado||0)+'</td><td style="color:var(--orange);font-weight:600">'+fmtARS((h.total||0)-(h.cobrado||0))+'</td><td><span class="badge '+(eCls[h.estado]||'b-gray')+'">'+(eLbl[h.estado]||h.estado)+'</span></td><td><button class="btn-danger" onclick="delDoc(\'honorarios\',\''+h.id+'\')">✕</button></td></tr>';}).join('');
+}
+function renderAnual(){
+  var meses=['01','02','03','04','05','06','07','08','09','10','11','12'];
+  var ingData={},gasData={};
+  var promises=[
+    db.collection('ingresos').get().then(function(s){s.forEach(function(d){var x=d.data();ingData[x.mes]=(ingData[x.mes]||0)+(x.monto||0);});}),
+    db.collection('gastos').get().then(function(s){s.forEach(function(d){var x=d.data();gasData[x.mes]=(gasData[x.mes]||0)+(x.monto||0);});})
+  ];
+  Promise.all(promises).then(function(){
+    var rows='',tI=0,tG=0;
+    meses.forEach(function(m){
+      var ing=ingData[m]||0,gas=gasData[m]||0;
+      if(ing===0&&gas===0)return;
+      var n=ing-gas;tI+=ing;tG+=gas;
+      var mg=ing>0?Math.round(n/ing*100):0;
+      rows+='<tr><td>'+mesesNombre[m]+'</td><td style="color:var(--green)">'+fmtARS(ing)+'</td><td style="color:var(--red)">'+fmtARS(gas)+'</td><td style="color:'+(n>=0?'var(--green)':'var(--red)')+';font-weight:600">'+fmtARS(n)+'</td><td><span class="badge '+(mg>=0?'b-green':'b-red')+'">'+mg+'%</span></td></tr>';
+    });
+    if(!rows)rows='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:1.5rem">Sin datos aún.</td></tr>';
+    else{var tn=tI-tG,tm=tI>0?Math.round(tn/tI*100):0;rows+='<tr style="border-top:2px solid var(--border2)"><td style="font-weight:600">Total 2026</td><td style="color:var(--green);font-weight:600">'+fmtARS(tI)+'</td><td style="color:var(--red);font-weight:600">'+fmtARS(tG)+'</td><td style="color:'+(tn>=0?'var(--green)':'var(--red)')+';font-weight:600">'+fmtARS(tn)+'</td><td><span class="badge '+(tm>=0?'b-green':'b-red')+'">'+tm+'%</span></td></tr>';}
+    document.getElementById('anual-table').innerHTML=rows;
+  });
+}
+
+function saveIngreso(){
+  var co=document.getElementById('in-co').value.trim(),mo=parseFloat(document.getElementById('in-mo').value);
+  if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
+  var fe=document.getElementById('in-fe').value;
+  db.collection('ingresos').add({fecha:fe,concepto:co,cliente:document.getElementById('in-cl').value.trim(),cat:document.getElementById('in-cat').value,monto:mo,mes:fe.slice(5,7),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-ingreso');updateAdm();showToast('Ingreso guardado ✓');});
+}
+function saveGasto(){
+  var co=document.getElementById('ga-co').value.trim(),mo=parseFloat(document.getElementById('ga-mo').value);
+  if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
+  var fe=document.getElementById('ga-fe').value;
+  db.collection('gastos').add({fecha:fe,concepto:co,cat:document.getElementById('ga-cat').value,cargadoPor:currentUserData.nombre,monto:mo,mes:fe.slice(5,7),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-gasto');updateAdm();showToast('Gasto guardado ✓');});
+}
+function saveHonorario(){
+  var cl=document.getElementById('ho-cl').value.trim(),to=parseFloat(document.getElementById('ho-to').value)||0;
+  if(!cl||!to){alert('Cliente y monto total obligatorios.');return;}
+  db.collection('honorarios').add({cliente:cl,causa:document.getElementById('ho-ca').value.trim(),total:to,cobrado:parseFloat(document.getElementById('ho-co').value)||0,estado:document.getElementById('ho-es').value,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-honorario');updateAdm();showToast('Honorario registrado ✓');});
+}
+function delDoc(col,id){if(!confirm('¿Eliminar?'))return;db.collection(col).doc(id).delete().then(function(){updateAdm();showToast('Eliminado ✓');});}
+
+// ─── CLIENTES (Firestore, tiempo real) ───
+var curCtab='estudio';
+var CLIENTES_CACHE=[];
+var mLbl={Art:'ART',Despidos:'Despidos','Enfermedades profesionales':'Enf. profesional','Accidente de trabajo':'Accidente trabajo',Jubilacion:'Jubilación',Otro:'Otro'};
+var eLbl={Tramite:'Trámite',Cita:'Cita','Examemes medicos':'Exáms. médicos',Telegrama:'Telegrama'};
+var eCls={Tramite:'b-blue',Cita:'b-orange','Examemes medicos':'b-red',Telegrama:'b-gray'};
+function ini(n){var p=n.trim().split(' ');return p.length===1?p[0][0].toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase();}
+
+function initClientes(){
+  // Try ordered query first, fallback to unordered if index missing
+  function startListener(ordered){
+    var query = ordered
+      ? db.collection('clientes').orderBy('creadoEn','desc')
+      : db.collection('clientes');
+    query.onSnapshot(function(snap){
+      CLIENTES_CACHE=[];
+      snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_CACHE.push(x);});
+      updCStats();
+      renderClientes();
+      updateClienteSelects();
+      renderDashTareas();
+    }, function(err){
+      console.warn('Clientes listener error:', err.code, err.message);
+      if(ordered && err.code==='failed-precondition'){
+        // Index not ready, try without ordering
+        startListener(false);
+      }
+    });
+  }
+  startListener(true);
+}
+
+function updCStats(){
+  document.getElementById('cs-total').textContent=CLIENTES_CACHE.length;
+  document.getElementById('cs-est').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='estudio';}).length;
+  document.getElementById('cs-pub').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='publicidad';}).length;
+  document.getElementById('cs-pos').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='posible';}).length;
+  document.getElementById('dm-clientes').textContent=CLIENTES_CACHE.length;
+}
+
+function updateClienteSelects(){
+  var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
+  ['ev-cliente','tn-cl','er-cliente','hd-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
+}
+
+function setCtab(t){
+  curCtab=t;
+  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible'][i]===t?' active':'');});
+  renderClientes();
+}
+
+function renderClientes(){
+  var list=CLIENTES_CACHE.filter(function(c){return c.tipo===curCtab;});
+  var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
+  if(list.length===0){gr.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  gr.innerHTML=list.map(function(c){
+    var avCls=c.tipo==='estudio'?'av-purple':c.tipo==='publicidad'?'av-blue':'av-orange';
+    var refTag=c.ref==='si'?'<span class="badge b-green" style="font-size:9px;margin-right:3px">Referido</span>':'';
+    var cvBtns=c.tipo==='posible'?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button><button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button><button class="btn-sm" onclick="agendarCita(\''+c.id+'\',\''+c.nombre+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📅 Cita</button>':'';
+    var driveBtn=c.drive?
+  '<a href="'+c.drive+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 10px;border:1px solid var(--blue-bg);border-radius:6px;font-weight:500">📁 Drive</a>'+
+  '<button onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+c.nombre+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">⬆ Subir doc</button>'
+  :'<span style="font-size:10px;color:var(--text3);font-style:italic">Carpeta Drive pendiente</span>';
+    return '<div class="client-card '+c.tipo+'">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+refTag+(mLbl[c.motivo]||c.motivo)+'</div></div></div>'+
+      '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa)+'</span><span style="font-size:11px;color:var(--text3)">'+c.tel+'</span></div>'+
+      (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
+      '<div class="cc-footer"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+driveBtn+'<button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button><button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
+    '</div>';
+  }).join('');
+}
+
+
+// ─── GOOGLE DRIVE ───
+var DRIVE_CLIENTES_FOLDER_ID = null; // ID of main "Clientes" folder
+
+function getDriveClientesFolder(callback){
+  // Use the specific shared folder provided
+  DRIVE_CLIENTES_FOLDER_ID = '1iq0JtjmUCaztwvKhzrS_BVIce2JYqFHZ';
+  callback(DRIVE_CLIENTES_FOLDER_ID);
+}
+
+function _doCrearCarpeta(nombreCliente, callback){
+  getDriveClientesFolder(function(parentId){
+    if(!parentId){if(callback)callback(null,null);return;}
+    // Check if folder already exists
+    gapi.client.drive.files.list({
+      q:"name='"+nombreCliente+"' and '"+parentId+"' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
+      fields:'files(id,webViewLink)'
+    }).then(function(resp){
+      if(resp.result.files&&resp.result.files.length>0){
+        // Already exists
+        callback(resp.result.files[0].id, resp.result.files[0].webViewLink);
+      } else {
+        // Create new
+        gapi.client.drive.files.create({
+          resource:{name:nombreCliente,mimeType:'application/vnd.google-apps.folder',parents:[parentId]},
+          fields:'id,webViewLink'
+        }).then(function(r){
+          callback(r.result.id, r.result.webViewLink);
+        }).catch(function(e){console.warn('Create folder error:',e);callback(null,null);});
+      }
+    }).catch(function(e){console.warn('List folder error:',e);callback(null,null);});
+  });
+}
+
+function crearCarpetaCliente(nombreCliente, callback){
+  if(calConnected && gapi.client.getToken()){
+    _doCrearCarpeta(nombreCliente, callback);
+  } else {
+    // Connect first, then create
+    gapi.load('client',function(){
+      gapi.client.init({
+        apiKey:API_KEY,
+        discoveryDocs:[
+          'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+          'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+        ]
+      }).then(function(){
+        var tc=google.accounts.oauth2.initTokenClient({
+          client_id:CLIENT_ID,scope:SCOPES,
+          callback:function(resp){
+            if(resp.error){if(callback)callback(null,null);return;}
+            calConnected=true;setCalStatus(true);
+            _doCrearCarpeta(nombreCliente, callback);
+          }
+        });
+        tc.requestAccessToken({prompt:''});
+      }).catch(function(){if(callback)callback(null,null);});
+    });
+  }
+}
+
+// Create Drive folders for all existing clients that don't have one
+function crearCarpetasClientesExistentes(){
+  var sinCarpeta = CLIENTES_CACHE.filter(function(cl){return !cl.driveFolderId;});
+  if(sinCarpeta.length===0){showToast('Todos los clientes ya tienen carpeta Drive ✓');return;}
+  showToast('Creando '+sinCarpeta.length+' carpetas en Drive...');
+  var done=0;
+  function procesarSiguiente(i){
+    if(i>=sinCarpeta.length){
+      showToast('✓ '+done+' carpetas creadas en Drive');
+      return;
+    }
+    var cl=sinCarpeta[i];
+    _doCrearCarpeta(cl.nombre, function(folderId, folderLink){
+      if(folderId){
+        db.collection('clientes').doc(cl.id).update({
+          drive:folderLink,
+          driveFolderId:folderId
+        });
+        done++;
+      }
+      setTimeout(function(){procesarSiguiente(i+1);}, 500); // Rate limit
+    });
+  }
+  procesarSiguiente(0);
+}
+
+function subirArchivoADrive(file, folderId, clienteNombre, onSuccess, onError){
+  var metadata={name:file.name,parents:[folderId]};
+  var form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
+  form.append('file',file);
+  var token=gapi.client.getToken();
+  fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token.access_token},
+    body:form
+  }).then(function(r){return r.json();}).then(function(data){
+    if(onSuccess)onSuccess(data);
+  }).catch(function(e){if(onError)onError(e);});
+}
+
+function eliminarCliente(id){
+  if(!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.'))return;
+  db.collection('clientes').doc(id).delete().then(function(){showToast('Cliente eliminado ✓');});
+}
+
+function agendarCita(id,nombre){
+  document.getElementById('er-tipo').value='cita';
+  document.getElementById('er-titulo').value='Cita — '+nombre;
+  // Pre-fill cliente
+  setTimeout(function(){
+    var sel=document.getElementById('er-cliente');
+    if(sel){for(var i=0;i<sel.options.length;i++){if(sel.options[i].text===nombre){sel.selectedIndex=i;break;}}}
+  },100);
+  openModal('m-evento-rapido');
+}
+
+function convC(id,t){
+  db.collection('clientes').doc(id).update({tipo:t}).then(function(){showToast('Cliente actualizado ✓');});
+}
+
+function saveCliente(){
+  var n=document.getElementById('cn-n').value.trim();
+  if(!n){alert('El nombre es obligatorio.');return;}
+  var data={
+    nombre:n,tel:document.getElementById('cn-t').value.trim(),
+    tipo:document.getElementById('cn-tipo').value,
+    motivo:document.getElementById('cn-m').value,
+    etapa:document.getElementById('cn-e').value,
+    fecha:document.getElementById('cn-f').value,
+    notas:document.getElementById('cn-no').value.trim(),
+    expte:document.getElementById('cn-exp').value.trim(),
+    drive:'',driveFolderId:'',
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  // Save to Firestore first
+  db.collection('clientes').add(data).then(function(docRef){
+    closeModal('m-cliente');
+    showToast('Cliente guardado ✓');
+    // Create Drive folder (connects OAuth if needed)
+    crearCarpetaCliente(n, function(folderId, folderLink){
+      if(folderId&&folderLink){
+        docRef.update({drive:folderLink, driveFolderId:folderId});
+        showToast('✓ Cliente guardado y carpeta Drive creada');
+      } else {
+        showToast('Cliente guardado — carpeta Drive se creará al conectar Google');
+      }
+    });
+  });
+}
+
+function editCliente(id){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
+  if(!c)return;
+  document.getElementById('cn-n').value=c.nombre||'';
+  document.getElementById('cn-t').value=c.tel||'';
+  document.getElementById('cn-tipo').value=c.tipo||'posible';
+  document.getElementById('cn-ref').value=c.ref||'no';
+  document.getElementById('cn-m').value=c.motivo||'Art';
+  document.getElementById('cn-e').value=c.etapa||'Cita';
+  document.getElementById('cn-f').value=c.fecha||'';
+  document.getElementById('cn-no').value=c.notas||'';
+  // drive link is auto-generated
+  document.getElementById('cn-exp').value=c.expte||'';
+  // Override save to update instead of add
+  document.querySelector('#m-cliente .btn-primary').onclick=function(){
+    var n=document.getElementById('cn-n').value.trim();
+    if(!n){alert('El nombre es obligatorio.');return;}
+    var data={nombre:n,tel:document.getElementById('cn-t').value.trim(),tipo:document.getElementById('cn-tipo').value,motivo:document.getElementById('cn-m').value,etapa:document.getElementById('cn-e').value,fecha:document.getElementById('cn-f').value,notas:document.getElementById('cn-no').value.trim(),drive:'',expte:document.getElementById('cn-exp').value.trim()};
+    db.collection('clientes').doc(id).update(data).then(function(){
+      closeModal('m-cliente');showToast('Cliente actualizado ✓');
+      document.querySelector('#m-cliente .btn-primary').onclick=saveCliente;
+      // Create Drive folder if doesn't exist
+      var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
+      if(!existing||!existing.driveFolderId){
+        crearCarpetaCliente(data.nombre,function(folderId,folderLink){
+          if(folderId)db.collection('clientes').doc(id).update({drive:folderLink,driveFolderId:folderId});
+        });
+      }
+    });
+  };
+  openModal('m-cliente');
+}
+
+// ─── TAREAS (Firestore, tiempo real) ───
+var TAREAS_CACHE=[];
+var tTipoLbl={llamado:'Llamado',turno:'Turno/cita',documento:'Envío doc',vencimiento:'Vencimiento',cobro:'Cobro',tramite:'Trámite'};
+var tTipoCls={llamado:'b-blue',turno:'b-orange',documento:'b-purple',vencimiento:'b-red',cobro:'b-green',tramite:'b-gray'};
+var pCls={alta:'b-red',media:'b-orange',baja:'b-green'};
+var pLbl={alta:'Alta',media:'Media',baja:'Baja'};
+var aLbl={todos:'Todo el equipo',secretaria:'Secretaría',abogado:'Abogado'};
+
+function initTareas(){
+  db.collection('tareas').orderBy('fecha').onSnapshot(function(snap){
+    TAREAS_CACHE=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;TAREAS_CACHE.push(x);});
+    updTStats();
+    renderTareas();
+    renderDashTareas();
+  });
+}
+
+function updTStats(){
+  var ts=fmt(today);
+  document.getElementById('ts-total').textContent=TAREAS_CACHE.length;
+  document.getElementById('ts-alta').textContent=TAREAS_CACHE.filter(function(t){return t.prio==='alta';}).length;
+  document.getElementById('ts-hoy').textContent=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).length;
+  document.getElementById('dm-tareas').textContent=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).length;
+}
+
+function renderDashTareas(){
+  var ts=fmt(today);
+  var list=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).slice(0,5);
+  document.getElementById('dash-tareas').innerHTML=list.length===0?'<div style="font-size:12px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>':
+    list.map(function(t){return '<div class="row-item"><div class="row-info"><div class="row-name">'+t.titulo+'</div><div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+aLbl[t.asig]+'</div></div><span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span></div>';}).join('');
+}
+
+function renderTareas(){
+  var list=[...TAREAS_CACHE].sort(function(a,b){var po={alta:0,media:1,baja:2};return a.fecha!==b.fecha?a.fecha>b.fecha?1:-1:po[a.prio]-po[b.prio];});
+  if(list.length===0){document.getElementById('task-container').innerHTML='<div class="empty-state">Sin tareas pendientes ✓<br><br>Usá el botón para agregar.</div>';return;}
+  var groups={};list.forEach(function(t){if(!groups[t.fecha])groups[t.fecha]=[];groups[t.fecha].push(t);});
+  var html='';Object.keys(groups).sort().forEach(function(d){
+    html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
+    groups[d].forEach(function(t){
+      html+='<div class="task-item" id="ti-'+t.id+'">'+
+        '<div class="task-body"><div class="task-title">'+t.titulo+'</div>'+
+        '<div class="task-meta"><span class="badge '+tTipoCls[t.tipo]+'">'+tTipoLbl[t.tipo]+'</span><span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+        '<span class="badge b-gray">'+aLbl[t.asig]+'</span>'+
+        (t.hora?'<span style="font-size:11px;color:var(--text3)">'+t.hora+'hs</span>':'')+
+        (t.cliente?'<span style="font-size:11px;color:var(--text3)">· '+t.cliente+'</span>':'')+
+        '</div>'+(t.notas?'<div class="task-detail">'+t.notas+'</div>':'')+
+        '</div><div class="task-right">'+
+        '<button class="btn-done" onclick="markDone(\''+t.id+'\')">Realizada ✓</button>'+
+        '<span style="font-size:10px;color:var(--text3)">'+t.cargadoPor+'</span>'+
+        '</div></div>';
+    });
+  });
+  document.getElementById('task-container').innerHTML=html;
+}
+
+function markDone(id){
+  var el=document.getElementById('ti-'+id);
+  var tarea=TAREAS_CACHE.find(function(t){return t.id===id;});
+  if(el){
+    el.style.opacity='0';el.style.transform='translateX(30px)';
+    setTimeout(function(){
+      // Save to completadas before deleting
+      if(tarea){
+        db.collection('tareas_completadas').add({
+          titulo:tarea.titulo,tipo:tarea.tipo,prio:tarea.prio,
+          cliente:tarea.cliente||'',asig:tarea.asig,
+          completadaPor:currentUserData?currentUserData.nombre:'',
+          fecha:fmt(today),
+          completadaEn:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      db.collection('tareas').doc(id).delete();
+    },300);
+  }
+}
+
+function saveTarea(){
+  var ti=document.getElementById('tn-ti').value.trim();
+  if(!ti){alert('La descripción es obligatoria.');return;}
+  db.collection('tareas').add({
+    titulo:ti,tipo:document.getElementById('tn-tp').value,prio:document.getElementById('tn-pr').value,
+    fecha:document.getElementById('tn-fe').value,hora:document.getElementById('tn-ho').value,
+    cliente:document.getElementById('tn-cl').value,asig:document.getElementById('tn-as').value,
+    notas:document.getElementById('tn-no').value.trim(),
+    cargadoPor:currentUserData.nombre,
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){closeModal('m-tarea');showToast('Tarea guardada ✓');});
+}
+
+// ─── AGENDA / GOOGLE CALENDAR ───
+var CLIENT_ID='342772557582-tobtb9701tpkc0hro0tj153svp0a96vm.apps.googleusercontent.com';
+var API_KEY='AIzaSyDrX1K5vTEPyt121qiWoYUWxi0u2N2MEy8';
+var CALENDAR_ID='casihyasociados@gmail.com';
+var SCOPES='https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.file';
+var calConnected=false;
+var tokenClient;
+var EVENTOS_CACHE=[];
+var evColors={audiencia:'#E25454',cita:'#4A90E2',vencimiento:'#F5A623',reunion:'#9B7FE8'};
+var evLabels={audiencia:'Audiencia',cita:'Cita',vencimiento:'Vencimiento',reunion:'Reunión'};
+var evBadges={audiencia:'b-red',cita:'b-blue',vencimiento:'b-orange',reunion:'b-purple'};
+
+function initCalendar(){
+  // Init Firestore listener for eventos
+  db.collection('eventos').orderBy('fecha').onSnapshot(function(snap){
+    EVENTOS_CACHE=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;EVENTOS_CACHE.push(x);});
+    renderEventos();
+    renderDashEventos();
+    document.getElementById('dm-eventos').textContent=EVENTOS_CACHE.filter(function(e){
+      var ts=fmt(today),weekEnd=fmt(addD(today,7));
+      return e.fecha>=ts&&e.fecha<=weekEnd;
+    }).length;
+    // Populate cliente selects in evento modals
+    var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
+    ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  });
+  // Connect Google Calendar API
+  gapi.load('client',function(){
+    gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
+      tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:CLIENT_ID,scope:SCOPES,
+        prompt:'',
+        callback:function(resp){
+          if(resp.error){setCalStatus(false);return;}
+          calConnected=true;
+          setCalStatus(true);
+        }
+      });
+      tokenClient.requestAccessToken({prompt:''});
+    }).catch(function(){setCalStatus(false);});
+  });
+}
+
+function setCalStatus(connected){
+  ['cal-dot','cal-dot2'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.background=connected?'var(--green)':'var(--orange)';});
+  ['cal-label','cal-label2'].forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    el.style.color=connected?'var(--green)':'var(--orange)';
+    el.textContent=connected?'Google Calendar conectado':'Calendar desconectado';
+  });
+  if(connected){
+    // Auto-create Drive folders for clients that don't have one (silently)
+    setTimeout(function(){
+      if(CLIENTES_CACHE&&CLIENTES_CACHE.length>0){
+        var sinCarpeta=CLIENTES_CACHE.filter(function(cl){return !cl.driveFolderId;});
+        if(sinCarpeta.length>0){
+          console.log('Auto-creating '+sinCarpeta.length+' Drive folders...');
+          var i=0;
+          function next(){
+            if(i>=sinCarpeta.length)return;
+            var cl=sinCarpeta[i++];
+            _doCrearCarpeta(cl.nombre,function(folderId,folderLink){
+              if(folderId)db.collection('clientes').doc(cl.id).update({drive:folderLink,driveFolderId:folderId});
+              setTimeout(next,600);
+            });
+          }
+          next();
+        }
+      }
+    },2000);
+  }
+}
+
+function toggleCal(){initCalendar();}
+
+// loadCalendarEvents replaced by Firestore listener in initCalendar
+
+function guardarEvento(tipo,titulo,cliente,fecha,hora,lugar,notas,callback){
+  if(!titulo){alert('El título es obligatorio.');return;}
+  var data={tipo:tipo,titulo:titulo,cliente:cliente,fecha:fecha||fmt(today),hora:hora,lugar:lugar,notas:notas,cargadoPor:currentUserData.nombre,creadoEn:firebase.firestore.FieldValue.serverTimestamp()};
+  db.collection('eventos').add(data).then(function(ref){
+    // Also save to Google Calendar if connected
+    if(calConnected){
+      var start=hora?{dateTime:data.fecha+'T'+hora+':00',timeZone:'America/Argentina/Cordoba'}:{date:data.fecha};
+      var end=hora?{dateTime:data.fecha+'T'+((parseInt(hora.split(':')[0])+1)%24+'').padStart(2,'0')+':'+hora.split(':')[1]+':00',timeZone:'America/Argentina/Cordoba'}:{date:data.fecha};
+      gapi.client.calendar.events.insert({calendarId:CALENDAR_ID,resource:{summary:titulo,location:lugar,description:(cliente?'Cliente: '+cliente+'\n':'')+(notas||''),start:start,end:end}}).then(function(gcResp){
+        db.collection('eventos').doc(ref.id).update({gcId:gcResp.result.id});
+        showToast('Evento guardado en sistema y Google Calendar ✓');
+      });
+    } else {
+      showToast('Evento guardado en el sistema ✓');
+    }
+    if(callback)callback();
+  });
+}
+
+function addEvento(){
+  var ti=document.getElementById('ev-titulo').value.trim();
+  if(!ti){alert('El título es obligatorio.');return;}
+  guardarEvento(
+    document.getElementById('ev-tipo').value,ti,
+    document.getElementById('ev-cliente').value,
+    document.getElementById('ev-fecha').value,
+    document.getElementById('ev-hora').value,
+    document.getElementById('ev-lugar').value.trim(),
+    document.getElementById('ev-notas').value.trim(),
+    function(){
+      document.getElementById('ev-titulo').value='';
+      document.getElementById('ev-notas').value='';
+    }
+  );
+}
+
+function saveEventoDash(){
+  var ti=document.getElementById('ed-titulo').value.trim();
+  if(!ti){alert('El título es obligatorio.');return;}
+  guardarEvento(
+    document.getElementById('ed-tipo').value,ti,
+    document.getElementById('ed-cliente').value,
+    document.getElementById('ed-fecha').value,
+    document.getElementById('ed-hora').value,
+    document.getElementById('ed-lugar').value.trim(),
+    document.getElementById('ed-notas').value.trim(),
+    function(){closeModal('m-evento-dash');document.getElementById('ed-titulo').value='';document.getElementById('ed-notas').value='';}
+  );
+}
+
+function renderEventos(){
+  var list=[...EVENTOS_CACHE].sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+  if(list.length===0){document.getElementById('ev-list').innerHTML='<div class="empty-state">Sin eventos. Conectá Google Calendar o creá uno nuevo.</div>';return;}
+  var groups={};list.forEach(function(e){if(!groups[e.fecha])groups[e.fecha]=[];groups[e.fecha].push(e);});
+  var html='';Object.keys(groups).sort().forEach(function(d){
+    html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
+    groups[d].forEach(function(e){
+      html+='<div class="ev-item"><div class="ev-dot" style="background:'+(evColors[e.tipo]||'#888')+'"></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+e.titulo+'</div><div style="font-size:11px;color:var(--text3)">'+(e.hora?e.hora+'hs · ':'')+evLabels[e.tipo]+(e.cliente?' · '+e.cliente:'')+(e.lugar?' · '+e.lugar:'')+'</div></div><span class="badge '+(evBadges[e.tipo]||'b-gray')+'">'+evLabels[e.tipo]+'</span><button class="btn-danger" style="margin-left:6px" onclick="delEvento(\''+e.id+'\')">✕</button></div>';
+    });
+  });
+  document.getElementById('ev-list').innerHTML=html;
+}
+
+function renderDashEventos(){
+  var ts=fmt(today),weekEnd=fmt(addD(today,7));
+  var count=EVENTOS_CACHE.filter(function(e){return e.fecha>=ts&&e.fecha<=weekEnd;}).length;
+  var el=document.getElementById('dm-eventos');if(el)el.textContent=count;
+  // Update events today counter
+  var hoyCount=EVENTOS_CACHE.filter(function(e){return e.fecha===ts;}).length;
+  var elHoy=document.getElementById('dm-eventos-hoy');if(elHoy)elHoy.textContent=hoyCount;
+}
+
+function delEvento(id){
+  // Get fresh data from Firestore to ensure we have gcId
+  db.collection('eventos').doc(id).get().then(function(doc){
+    if(doc.exists){
+      var data=doc.data();
+      if(data.gcId&&calConnected&&gapi.client.getToken()){
+        gapi.client.calendar.events.delete({calendarId:CALENDAR_ID,eventId:data.gcId})
+          .catch(function(e){console.warn('GCal delete error:',e);});
+      }
+    }
+    return db.collection('eventos').doc(id).delete();
+  }).then(function(){showToast('Evento eliminado ✓');});
+}
+
+function saveEventoRapido(){
+  var ti=document.getElementById('er-titulo').value.trim();
+  if(!ti){alert('El título es obligatorio.');return;}
+  var tipo=document.getElementById('er-tipo').value,
+      fecha=document.getElementById('er-fecha').value||fmt(today),
+      hora=document.getElementById('er-hora').value,
+      lugar=document.getElementById('er-lugar').value.trim(),
+      notas=document.getElementById('er-notas').value.trim(),
+      cliente=document.getElementById('er-cliente').value;
+
+  function guardarYEnviar(){
+    // 1. Guardar en Firestore
+    db.collection('eventos').add({
+      titulo:ti,tipo:tipo,cliente:cliente,fecha:fecha,hora:hora,lugar:lugar,notas:notas,
+      cargadoPor:currentUserData?currentUserData.nombre:'',
+      creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      closeModal('m-evento-rapido');
+      showToast('Evento guardado en el sistema y Google Calendar ✓');
+      document.getElementById('er-titulo').value='';
+      document.getElementById('er-notas').value='';
+      document.getElementById('er-lugar').value='';
+    });
+    // 2. Enviar a Google Calendar
+    var h1=hora?p2((parseInt(hora.split(':')[0])+1)%24)+':'+hora.split(':')[1]+':00':'';
+    var start=hora?{dateTime:fecha+'T'+hora+':00',timeZone:'America/Argentina/Cordoba'}:{date:fecha};
+    var end=hora?{dateTime:fecha+'T'+h1,timeZone:'America/Argentina/Cordoba'}:{date:fecha};
+    gapi.client.calendar.events.insert({
+      calendarId:CALENDAR_ID,
+      resource:{summary:ti,location:lugar,description:(cliente?'Cliente: '+cliente+'\n':'')+notas,start:start,end:end}
+    }).then(function(){
+      // Reload iframe to show new event
+      var iframe=document.getElementById('dash-gcal-iframe');
+      if(iframe){var src=iframe.src;iframe.src='';setTimeout(function(){iframe.src=src;},300);}
+    }).catch(function(e){console.warn('Google Calendar error:',e);});
+  }
+
+  if(calConnected && gapi.client.getToken()){
+    // Already connected — send directly
+    guardarYEnviar();
+  } else {
+    // Not connected yet — connect first then send
+    gapi.load('client',function(){
+      gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
+        var tc=google.accounts.oauth2.initTokenClient({
+          client_id:CLIENT_ID,scope:SCOPES,
+          callback:function(resp){
+            if(resp.error){
+              // Save to Firestore anyway even if Calendar fails
+              db.collection('eventos').add({
+                titulo:ti,tipo:tipo,cliente:cliente,fecha:fecha,hora:hora,lugar:lugar,notas:notas,
+                cargadoPor:currentUserData?currentUserData.nombre:'',
+                creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+              }).then(function(){
+                closeModal('m-evento-rapido');
+                showToast('Evento guardado en el sistema ✓ (sin Google Calendar)');
+              });
+              return;
+            }
+            calConnected=true;
+            setCalStatus(true);
+            guardarYEnviar();
+          }
+        });
+        tc.requestAccessToken({prompt:''});
+      });
+    });
+  }
+}
+
+
+
+// ─── SUBIR DOCUMENTOS ───
+var _uploadFolderId=null, _uploadClienteNombre='', _uploadClienteId='';
+
+function abrirSubirDoc(clienteId, folderId, nombre){
+  _uploadFolderId=folderId;
+  _uploadClienteNombre=nombre;
+  _uploadClienteId=clienteId;
+  document.getElementById('subir-doc-info').innerHTML=
+    '📁 Los documentos se subirán a la carpeta de <strong>'+nombre+'</strong> en Google Drive.';
+  document.getElementById('doc-file').value='';
+  document.getElementById('upload-progress').style.display='none';
+  openModal('m-subir-doc');
+}
+
+function confirmarSubida(){
+  var files=document.getElementById('doc-file').files;
+  if(!files||files.length===0){alert('Seleccioná al menos un archivo.');return;}
+  function doUpload(){
+    if(!_uploadFolderId){
+      crearCarpetaCliente(_uploadClienteNombre, function(folderId, folderLink){
+        if(!folderId){alert('No se pudo crear la carpeta en Drive. Verificá los permisos.');return;}
+        _uploadFolderId=folderId;
+        if(_uploadClienteId)db.collection('clientes').doc(_uploadClienteId).update({drive:folderLink,driveFolderId:folderId});
+        subirArchivos(files);
+      });
+    } else {
+      subirArchivos(files);
+    }
+  }
+  if(!calConnected||!gapi.client.getToken()){
+    // Connect first then upload
+    crearCarpetaCliente(_uploadClienteNombre, function(folderId, folderLink){
+      if(!folderId){alert('No se pudo conectar con Google Drive.');return;}
+      _uploadFolderId=folderId;
+      if(_uploadClienteId)db.collection('clientes').doc(_uploadClienteId).update({drive:folderLink,driveFolderId:folderId});
+      subirArchivos(files);
+    });
+  } else {
+    doUpload();
+  }
+}
+
+function subirArchivos(files){
+  var prog=document.getElementById('upload-progress');
+  var status=document.getElementById('upload-status');
+  prog.style.display='block';
+  var total=files.length, done=0, errors=0;
+  for(var i=0;i<files.length;i++){
+    (function(file){
+      status.textContent='Subiendo '+file.name+'...';
+      subirArchivoADrive(file, _uploadFolderId, _uploadClienteNombre,
+        function(data){
+          done++;
+          // Save reference in Firestore
+          db.collection('documentos').add({
+            clienteId:_uploadClienteId,
+            clienteNombre:_uploadClienteNombre,
+            nombre:data.name,
+            driveId:data.id,
+            driveLink:data.webViewLink,
+            subidoPor:currentUserData?currentUserData.nombre:'',
+            fecha:fmt(today),
+            creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+          });
+          if(done+errors===total){
+            status.textContent='✓ '+done+' archivo(s) subido(s) correctamente';
+            showToast(done+' documento(s) subido(s) a Drive ✓');
+            setTimeout(function(){closeModal('m-subir-doc');},1500);
+          }
+        },
+        function(e){
+          errors++;
+          console.warn('Upload error:',e);
+          if(done+errors===total){
+            status.textContent=done+' subidos, '+errors+' con error';
+          }
+        }
+      );
+    })(files[i]);
+  }
+}
+
+// ─── LINKS RÁPIDOS ───
+function initLinksRapidos(){
+  // Real-time listener for links
+  db.collection('links_rapidos').onSnapshot(function(snap){
+    var list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+    renderLinksRapidos(list);
+  }, function(err){
+    console.warn('Links realtime failed, trying get():', err.message);
+    db.collection('links_rapidos').get().then(function(snap){
+      var list=[];
+      snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+      renderLinksRapidos(list);
+    }).catch(function(e){
+      console.error('Links get() failed:', e.message);
+      var el=document.getElementById('links-rapidos-list');
+      if(el)el.innerHTML='<div style="font-size:12px;color:var(--red)">Error cargando links. Verificá las reglas de Firestore.</div>';
+    });
+  });
+}
+
+function renderLinksRapidos(list){
+  var el=document.getElementById('links-rapidos-list');
+  if(!el)return;
+  if(list.length===0){
+    el.innerHTML='<div style="font-size:13px;color:var(--text3)">Sin accesos cargados. Usá "+ Agregar link".</div>';
+    return;
+  }
+  var html='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  list.forEach(function(l){
+    html+='<div style="display:flex;align-items:center;gap:4px">';
+    html+='<a href="'+l.url+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:500">'+(l.icon?l.icon+' ':'')+l.nombre+'</a>';
+    html+='<button data-lid="'+l.id+'" data-action="del-link" style="font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
+    html+='</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  el.querySelectorAll('[data-action="del-link"]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=this.getAttribute('data-lid');
+      if(confirm('¿Eliminar este acceso rápido?'))
+        db.collection('links_rapidos').doc(id).delete();
+    });
+  });
+}
+
+function saveLinkRapido(){
+  var nombre=document.getElementById('lr-nombre').value.trim();
+  var url=document.getElementById('lr-url').value.trim();
+  if(!nombre||!url){alert('Nombre y URL son obligatorios.');return;}
+  if(!url.startsWith('http'))url='https://'+url;
+  db.collection('links_rapidos').add({
+    nombre:nombre,url:url,icon:document.getElementById('lr-icon').value.trim(),
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){closeModal('m-link-rapido');showToast('Link guardado ✓');
+    document.getElementById('lr-nombre').value='';
+    document.getElementById('lr-url').value='';
+    document.getElementById('lr-icon').value='';
+  });
+}
+
+// ─── HONORARIOS DASHBOARD ───
+function initHonorariosDash(){
+  db.collection('honorarios').onSnapshot(function(snap){
+    var list=[];
+    var hoy=fmt(today);
+    var diaHoy=today.getDate();
+    snap.forEach(function(d){
+      var x=d.data();x.id=d.id;
+      if(x.estado==='cobrado')return; // filter in JS - no index needed
+      if(x.vence&&x.vence<hoy)x.vencido=true;
+      if(x.diaCobro&&x.diaCobro===diaHoy)x.esHoyCobro=true;
+      list.push(x);
+    });
+    // Sort: cobro day first, then overdue, then rest
+    list.sort(function(a,b){
+      if(a.esHoyCobro&&!b.esHoyCobro)return -1;
+      if(!a.esHoyCobro&&b.esHoyCobro)return 1;
+      if(a.vencido&&!b.vencido)return -1;
+      if(!a.vencido&&b.vencido)return 1;
+      return 0;
+    });
+    var el=document.getElementById('dash-honorarios-list');
+    if(!el)return;
+    if(list.length===0){
+      el.innerHTML='<div style="font-size:14px;color:var(--text3);padding:8px 0">Sin honorarios pendientes.</div>';
+      return;
+    }
+    var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px">';
+    list.forEach(function(h){
+      var saldo=(h.total||0)-(h.cobrado||0);
+      var borderColor=h.esHoyCobro?'var(--green)':h.vencido?'var(--red)':'var(--border)';
+      var bgColor=h.esHoyCobro?'var(--green-bg)':'var(--bg3)';
+      var recordatorio=h.esHoyCobro?'<div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">🔔 Hoy es día de cobro</div>':'';
+      var cuotasHtml=h.cuotas>1?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+h.cuotas+' cuotas · $'+Math.round(saldo/h.cuotas).toLocaleString('es-AR')+' c/u</div>':'';
+      var diaCobro=h.diaCobro?'<div style="font-size:11px;color:var(--text3)">Cobro: día '+h.diaCobro+' de cada mes</div>':'';
+      var venceHtml=h.vence?'<div style="font-size:11px;color:'+(h.vencido?'var(--red)':'var(--orange)')+'">Vence: '+h.vence+'</div>':'';
+      html+=[
+        '<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:14px">',
+        recordatorio,
+        '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px">'+h.cliente+'</div>',
+        '<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+(h.causa||'')+'</div>',
+        '<div style="font-size:22px;font-weight:700;color:var(--orange);margin-bottom:4px">$'+Math.round(saldo).toLocaleString('es-AR')+'</div>',
+        cuotasHtml, diaCobro, venceHtml,
+        '<div style="display:flex;gap:8px;margin-top:12px">',
+        '<button data-hid="'+h.id+'" data-action="cobrar" style="flex:1;font-size:13px;font-weight:600;padding:8px;border-radius:8px;border:none;background:var(--green);color:#000;cursor:pointer">✓ Marcar cobrado</button>',
+        '<button data-hid="'+h.id+'" data-action="eliminar" style="font-size:12px;padding:8px 12px;border-radius:8px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>',
+        '</div></div>'
+      ].join('');
+    });
+    html+='</div>';
+    el.innerHTML=html;
+    el.querySelectorAll('[data-action]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var id=this.getAttribute('data-hid');
+        var action=this.getAttribute('data-action');
+        if(action==='cobrar') cobrarHonorario(id);
+        else if(confirm('¿Eliminar este honorario?')) delDoc('honorarios',id);
+      });
+    });
+  },function(err){
+    console.warn('Honorarios snapshot error:',err.code, err.message);
+    // Try simple get as fallback
+    db.collection('honorarios').get().then(function(snap){
+      var list=[];var hoy=fmt(today);var diaHoy=today.getDate();
+      snap.forEach(function(d){
+        var x=d.data();x.id=d.id;
+        if(x.estado==='cobrado')return;
+        if(x.vence&&x.vence<hoy)x.vencido=true;
+        if(x.diaCobro&&x.diaCobro===diaHoy)x.esHoyCobro=true;
+        list.push(x);
+      });
+      var el=document.getElementById('dash-honorarios-list');
+      if(!el)return;
+      if(list.length===0){el.innerHTML='<div style="font-size:14px;color:var(--text3);padding:8px 0">Sin honorarios pendientes.</div>';return;}
+      // Render using simplified version
+      var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">';
+      list.forEach(function(h){
+        var saldo=(h.total||0)-(h.cobrado||0);
+        var borderColor=h.esHoyCobro?'var(--green)':h.vencido?'var(--red)':'var(--border)';
+        var bgColor=h.esHoyCobro?'var(--green-bg)':'var(--bg3)';
+        var remind=h.esHoyCobro?'<div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:5px">🔔 Hoy es día de cobro</div>':'';
+        html+='<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:14px">';
+        html+=remind;
+        html+='<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px">'+h.cliente+'</div>';
+        html+='<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+(h.causa||'')+'</div>';
+        html+='<div style="font-size:22px;font-weight:700;color:var(--orange)">$'+Math.round(saldo).toLocaleString('es-AR')+'</div>';
+        if(h.diaCobro)html+='<div style="font-size:11px;color:var(--text3)">Cobro: día '+h.diaCobro+' de cada mes</div>';
+        html+='<div style="display:flex;gap:8px;margin-top:12px">';
+        html+='<button data-hid="'+h.id+'" data-action="cobrar" style="flex:1;font-size:13px;font-weight:600;padding:8px;border-radius:8px;border:none;background:var(--green);color:#000;cursor:pointer">✓ Marcar cobrado</button>';
+        html+='</div></div>';
+      });
+      html+='</div>';
+      el.innerHTML=html;
+      el.querySelectorAll('[data-action]').forEach(function(btn){
+        btn.addEventListener('click',function(){
+          var id=this.getAttribute('data-hid');
+          cobrarHonorario(id);
+        });
+      });
+    }).catch(function(e){
+      var el=document.getElementById('dash-honorarios-list');
+      if(el)el.innerHTML='<div style="font-size:12px;color:var(--red)">Error: '+e.message+'</div>';
+    });
+  });
+}
+function cobrarHonorario(id){
+  if(!confirm('¿Marcar como cobrado?'))return;
+  db.collection('honorarios').doc(id).update({estado:'cobrado',cobradoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){showToast('Honorario marcado como cobrado ✓');});
+}
+
+function saveHonorarioDash(){
+  var cliente=document.getElementById('hd-cliente').value;
+  var total=parseFloat(document.getElementById('hd-total').value)||0;
+  if(!cliente||!total){alert('Cliente y monto son obligatorios.');return;}
+  var diaCobro=parseInt(document.getElementById('hd-dia-cobro').value)||0;
+  db.collection('honorarios').add({
+    cliente:cliente,
+    causa:document.getElementById('hd-causa').value.trim(),
+    total:total,
+    cobrado:parseFloat(document.getElementById('hd-cobrado').value)||0,
+    cuotas:parseInt(document.getElementById('hd-cuotas').value)||1,
+    diaCobro:diaCobro,
+    vence:document.getElementById('hd-vence').value||null,
+    estado:'pendiente',
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){closeModal('m-honorario-dash');showToast('Honorario cargado ✓');
+    ['hd-causa','hd-total','hd-cobrado','hd-cuotas','hd-vence','hd-dia-cobro'].forEach(function(id){
+      var el=document.getElementById(id);if(el)el.value='';
+    });
+  });
+}
+
+// ─── EXPORT TAREAS DEL DÍA (WhatsApp) ───
+function exportarTareasDia(){
+  db.collection('tareas_completadas').where('fecha','==',fmt(today)).get().then(function(snap){
+    var completadas=[];
+    snap.forEach(function(d){completadas.push(d.data());});
+    var pendientes=TAREAS_CACHE.filter(function(t){return t.fecha===fmt(today);});
+    var nl='\n';
+    var fechaLarga=today.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    // Capitalize first letter
+    fechaLarga=fechaLarga.charAt(0).toUpperCase()+fechaLarga.slice(1);
+    var sep='\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015';
+    var texto='';
+    texto+='\uD83D\uDCCC REPORTE DIARIO — CASIH & ASOCIADOS'+nl;
+    texto+=nl;
+    texto+='\uD83D\uDCC5 '+fechaLarga+nl;
+    texto+=nl+sep+nl+nl;
+    texto+='\u2705 Tareas del d\u00EDa'+nl+nl;
+    if(completadas.length>0){
+      completadas.forEach(function(t){texto+='• '+t.titulo+nl;});
+    } else {
+      texto+='• (sin tareas completadas)'+nl;
+    }
+    texto+=nl+sep+nl+nl;
+    texto+='\u23F3 Pendientes'+nl+nl;
+    if(pendientes.length>0){
+      pendientes.forEach(function(t){texto+='• '+t.titulo+(t.hora?' — '+t.hora+'hs':'')+nl;});
+    } else {
+      texto+='• (sin pendientes)'+nl;
+    }
+    texto+=nl+sep+nl;
+    document.getElementById('export-preview').value=texto;
+    openModal('m-export-tareas');
+  });
+}
+// ─── INIT ───
+function initApp(){
+  setFecha();
+  var ts=fmt(today);
+  ['cn-f','tn-fe','in-fe','ga-fe','ev-fecha','ed-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=ts;});
+  var mesActual=p2(today.getMonth()+1);
+  var sel=document.getElementById('adm-mes');if(sel)sel.value=mesActual;
+  initClientes();
+  initTareas();
+  renderDashEventos();
+  setTimeout(initCalendar, 1000);
+  initEventos();
+  initLinksRapidos();
+  initHonorariosDash();
+  // Cargar clientes iniciales si Firestore está vacío
+  db.collection('clientes').get().then(function(snap){
+    if(snap.empty){
+      var clientesIniciales=[
+        {nombre:'Liliana Collo',tel:'93574444661',tipo:'posible',ref:'no',motivo:'Enfermedades profesionales',etapa:'Tramite',fecha:'2026-03-10',notas:'Aguardando que fijen fecha de junta medica',expte:'',drive:''},
+        {nombre:'Emmanuel Villarreal',tel:'93547620260',tipo:'posible',ref:'no',motivo:'Art',etapa:'Tramite',fecha:'2026-03-10',notas:'Presentado el reclamo a la SRT',expte:'',drive:''},
+        {nombre:'Bruno Sanchez',tel:'93516743498',tipo:'posible',ref:'si',motivo:'Art',etapa:'Tramite',fecha:'2026-03-10',notas:'Reprogramar turno ART',expte:'',drive:''},
+        {nombre:'Mauricio Andrés Basualdo',tel:'93547599231',tipo:'posible',ref:'si',motivo:'Art',etapa:'Examemes medicos',fecha:'2026-03-10',notas:'Falta estudio cervical - muñeca y rodilla',expte:'',drive:''},
+        {nombre:'Bruno',tel:'91139180611',tipo:'posible',ref:'no',motivo:'Despidos',etapa:'Tramite',fecha:'2026-03-10',notas:'16 de marzo 11:30 Audiencia',expte:'',drive:''},
+        {nombre:'Hugo',tel:'93516154521',tipo:'posible',ref:'no',motivo:'Art',etapa:'Examemes medicos',fecha:'2026-03-10',notas:'Se le consultó por estudios',expte:'',drive:''},
+        {nombre:'Sergio Oviedo',tel:'93547620587',tipo:'posible',ref:'no',motivo:'Art',etapa:'Examemes medicos',fecha:'2026-03-10',notas:'A la espera que hable con la abogada',expte:'',drive:''},
+        {nombre:'Rodrigo Resto Primo',tel:'93543413564',tipo:'posible',ref:'no',motivo:'Despidos',etapa:'Cita',fecha:'2026-03-10',notas:'Coordinar cita',expte:'',drive:''},
+        {nombre:'Rafa',tel:'93518155799',tipo:'posible',ref:'no',motivo:'Jubilacion',etapa:'Cita',fecha:'2026-03-10',notas:'Debe esperar dos años más',expte:'',drive:''},
+        {nombre:'Lopez Cristian',tel:'93518175235',tipo:'posible',ref:'no',motivo:'Despidos',etapa:'Telegrama',fecha:'2026-03-10',notas:'Telegrama enviado',expte:'',drive:''},
+        {nombre:'Yanina Molina',tel:'93518576391',tipo:'posible',ref:'no',motivo:'Despidos',etapa:'Cita',fecha:'2026-03-10',notas:'Cita Miercoles 10:30 am',expte:'',drive:''},
+        {nombre:'Paola Vazquez',tel:'93516599281',tipo:'posible',ref:'no',motivo:'Despidos',etapa:'Cita',fecha:'2026-03-19',notas:'Jueves que viene a las 11hs',expte:'',drive:''},
+        {nombre:'Alejandro Ailan',tel:'93518526244',tipo:'posible',ref:'no',motivo:'Despidos',etapa:'Cita',fecha:'2026-03-26',notas:'Viernes 10 am',expte:'',drive:''},
+      ];
+      var batch=db.batch();
+      clientesIniciales.forEach(function(c){
+        c.creadoEn=firebase.firestore.FieldValue.serverTimestamp();
+        batch.set(db.collection('clientes').doc(),c);
+      });
+      batch.commit();
+    }
+  });
+}
+</script>
+
+<!-- MODAL EVENTO DASHBOARD -->
+<div class="modal-bg" id="m-evento-dash" onclick="if(event.target===this)closeModal('m-evento-dash')">
+  <div class="modal">
+    <h3>Nuevo evento</h3>
+    <div class="fg"><div class="fl">Tipo</div>
+      <select class="fs" id="ed-tipo">
+        <option value="audiencia">Audiencia</option>
+        <option value="cita">Cita con cliente</option>
+        <option value="vencimiento">Vencimiento procesal</option>
+        <option value="reunion">Reunión interna</option>
+      </select>
+    </div>
+    <div class="fg"><div class="fl">Título *</div><input class="fi" id="ed-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="ed-cliente"><option value="">— Sin cliente —</option></select></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="ed-fecha" type="date"></div>
+      <div class="fg"><div class="fl">Hora</div><input class="fi" id="ed-hora" type="time"></div>
+    </div>
+    <div class="fg"><div class="fl">Lugar (opcional)</div><input class="fi" id="ed-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="ed-notas" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('m-evento-dash')">Cancelar</button>
+      <button class="btn-primary" onclick="saveEventoDash()">Guardar evento</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
