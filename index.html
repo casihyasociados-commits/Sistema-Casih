@@ -283,12 +283,9 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
       <div class="cat-desc" id="cd-oficina"><textarea class="fta" id="ct-oficina" placeholder="Descripción..."></textarea></div>
       <div class="cat-desc" id="cd-procesales"><textarea class="fta" id="ct-procesales" placeholder="Descripción..."></textarea></div>
       <div class="cat-desc" id="cd-varios"><textarea class="fta" id="ct-varios" placeholder="Descripción..."></textarea></div>
-      <div class="gasto-row" id="gasto-row" style="flex-direction:column;gap:8px">
-        <input class="fi" id="gasto-desc" type="text" placeholder="Descripción (ej: fotocopias, correo...)" style="font-size:13px;width:100%">
-        <div style="display:flex;gap:8px">
-          <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:13px">
-          <button class="btn-primary" onclick="guardarGasto()" style="font-size:13px;padding:8px 16px">Guardar</button>
-        </div>
+      <div class="gasto-row" id="gasto-row">
+        <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:13px">
+        <button class="btn-primary" onclick="guardarGasto()" style="font-size:13px;padding:8px 16px">Guardar</button>
       </div>
     </div>
 
@@ -678,7 +675,7 @@ function guardarGasto(){
   }).then(function(){
     document.getElementById('ct-'+curCat).value='';
     document.getElementById('gasto-monto').value='';
-    document.getElementById('gasto-desc').value='';
+    
     ['servicios','oficina','procesales','varios'].forEach(function(cat){
       document.getElementById('cg-'+cat).className='cat-btn';
       document.getElementById('cd-'+cat).className='cat-desc';
@@ -1542,7 +1539,11 @@ function initLinksRapidos(){
 }
 function renderLinksRapidos(list){
   var el=document.getElementById('links-rapidos-list');
-  if(!el)return;
+  if(!el){
+    // Element not ready yet, retry in 500ms
+    setTimeout(function(){renderLinksRapidos(list);},500);
+    return;
+  }
   if(!list||list.length===0){
     el.innerHTML='<div style="font-size:13px;color:var(--text3)">Sin accesos cargados. Usá "+ Agregar".</div>';
     return;
@@ -1599,7 +1600,10 @@ function initHonorariosDash(){
 }
 function renderHonorariosPanel(snap){
   var el=document.getElementById('dash-honorarios-list');
-  if(!el)return;
+  if(!el){
+    setTimeout(function(){renderHonorariosPanel(snap);},500);
+    return;
+  }
   var list=[];
   var hoy=fmt(today);
   var diaHoy=today.getDate();
@@ -1747,8 +1751,11 @@ function initApp(){
   renderDashEventos();
   setTimeout(initCalendar, 1000);
   initEventos();
-  initLinksRapidos();
-  initHonorariosDash();
+  // Delay slightly to ensure DOM elements exist
+  setTimeout(function(){
+    initLinksRapidos();
+    initHonorariosDash();
+  }, 300);
   // Cargar clientes iniciales si Firestore está vacío
   db.collection('clientes').get().then(function(snap){
     if(snap.empty){
