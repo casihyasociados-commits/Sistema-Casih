@@ -473,11 +473,16 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
 
 <!-- MODAL EXPORT TAREAS -->
 <div class="modal-bg" id="m-export-tareas" onclick="if(event.target===this)closeModal('m-export-tareas')">
-  <div class="modal" style="width:520px"><h3>Reporte del día para WhatsApp</h3>
-    <textarea class="fta" id="export-preview" style="min-height:200px;font-size:13px;font-family:monospace" readonly></textarea>
+  <div class="modal" style="width:540px"><h3>Reporte del día para WhatsApp</h3>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Podés editar el texto antes de copiar o agregar items manualmente.</div>
+    <textarea class="fta" id="export-preview" style="min-height:260px;font-size:13px;font-family:monospace;line-height:1.6"></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <input class="fi" id="export-manual-item" placeholder="Agregar item manualmente..." style="flex:1;font-size:13px">
+      <button class="btn-sm" onclick="agregarItemManual()">+ Agregar</button>
+    </div>
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('m-export-tareas')">Cerrar</button>
-      <button class="btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('export-preview').value).then(function(){showToast('Copiado ✓');})">Copiar para WhatsApp</button>
+      <button class="btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('export-preview').value).then(function(){showToast('¡Copiado! Pegalo en WhatsApp ✓');})">📋 Copiar para WhatsApp</button>
     </div>
   </div>
 </div>
@@ -516,12 +521,11 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
 
 <div class="modal-bg" id="m-tarea" onclick="if(event.target===this)closeModal('m-tarea')">
   <div class="modal"><h3>Nueva tarea</h3>
-    <div class="fg"><div class="fl">Descripción *</div><input class="fi" id="tn-ti" placeholder="Ej: Llamar a García para confirmar audiencia"></div>
-    <div class="g2"><div class="fg"><div class="fl">Tipo</div><select class="fs" id="tn-tp"><option value="llamado">Llamado a cliente</option><option value="turno">Turno / cita</option><option value="documento">Envío de documento</option><option value="vencimiento">Control de vencimiento</option><option value="cobro">Cobro / recordatorio</option><option value="tramite">Trámite en tribunales</option></select></div><div class="fg"><div class="fl">Prioridad</div><select class="fs" id="tn-pr"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></div></div>
+    <div class="fg"><div class="fl">Tarea *</div><input class="fi" id="tn-ti" placeholder="Ej: Llamar a García para confirmar audiencia"></div>
+    <div class="fg"><div class="fl">Descripción / detalle</div><textarea class="fta" id="tn-no" placeholder="Describí qué hay que hacer, contexto, etc..."></textarea></div>
     <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="tn-fe" type="date"></div><div class="fg"><div class="fl">Hora (opcional)</div><input class="fi" id="tn-ho" type="time"></div></div>
+    <div class="fg"><div class="fl">Prioridad</div><select class="fs" id="tn-pr"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></div>
     <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="tn-cl"><option value="">— Sin cliente —</option></select></div>
-    <div class="fg"><div class="fl">Asignada a</div><select class="fs" id="tn-as"><option value="todos">Todo el equipo</option><option value="secretaria">Secretaría</option><option value="abogado">Abogado</option></select></div>
-    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="tn-no" placeholder="Detalles..."></textarea></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-tarea')">Cancelar</button><button class="btn-primary" onclick="saveTarea()">Guardar tarea</button></div>
   </div>
 </div>
@@ -663,9 +667,8 @@ function selCat(cat){
 function guardarGasto(){
   if(!curCat)return;
   var monto=parseFloat(document.getElementById('gasto-monto').value);
-  var detalle=document.getElementById('gasto-desc').value.trim();
   var catDesc=document.getElementById('ct-'+curCat).value.trim();
-  var concepto=detalle||(catDesc||({servicios:'Servicios',oficina:'Gastos de oficina',procesales:'Gastos procesales',varios:'Gastos varios'}[curCat]));
+  var concepto=catDesc||({servicios:'Servicios',oficina:'Gastos de oficina',procesales:'Gastos procesales',varios:'Gastos varios'}[curCat]);
   if(!monto){alert('Ingresá el monto.');return;}
   db.collection('gastos').add({
     fecha:fmt(today),concepto:concepto,cat:curCat,
@@ -1190,9 +1193,13 @@ function saveTarea(){
   var ti=document.getElementById('tn-ti').value.trim();
   if(!ti){alert('La descripción es obligatoria.');return;}
   db.collection('tareas').add({
-    titulo:ti,tipo:document.getElementById('tn-tp').value,prio:document.getElementById('tn-pr').value,
-    fecha:document.getElementById('tn-fe').value,hora:document.getElementById('tn-ho').value,
-    cliente:document.getElementById('tn-cl').value,asig:document.getElementById('tn-as').value,
+    titulo:ti,
+    tipo:'tramite',
+    prio:document.getElementById('tn-pr').value,
+    fecha:document.getElementById('tn-fe').value,
+    hora:document.getElementById('tn-ho').value,
+    cliente:document.getElementById('tn-cl').value,
+    asig:'todos',
     notas:document.getElementById('tn-no').value.trim(),
     cargadoPor:currentUserData.nombre,
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
@@ -1739,6 +1746,24 @@ function exportarTareasDia(){
     openModal('m-export-tareas');
   });
 }
+function agregarItemManual(){
+  var input=document.getElementById('export-manual-item');
+  var preview=document.getElementById('export-preview');
+  if(!input||!preview||!input.value.trim())return;
+  // Add before the last separator line
+  var texto=preview.value;
+  var item='• '+input.value.trim();
+  // Insert before ⏳ Pendientes section if exists, else append
+  var nl='\n';
+  if(texto.indexOf('\u23F3 Pendientes')>-1){
+    texto=texto.replace('\u23F3 Pendientes',item+nl+'\u23F3 Pendientes');
+  } else {
+    texto+=item+nl;
+  }
+  preview.value=texto;
+  input.value='';
+}
+
 // stub for backward compat
 function initEventos(){}
 
