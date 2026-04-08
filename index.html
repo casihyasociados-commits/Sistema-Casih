@@ -1739,6 +1739,9 @@ function exportarTareasDia(){
     openModal('m-export-tareas');
   });
 }
+// stub for backward compat
+function initEventos(){}
+
 // ─── INIT ───
 function initApp(){
   setFecha();
@@ -1750,7 +1753,6 @@ function initApp(){
   initTareas();
   renderDashEventos();
   setTimeout(initCalendar, 1000);
-  initEventos();
   // Delay slightly to ensure DOM elements exist
   setTimeout(function(){
     initLinksRapidos();
