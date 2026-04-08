@@ -210,17 +210,18 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
 <div class="section active" id="sec-dashboard">
   <div class="page-title">Panel general</div>
   <div class="page-sub" id="dash-fecha">Derecho laboral · Córdoba</div>
+
+  <!-- MÉTRICAS -->
   <div class="metrics" style="margin-bottom:1.5rem;grid-template-columns:repeat(3,minmax(0,1fr))">
     <div class="metric"><div class="metric-label">Eventos hoy</div><div class="metric-val" id="dm-eventos-hoy">0</div><div class="metric-sub">en agenda</div></div>
     <div class="metric"><div class="metric-label">Clientes totales</div><div class="metric-val" id="dm-clientes">—</div><div class="metric-sub">cargados</div></div>
     <div class="metric"><div class="metric-label">Tareas hoy</div><div class="metric-val" id="dm-tareas">—</div><div class="metric-sub">para el equipo</div></div>
-    
   </div>
 
   <!-- CALENDARIO FULL WIDTH -->
   <div class="card" style="margin-bottom:16px;padding:1rem">
-    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span>Calendario semanal</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0">Calendario semanal</div>
       <div style="display:flex;align-items:center;gap:12px">
         <button onclick="openModal('m-evento-rapido')" style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">+ Nuevo evento</button>
         <div style="display:flex;align-items:center;gap:6px">
@@ -229,68 +230,81 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
         </div>
       </div>
     </div>
-    <iframe
+    <iframe id="dash-gcal-iframe"
       src="https://calendar.google.com/calendar/embed?src=casihyasociados%40gmail.com&ctz=America%2FArgentina%2FCordoba&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=WEEK&bgcolor=%23000000&color=%234A90E2"
       style="width:100%;height:560px;border:none;border-radius:10px;display:block;"
       frameborder="0" scrolling="no">
     </iframe>
   </div>
 
-  <!-- TAREAS + GASTOS FULL WIDTH 2 COLS -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <!-- TAREAS + ACCESOS + GASTOS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
 
-    <!-- TAREAS DEL DÍA -->
+    <!-- COLUMNA IZQUIERDA: Tareas + Accesos -->
     <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- TAREAS DEL DÍA -->
       <div class="card" style="margin-bottom:0">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <span style="font-size:16px;font-weight:600;color:var(--text)">Tareas del día</span>
-          <button onclick="goTo('tareas')" style="font-size:13px;padding:8px 18px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:15px;font-weight:600;color:var(--text)">Tareas del día</span>
+          <div style="display:flex;gap:6px">
+            <button onclick="openModal('m-tarea')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">+ Nueva</button>
+            <button onclick="goTo('tareas')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
+          </div>
         </div>
         <div id="dash-tareas">
-          <div style="font-size:14px;color:var(--text3);padding:8px 0">Sin tareas para hoy ✓</div>
+          <div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>
         </div>
       </div>
+
       <!-- ACCESOS RÁPIDOS -->
       <div class="card" style="margin-bottom:0">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <span style="font-size:16px;font-weight:600;color:var(--text)">Accesos rápidos</span>
-          <button onclick="openModal('m-link-rapido')" style="font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">+ Agregar link</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:15px;font-weight:600;color:var(--text)">Accesos rápidos</span>
+          <button onclick="openModal('m-link-rapido')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">+ Agregar</button>
         </div>
-        <div id="links-rapidos-list"><div style="font-size:13px;color:var(--text3)">Sin accesos cargados. Usá "+ Agregar link".</div></div>
+        <div id="links-rapidos-list">
+          <div style="font-size:13px;color:var(--text3)">Sin accesos cargados.</div>
+        </div>
       </div>
+
     </div>
 
-    <!-- CARGAR GASTO -->
+    <!-- COLUMNA DERECHA: Cargar gasto -->
     <div class="card" style="margin-bottom:0">
-      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px">Cargar gasto</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <button class="cat-btn" id="cg-servicios" onclick="selCat('servicios')" style="padding:14px;font-size:13px">💡 Servicios</button>
-        <button class="cat-btn" id="cg-oficina" onclick="selCat('oficina')" style="padding:14px;font-size:13px">🖨️ Gastos de oficina</button>
-        <button class="cat-btn" id="cg-procesales" onclick="selCat('procesales')" style="padding:14px;font-size:13px">⚖️ Gastos procesales</button>
-        <button class="cat-btn" id="cg-varios" onclick="selCat('varios')" style="padding:14px;font-size:13px">📋 Gastos varios</button>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px">Cargar gasto</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <button class="cat-btn" id="cg-servicios" onclick="selCat('servicios')" style="padding:12px;font-size:13px">💡 Servicios</button>
+        <button class="cat-btn" id="cg-oficina" onclick="selCat('oficina')" style="padding:12px;font-size:13px">🖨️ Gastos de oficina</button>
+        <button class="cat-btn" id="cg-procesales" onclick="selCat('procesales')" style="padding:12px;font-size:13px">⚖️ Gastos procesales</button>
+        <button class="cat-btn" id="cg-varios" onclick="selCat('varios')" style="padding:12px;font-size:13px">📋 Gastos varios</button>
       </div>
-      <div class="cat-desc" id="cd-servicios"><textarea class="fta" id="ct-servicios" placeholder="Descripción del gasto..."></textarea></div>
-      <div class="cat-desc" id="cd-oficina"><textarea class="fta" id="ct-oficina" placeholder="Descripción del gasto..."></textarea></div>
-      <div class="cat-desc" id="cd-procesales"><textarea class="fta" id="ct-procesales" placeholder="Descripción del gasto..."></textarea></div>
-      <div class="cat-desc" id="cd-varios"><textarea class="fta" id="ct-varios" placeholder="Descripción del gasto..."></textarea></div>
-      <div class="gasto-row" id="gasto-row">
-        <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:14px">
-        <button class="btn-primary" onclick="guardarGasto()" style="font-size:14px;padding:9px 20px">Guardar gasto</button>
+      <div class="cat-desc" id="cd-servicios"><textarea class="fta" id="ct-servicios" placeholder="Descripción..."></textarea></div>
+      <div class="cat-desc" id="cd-oficina"><textarea class="fta" id="ct-oficina" placeholder="Descripción..."></textarea></div>
+      <div class="cat-desc" id="cd-procesales"><textarea class="fta" id="ct-procesales" placeholder="Descripción..."></textarea></div>
+      <div class="cat-desc" id="cd-varios"><textarea class="fta" id="ct-varios" placeholder="Descripción..."></textarea></div>
+      <div class="gasto-row" id="gasto-row" style="flex-direction:column;gap:8px">
+        <input class="fi" id="gasto-desc" type="text" placeholder="Descripción (ej: fotocopias, correo...)" style="font-size:13px;width:100%">
+        <div style="display:flex;gap:8px">
+          <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:13px">
+          <button class="btn-primary" onclick="guardarGasto()" style="font-size:13px;padding:8px 16px">Guardar</button>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <!-- HONORARIOS PENDIENTES DASHBOARD -->
-  <div class="card" style="margin-top:16px;margin-bottom:0">
+  <!-- HONORARIOS PENDIENTES -->
+  <div class="card" style="margin-bottom:0">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span style="font-size:16px;font-weight:600;color:var(--text)">Honorarios pendientes</span>
-      <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:8px 18px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
+      <span style="font-size:15px;font-weight:600;color:var(--text)">Honorarios pendientes</span>
+      <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
     </div>
     <div id="dash-honorarios-list">
-      <div style="font-size:14px;color:var(--text3);padding:8px 0">Sin honorarios pendientes.</div>
+      <div style="font-size:13px;color:var(--text3);padding:6px 0">Sin honorarios pendientes.</div>
     </div>
   </div>
+
 </div>
 <!-- CLIENTES -->
 <div class="section" id="sec-clientes">
@@ -1080,13 +1094,24 @@ var pLbl={alta:'Alta',media:'Media',baja:'Baja'};
 var aLbl={todos:'Todo el equipo',secretaria:'Secretaría',abogado:'Abogado'};
 
 function initTareas(){
-  db.collection('tareas').orderBy('fecha').onSnapshot(function(snap){
-    TAREAS_CACHE=[];
-    snap.forEach(function(d){var x=d.data();x.id=d.id;TAREAS_CACHE.push(x);});
-    updTStats();
-    renderTareas();
-    renderDashTareas();
-  });
+  function startTareasListener(ordered){
+    var q=ordered?db.collection('tareas').orderBy('fecha'):db.collection('tareas');
+    q.onSnapshot(function(snap){
+      TAREAS_CACHE=[];
+      snap.forEach(function(d){var x=d.data();x.id=d.id;TAREAS_CACHE.push(x);});
+      updTStats();
+      renderTareas();
+      renderDashTareas();
+    },function(err){
+      if(ordered){
+        console.warn('Tareas ordered failed, trying unordered');
+        startTareasListener(false);
+      } else {
+        console.error('Tareas listener failed:', err.message);
+      }
+    });
+  }
+  startTareasListener(true);
 }
 
 function updTStats(){
@@ -1099,10 +1124,26 @@ function updTStats(){
 
 function renderDashTareas(){
   var ts=fmt(today);
-  var list=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).slice(0,5);
-  document.getElementById('dash-tareas').innerHTML=list.length===0?'<div style="font-size:12px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>':
-    list.map(function(t){return '<div class="row-item"><div class="row-info"><div class="row-name">'+t.titulo+'</div><div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+aLbl[t.asig]+'</div></div><span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span></div>';}).join('');
+  var el=document.getElementById('dash-tareas');
+  if(!el)return;
+  var list=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).slice(0,6);
+  if(list.length===0){
+    el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>';
+    return;
+  }
+  var pCls={alta:'b-red',media:'b-orange',baja:'b-green'};
+  var pLbl={alta:'Alta',media:'Media',baja:'Baja'};
+  el.innerHTML=list.map(function(t){
+    return '<div class="row-item">'+
+      '<div class="row-info">'+
+        '<div class="row-name">'+t.titulo+'</div>'+
+        '<div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+aLbl[t.asig]+(t.cliente?' · '+t.cliente:'')+'</div>'+
+      '</div>'+
+      '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+    '</div>';
+  }).join('');
 }
+
 
 function renderTareas(){
   var list=[...TAREAS_CACHE].sort(function(a,b){var po={alta:0,media:1,baja:2};return a.fecha!==b.fecha?a.fecha>b.fecha?1:-1:po[a.prio]-po[b.prio];});
@@ -1481,54 +1522,49 @@ function subirArchivos(files){
 
 // ─── LINKS RÁPIDOS ───
 function initLinksRapidos(){
-  var el=document.getElementById('links-rapidos-list');
-  if(!el)return;
-
-  function cargarLinks(){
+  // Real-time listener - updates dashboard instantly when link added/removed
+  db.collection('links_rapidos').onSnapshot(function(snap){
+    var list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+    renderLinksRapidos(list);
+  },function(err){
+    console.warn('Links snapshot error:', err.code);
+    // Fallback: get once
     db.collection('links_rapidos').get().then(function(snap){
       var list=[];
       snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
       renderLinksRapidos(list);
     }).catch(function(e){
-      console.warn('Links error:',e.message);
-      el.innerHTML='<div style="font-size:12px;color:var(--text3)">Sin accesos cargados.</div>';
+      var el=document.getElementById('links-rapidos-list');
+      if(el)el.innerHTML='<div style="font-size:12px;color:var(--text3)">Sin accesos cargados.</div>';
     });
-  }
-
-  // Real-time listener
-  db.collection('links_rapidos').onSnapshot(function(snap){
-    var list=[];
-    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
-    renderLinksRapidos(list);
-  }, function(err){
-    console.warn('Links snapshot failed:', err.message);
-    cargarLinks();
   });
 }
 function renderLinksRapidos(list){
   var el=document.getElementById('links-rapidos-list');
   if(!el)return;
-  if(list.length===0){
-    el.innerHTML='<div style="font-size:13px;color:var(--text3)">Sin accesos cargados. Usá "+ Agregar link".</div>';
+  if(!list||list.length===0){
+    el.innerHTML='<div style="font-size:13px;color:var(--text3)">Sin accesos cargados. Usá "+ Agregar".</div>';
     return;
   }
   var html='<div style="display:flex;flex-wrap:wrap;gap:8px">';
   list.forEach(function(l){
-    html+='<div style="display:flex;align-items:center;gap:4px">';
+    html+='<div style="display:flex;align-items:center;gap:3px">';
     html+='<a href="'+l.url+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:500">'+(l.icon?l.icon+' ':'')+l.nombre+'</a>';
-    html+='<button data-lid="'+l.id+'" data-action="del-link" style="font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
+    html+='<button data-lid="'+l.id+'" style="font-size:11px;padding:4px 7px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
     html+='</div>';
   });
   html+='</div>';
   el.innerHTML=html;
-  el.querySelectorAll('[data-action="del-link"]').forEach(function(btn){
+  el.querySelectorAll('[data-lid]').forEach(function(btn){
     btn.addEventListener('click',function(){
       var id=this.getAttribute('data-lid');
-      if(confirm('¿Eliminar este acceso rápido?'))
+      if(confirm('¿Eliminar este acceso?'))
         db.collection('links_rapidos').doc(id).delete();
     });
   });
 }
+
 
 function saveLinkRapido(){
   var nombre=document.getElementById('lr-nombre').value.trim();
@@ -1549,27 +1585,18 @@ function saveLinkRapido(){
 function initHonorariosDash(){
   var el=document.getElementById('dash-honorarios-list');
   if(!el)return;
-  el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:8px 0">Cargando...</div>';
 
-  db.collection('honorarios').get().then(function(snap){
-    renderHonorariosPanel(snap);
-  }).catch(function(e){
-    el.innerHTML='<div style="font-size:12px;color:var(--red)">Error al cargar: '+e.message+'</div>';
-  });
-
-  // Also set up real-time listener
+  // Real-time listener - updates instantly when honorario added/marked cobrado
   db.collection('honorarios').onSnapshot(function(snap){
     renderHonorariosPanel(snap);
-  }, function(err){
-    // If snapshot fails, fall back to polling every 30s
-    console.warn('Snapshot failed, using polling:', err.message);
-    db.collection('honorarios').get().then(function(snap){renderHonorariosPanel(snap);});
-    setInterval(function(){
-      db.collection('honorarios').get().then(function(snap){renderHonorariosPanel(snap);});
-    }, 30000);
+  },function(err){
+    console.warn('Honorarios snapshot error:', err.code);
+    // Fallback
+    db.collection('honorarios').get().then(function(snap){
+      renderHonorariosPanel(snap);
+    });
   });
 }
-
 function renderHonorariosPanel(snap){
   var el=document.getElementById('dash-honorarios-list');
   if(!el)return;
