@@ -177,40 +177,73 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
   color:var(--text) !important;
 }
 
+.dash-grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:768px){
-  .nav{padding:0 1rem;height:auto;flex-wrap:wrap;gap:6px;padding:8px 1rem;}
-  .nav-links{flex-wrap:wrap;gap:3px;order:3;width:100%;padding-bottom:6px;}
-  .nav-btn{font-size:11px;padding:5px 10px;}
-  .main{padding:1rem 0.75rem;}
-  .metrics,.metrics-3{grid-template-columns:1fr 1fr!important;}
-  .grid2{grid-template-columns:1fr!important;}
-  .agenda-layout{grid-template-columns:1fr!important;}
-  .g2{grid-template-columns:1fr!important;}
-  .client-grid{grid-template-columns:1fr!important;}
-  .modal{width:95vw!important;padding:1rem;}
-  .page-title{font-size:20px;}
-  .metric-val{font-size:20px;}
-  .tabs{flex-wrap:wrap;width:100%;}
-  .tab{font-size:11px;padding:5px 10px;}
-  #dash-gcal-iframe{height:350px!important;}
-  .task-item{flex-wrap:wrap;}
-  .task-right{width:100%;display:flex;justify-content:flex-end;margin-top:8px;}
-  .cc-footer{flex-direction:column;align-items:flex-start;gap:8px;}
-  .page-header{flex-direction:column;gap:8px;}
+  /* Nav */
+  .nav{padding:8px 1rem;height:auto;flex-wrap:wrap;gap:6px;}
+  .nav-brand{font-size:16px;}
+  .nav-links{flex-wrap:wrap;gap:3px;order:3;width:100%;padding-bottom:4px;}
+  .nav-btn{font-size:11px;padding:5px 9px;}
   .nav-user .user-name{display:none;}
+
+  /* Layout */
+  .main{padding:0.75rem;}
+  .page-title{font-size:20px;}
+  .page-header{flex-direction:column;align-items:flex-start;gap:8px;}
+
+  /* FORZAR columna única en TODO el dashboard */
+  .metrics{grid-template-columns:1fr 1fr!important;}
+  .metrics-3{grid-template-columns:1fr 1fr!important;}
+  .grid2{grid-template-columns:1fr!important;gap:10px;}
+  .dash-grid-2col{grid-template-columns:1fr!important;gap:10px!important;}
+
+  /* Agenda */
+  .agenda-layout{grid-template-columns:1fr!important;}
+
+  /* Forms */
+  .g2{grid-template-columns:1fr!important;}
+  .cat-grid{grid-template-columns:1fr 1fr!important;}
+  .cat-btn{padding:12px 8px;font-size:13px;}
+
+  /* Clientes */
+  .client-grid{grid-template-columns:1fr!important;}
+  .cc-footer{flex-direction:column;align-items:flex-start;gap:8px;}
+  .cc-footer > div{flex-wrap:wrap;}
+
+  /* Tareas */
+  .task-item{flex-wrap:wrap;gap:8px;}
+  .task-right{width:100%;display:flex;justify-content:flex-end;margin-top:4px;}
+
+  /* Modals */
+  .modal{width:96vw!important;padding:1rem;max-height:92vh;}
+
+  /* Admin */
+  .tabs{flex-wrap:wrap;width:100%!important;}
+  .tab{font-size:11px;padding:5px 10px;}
+  #adm-tabs{flex-wrap:wrap;}
   table{font-size:12px;}
-  th,td{padding:6px 6px;}
-  .pin-pad{grid-template-columns:repeat(3,56px);gap:8px;}
-  .pin-btn{width:56px;height:56px;font-size:18px;}
-  .adm-tabs{flex-wrap:wrap;}
-  .cat-grid{grid-template-columns:1fr 1fr;}
-  .cat-btn{padding:10px 8px;font-size:12px;}
+  th,td{padding:5px 5px;}
+
+  /* PIN */
+  .pin-pad{grid-template-columns:repeat(3,60px);gap:8px;}
+  .pin-btn{width:60px;height:60px;font-size:18px;}
+  .pin-screen{padding:1rem;}
+
+  /* Calendar */
+  #dash-gcal-iframe{height:320px!important;}
+
+  /* Honorarios cards */
+  #dash-honorarios-list > div{grid-template-columns:1fr!important;}
+  #recordatorios-list > div{grid-template-columns:1fr!important;}
 }
+
 @media(max-width:480px){
-  .metrics,.metrics-3{grid-template-columns:1fr!important;}
-  .nav-links{justify-content:center;}
+  .metrics{grid-template-columns:1fr 1fr!important;}
+  .metrics-3{grid-template-columns:1fr!important;}
   .metric-val{font-size:18px;}
+  .nav-links{justify-content:flex-start;}
+  .nav-btn{font-size:10px;padding:4px 8px;}
 }
 </style>
 </head>
@@ -277,7 +310,7 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
   </div>
 
   <!-- TAREAS + ACCESOS + GASTOS -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+  <div class="dash-grid-2col" style="margin-bottom:16px">
 
     <!-- COLUMNA IZQUIERDA: Tareas + Accesos -->
     <div style="display:flex;flex-direction:column;gap:14px">
