@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Casih & Asociados — Sistema de Gestión</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <!-- Firebase SDKs -->
@@ -28,7 +28,7 @@
   --purple:#9B7FE8;--purple-bg:#1E1535;
   --radius:10px;--radius-lg:14px;
 }
-html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;overflow-x:hidden;max-width:100%;}
 .app{display:flex;flex-direction:column;min-height:100vh;}
 
 /* LOGIN */
@@ -178,72 +178,101 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
 }
 
 .dash-grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:768px){
-  /* Nav */
-  .nav{padding:8px 1rem;height:auto;flex-wrap:wrap;gap:6px;}
-  .nav-brand{font-size:16px;}
-  .nav-links{flex-wrap:wrap;gap:3px;order:3;width:100%;padding-bottom:4px;}
-  .nav-btn{font-size:11px;padding:5px 9px;}
-  .nav-user .user-name{display:none;}
+  *{box-sizing:border-box!important;}
+  html,body{overflow-x:hidden!important;max-width:100vw!important;}
+  .app{max-width:100vw!important;overflow-x:hidden!important;}
+  .main{padding:0.75rem!important;max-width:100vw!important;overflow-x:hidden!important;}
 
-  /* Layout */
-  .main{padding:0.75rem;}
-  .page-title{font-size:20px;}
-  .page-header{flex-direction:column;align-items:flex-start;gap:8px;}
+  /* NAV */
+  .nav{padding:8px 0.75rem!important;height:auto!important;flex-wrap:wrap!important;gap:4px!important;}
+  .nav-brand{font-size:15px!important;}
+  .nav-links{order:3!important;width:100%!important;flex-wrap:wrap!important;gap:3px!important;padding-bottom:4px!important;}
+  .nav-btn{font-size:11px!important;padding:5px 8px!important;}
+  .nav-user .user-name{display:none!important;}
+  .btn-logout,.btn-out{font-size:11px!important;padding:4px 8px!important;}
 
-  /* FORZAR columna única en TODO el dashboard */
-  .metrics{grid-template-columns:1fr 1fr!important;}
-  .metrics-3{grid-template-columns:1fr 1fr!important;}
-  .grid2{grid-template-columns:1fr!important;gap:10px;}
-  .dash-grid-2col{grid-template-columns:1fr!important;gap:10px!important;}
+  /* TIPOGRAFÍA */
+  .page-title{font-size:19px!important;}
+  .metric-val{font-size:20px!important;}
+  .card-title{font-size:10px!important;}
 
-  /* Agenda */
-  .agenda-layout{grid-template-columns:1fr!important;}
+  /* MÉTRICAS */
+  .metrics{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+  .metrics-3{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
 
-  /* Forms */
-  .g2{grid-template-columns:1fr!important;}
-  .cat-grid{grid-template-columns:1fr 1fr!important;}
-  .cat-btn{padding:12px 8px;font-size:13px;}
+  /* FORZAR COLUMNA ÚNICA - lo más importante */
+  .grid2,
+  .dash-grid-2col,
+  .agenda-layout,
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"]{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:10px!important;
+    width:100%!important;
+  }
 
-  /* Clientes */
-  .client-grid{grid-template-columns:1fr!important;}
-  .cc-footer{flex-direction:column;align-items:flex-start;gap:8px;}
-  .cc-footer > div{flex-wrap:wrap;}
+  /* CARDS */
+  .card{padding:0.9rem!important;width:100%!important;}
+  .client-grid{display:flex!important;flex-direction:column!important;gap:8px!important;}
+  .client-card{width:100%!important;}
+  .cc-footer{flex-direction:column!important;align-items:flex-start!important;gap:6px!important;}
+  .cc-footer > div{flex-wrap:wrap!important;gap:4px!important;}
 
-  /* Tareas */
-  .task-item{flex-wrap:wrap;gap:8px;}
-  .task-right{width:100%;display:flex;justify-content:flex-end;margin-top:4px;}
+  /* FORMULARIOS */
+  .g2{display:flex!important;flex-direction:column!important;gap:8px!important;}
+  .fi,.fs,.fta{font-size:16px!important;} /* 16px evita zoom en iOS */
+  .cat-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+  .cat-btn{padding:14px 8px!important;font-size:13px!important;}
 
-  /* Modals */
-  .modal{width:96vw!important;padding:1rem;max-height:92vh;}
+  /* TABS */
+  .tabs{flex-wrap:wrap!important;width:100%!important;}
+  .tab{font-size:11px!important;padding:5px 9px!important;}
 
-  /* Admin */
-  .tabs{flex-wrap:wrap;width:100%!important;}
-  .tab{font-size:11px;padding:5px 10px;}
-  #adm-tabs{flex-wrap:wrap;}
-  table{font-size:12px;}
-  th,td{padding:5px 5px;}
+  /* TAREAS */
+  .task-item{flex-wrap:wrap!important;}
+  .task-right{width:100%!important;justify-content:flex-end!important;margin-top:6px!important;}
+
+  /* MODALES */
+  .modal-bg{padding:1rem 0.5rem!important;align-items:flex-end!important;}
+  .modal{width:100%!important;max-width:100%!important;padding:1.25rem!important;border-radius:16px 16px 0 0!important;max-height:90vh!important;}
+
+  /* TABLAS */
+  table{font-size:11px!important;width:100%!important;}
+  th,td{padding:5px 4px!important;}
+  .card > table,
+  .card > div > table{overflow-x:auto!important;display:block!important;}
+
+  /* CALENDARIO */
+  #dash-gcal-iframe{height:300px!important;}
 
   /* PIN */
-  .pin-pad{grid-template-columns:repeat(3,60px);gap:8px;}
-  .pin-btn{width:60px;height:60px;font-size:18px;}
-  .pin-screen{padding:1rem;}
+  .pin-pad{grid-template-columns:repeat(3,64px)!important;gap:10px!important;}
+  .pin-btn{width:64px!important;height:64px!important;font-size:20px!important;}
+  .pin-screen{padding:1rem!important;}
 
-  /* Calendar */
-  #dash-gcal-iframe{height:320px!important;}
+  /* ADMIN */
+  #adm-tabs{flex-wrap:wrap!important;}
+  #adm-tabs .tab{font-size:11px!important;}
 
-  /* Honorarios cards */
-  #dash-honorarios-list > div{grid-template-columns:1fr!important;}
-  #recordatorios-list > div{grid-template-columns:1fr!important;}
-}
+  /* GRILLAS DE HONORARIOS Y RECORDATORIOS */
+  #dash-honorarios-list > div,
+  #recordatorios-list > div{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:10px!important;
+  }
 
-@media(max-width:480px){
-  .metrics{grid-template-columns:1fr 1fr!important;}
-  .metrics-3{grid-template-columns:1fr!important;}
-  .metric-val{font-size:18px;}
-  .nav-links{justify-content:flex-start;}
-  .nav-btn{font-size:10px;padding:4px 8px;}
+  /* PAGE HEADER */
+  .page-header{flex-direction:column!important;gap:8px!important;}
+  .page-header > div:last-child{display:flex!important;flex-wrap:wrap!important;gap:6px!important;}
+
+  /* BOTONES */
+  .btn-primary{font-size:13px!important;padding:8px 14px!important;}
+  .btn-sm{font-size:12px!important;padding:5px 10px!important;}
 }
 </style>
 </head>
