@@ -9,6 +9,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init("GiqaIcNtthTkK0vrx");</script>
 <!-- Google Calendar API -->
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
@@ -173,6 +176,42 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
   background:var(--bg3) !important;
   color:var(--text) !important;
 }
+
+/* ── RESPONSIVE MOBILE ── */
+@media(max-width:768px){
+  .nav{padding:0 1rem;height:auto;flex-wrap:wrap;gap:6px;padding:8px 1rem;}
+  .nav-links{flex-wrap:wrap;gap:3px;order:3;width:100%;padding-bottom:6px;}
+  .nav-btn{font-size:11px;padding:5px 10px;}
+  .main{padding:1rem 0.75rem;}
+  .metrics,.metrics-3{grid-template-columns:1fr 1fr!important;}
+  .grid2{grid-template-columns:1fr!important;}
+  .agenda-layout{grid-template-columns:1fr!important;}
+  .g2{grid-template-columns:1fr!important;}
+  .client-grid{grid-template-columns:1fr!important;}
+  .modal{width:95vw!important;padding:1rem;}
+  .page-title{font-size:20px;}
+  .metric-val{font-size:20px;}
+  .tabs{flex-wrap:wrap;width:100%;}
+  .tab{font-size:11px;padding:5px 10px;}
+  #dash-gcal-iframe{height:350px!important;}
+  .task-item{flex-wrap:wrap;}
+  .task-right{width:100%;display:flex;justify-content:flex-end;margin-top:8px;}
+  .cc-footer{flex-direction:column;align-items:flex-start;gap:8px;}
+  .page-header{flex-direction:column;gap:8px;}
+  .nav-user .user-name{display:none;}
+  table{font-size:12px;}
+  th,td{padding:6px 6px;}
+  .pin-pad{grid-template-columns:repeat(3,56px);gap:8px;}
+  .pin-btn{width:56px;height:56px;font-size:18px;}
+  .adm-tabs{flex-wrap:wrap;}
+  .cat-grid{grid-template-columns:1fr 1fr;}
+  .cat-btn{padding:10px 8px;font-size:12px;}
+}
+@media(max-width:480px){
+  .metrics,.metrics-3{grid-template-columns:1fr!important;}
+  .nav-links{justify-content:center;}
+  .metric-val{font-size:18px;}
+}
 </style>
 </head>
 <body>
@@ -292,13 +331,24 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
   </div>
 
   <!-- HONORARIOS PENDIENTES -->
-  <div class="card" style="margin-bottom:0">
+  <div class="card" style="margin-bottom:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
       <span style="font-size:15px;font-weight:600;color:var(--text)">Honorarios pendientes</span>
       <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
     </div>
     <div id="dash-honorarios-list">
       <div style="font-size:13px;color:var(--text3);padding:6px 0">Sin honorarios pendientes.</div>
+    </div>
+  </div>
+
+  <!-- RECORDATORIOS -->
+  <div class="card" style="margin-bottom:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600;color:var(--text)">🔔 Recordatorios</span>
+      <button onclick="openModal('m-recordatorio')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Nuevo recordatorio</button>
+    </div>
+    <div id="recordatorios-list">
+      <div style="font-size:13px;color:var(--text3);padding:6px 0">Sin recordatorios.</div>
     </div>
   </div>
 
@@ -322,9 +372,27 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
     <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
     <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
     <button class="tab" onclick="setCtab('posible')">Posibles clientes</button>
+    <button class="tab" onclick="setCtab('correo')">📦 Seguimiento Correo</button>
   </div>
   <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
   <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
+
+  <!-- SEGUIMIENTO CORREO -->
+  <div id="sec-correo" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--text2)">Seguimiento de envíos por Correo Argentino</div>
+      <div style="display:flex;gap:8px">
+        <a href="https://www.correoargentino.com.ar/" target="_blank" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:500">🌐 Correo Argentino</a>
+        <button onclick="openModal('m-correo')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;border:1px solid #1E3A25">+ Agregar seguimiento</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <table>
+        <tr><th>Cliente</th><th>Código de seguimiento</th><th>Fecha envío</th><th>Notas</th><th></th></tr>
+        <tbody id="correo-table"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- TAREAS -->
@@ -502,6 +570,29 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
       <button class="btn-sm" onclick="closeModal('m-subir-doc')">Cancelar</button>
       <button class="btn-primary" onclick="confirmarSubida()">Subir a Drive</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL RECORDATORIO -->
+<div class="modal-bg" id="m-recordatorio" onclick="if(event.target===this)closeModal('m-recordatorio')">
+  <div class="modal"><h3>Nuevo recordatorio</h3>
+    <div class="fg"><div class="fl">Título *</div><input class="fi" id="rec-titulo" placeholder="Ej: Vencimiento presentación García"></div>
+    <div class="fg"><div class="fl">Descripción</div><textarea class="fta" id="rec-desc" placeholder="Detalle del recordatorio..."></textarea></div>
+    <div class="fg"><div class="fl">Fecha del recordatorio *</div><input class="fi" id="rec-fecha" type="date"></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="rec-cliente"><option value="">— Sin cliente —</option></select></div>
+    <div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:12px">📧 El día de la fecha indicada llegará un email automático a casihyasociados@gmail.com</div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-recordatorio')">Cancelar</button><button class="btn-primary" onclick="saveRecordatorio()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL SEGUIMIENTO CORREO -->
+<div class="modal-bg" id="m-correo" onclick="if(event.target===this)closeModal('m-correo')">
+  <div class="modal"><h3>Agregar seguimiento Correo</h3>
+    <div class="fg"><div class="fl">Cliente *</div><select class="fs" id="co-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Código de seguimiento *</div><input class="fi" id="co-codigo" placeholder="Ej: RA123456789AR"></div>
+    <div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="co-fecha" type="date"></div>
+    <div class="fg"><div class="fl">Notas</div><input class="fi" id="co-notas" placeholder="Ej: Telegrama parte documental"></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-correo')">Cancelar</button><button class="btn-primary" onclick="saveCorreo()">Guardar</button></div>
   </div>
 </div>
 
@@ -850,13 +941,18 @@ function updCStats(){
 
 function updateClienteSelects(){
   var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
-  ['ev-cliente','tn-cl','er-cliente','hd-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
+  ['ev-cliente','tn-cl','er-cliente','hd-cliente','rec-cliente','co-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
 }
 
 function setCtab(t){
   curCtab=t;
-  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible'][i]===t?' active':'');});
-  renderClientes();
+  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','correo'][i]===t?' active':'');});
+  var isCorreo=t==='correo';
+  document.getElementById('client-grid').style.display=isCorreo?'none':'grid';
+  document.getElementById('client-empty').style.display='none';
+  document.getElementById('sec-correo').style.display=isCorreo?'block':'none';
+  if(isCorreo)renderCorreoTable();
+  else renderClientes();
 }
 
 function renderClientes(){
@@ -1055,16 +1151,15 @@ function saveCliente(){
 function editCliente(id){
   var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
   if(!c)return;
-  document.getElementById('cn-n').value=c.nombre||'';
-  document.getElementById('cn-t').value=c.tel||'';
-  document.getElementById('cn-tipo').value=c.tipo||'posible';
-  document.getElementById('cn-ref').value=c.ref||'no';
-  document.getElementById('cn-m').value=c.motivo||'Art';
-  document.getElementById('cn-e').value=c.etapa||'Cita';
-  document.getElementById('cn-f').value=c.fecha||'';
-  document.getElementById('cn-no').value=c.notas||'';
-  // drive link is auto-generated
-  document.getElementById('cn-exp').value=c.expte||'';
+  var setVal=function(id,v){var el=document.getElementById(id);if(el)el.value=v||'';};
+  setVal('cn-n',c.nombre);
+  setVal('cn-t',c.tel);
+  setVal('cn-tipo',c.tipo||'posible');
+  setVal('cn-m',c.motivo||'Art');
+  setVal('cn-e',c.etapa||'Cita');
+  setVal('cn-f',c.fecha);
+  setVal('cn-no',c.notas);
+  setVal('cn-exp',c.expte);
   // Override save to update instead of add
   document.querySelector('#m-cliente .btn-primary').onclick=function(){
     var n=document.getElementById('cn-n').value.trim();
@@ -1764,6 +1859,161 @@ function agregarItemManual(){
   input.value='';
 }
 
+
+// ─── RECORDATORIOS ───
+function initRecordatorios(){
+  db.collection('recordatorios').onSnapshot(function(snap){
+    var list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+    renderRecordatorios(list);
+    // Check if any recordatorio is due today and send email
+    var hoy=fmt(today);
+    list.forEach(function(r){
+      if(r.fecha===hoy&&!r.emailEnviado){
+        enviarEmailRecordatorio(r);
+        db.collection('recordatorios').doc(r.id).update({emailEnviado:true});
+      }
+    });
+  },function(err){
+    db.collection('recordatorios').get().then(function(snap){
+      var list=[];
+      snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+      renderRecordatorios(list);
+    });
+  });
+}
+
+function renderRecordatorios(list){
+  var el=document.getElementById('recordatorios-list');
+  if(!el)return;
+  var hoy=fmt(today);
+  // Filter out past ones older than 7 days
+  var filtered=list.filter(function(r){
+    var diff=(new Date(r.fecha)-today)/864e5;
+    return diff>-7;
+  }).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+  if(filtered.length===0){
+    el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin recordatorios pendientes.</div>';
+    return;
+  }
+  var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">';
+  filtered.forEach(function(r){
+    var esHoy=r.fecha===hoy;
+    var diff=Math.round((new Date(r.fecha)-today)/864e5);
+    var esPasado=diff<0;
+    var borderColor=esHoy?'var(--blue)':esPasado?'var(--red)':'var(--border)';
+    var bgColor=esHoy?'var(--blue-bg)':esPasado?'var(--red-bg)':'var(--bg3)';
+    var fechaLabel=esHoy?'🔔 HOY':esPasado?'Vencido hace '+Math.abs(diff)+' días':fmtDisp(r.fecha);
+    html+='<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:12px">';
+    html+='<div style="font-size:11px;font-weight:600;color:'+(esHoy?'var(--blue)':esPasado?'var(--red)':'var(--text3)')+';margin-bottom:5px">'+fechaLabel+'</div>';
+    html+='<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+r.titulo+'</div>';
+    if(r.desc)html+='<div style="font-size:12px;color:var(--text3);margin-bottom:6px">'+r.desc+'</div>';
+    if(r.cliente)html+='<div style="font-size:11px;color:var(--text3)">👤 '+r.cliente+'</div>';
+    html+='<div style="display:flex;gap:6px;margin-top:10px">';
+    html+='<button data-rid="'+r.id+'" data-raction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid #1E3A25;background:var(--green-bg);color:var(--green);cursor:pointer">✓ Listo</button>';
+    html+='<button data-rid="'+r.id+'" data-raction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  el.querySelectorAll('[data-raction]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=this.getAttribute('data-rid');
+      var action=this.getAttribute('data-raction');
+      if(action==='done'){
+        db.collection('recordatorios').doc(id).delete().then(function(){showToast('Recordatorio completado ✓');});
+      } else {
+        if(confirm('¿Eliminar este recordatorio?'))
+          db.collection('recordatorios').doc(id).delete();
+      }
+    });
+  });
+}
+
+function saveRecordatorio(){
+  var titulo=document.getElementById('rec-titulo').value.trim();
+  var fecha=document.getElementById('rec-fecha').value;
+  if(!titulo||!fecha){alert('Título y fecha son obligatorios.');return;}
+  db.collection('recordatorios').add({
+    titulo:titulo,
+    desc:document.getElementById('rec-desc').value.trim(),
+    fecha:fecha,
+    cliente:document.getElementById('rec-cliente').value,
+    emailEnviado:false,
+    creadoPor:currentUserData?currentUserData.nombre:'',
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    closeModal('m-recordatorio');
+    showToast('Recordatorio guardado ✓');
+    document.getElementById('rec-titulo').value='';
+    document.getElementById('rec-desc').value='';
+    document.getElementById('rec-fecha').value='';
+  });
+}
+
+function enviarEmailRecordatorio(r){
+  if(typeof emailjs==='undefined')return;
+  emailjs.send('service_2y03ev8','template_r3a3s99',{
+    titulo:r.titulo,
+    descripcion:r.desc||'Sin descripción',
+    fecha:r.fecha,
+    name:'Sistema Casih & Asociados',
+    email:'casihyasociados@gmail.com'
+  }).then(function(){
+    console.log('Email recordatorio enviado:', r.titulo);
+  }).catch(function(e){
+    console.warn('Error enviando email:', e);
+  });
+}
+
+// ─── SEGUIMIENTO CORREO ───
+function renderCorreoTable(){
+  db.collection('correos').get().then(function(snap){
+    var list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+    var tbody=document.getElementById('correo-table');
+    if(!tbody)return;
+    if(list.length===0){
+      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:1.5rem">Sin seguimientos cargados.</td></tr>';
+      return;
+    }
+    tbody.innerHTML=list.map(function(co){
+      return '<tr>'+
+        '<td style="font-weight:500">'+co.cliente+'</td>'+
+        '<td><a href="https://www.correoargentino.com.ar/MiCorreo/public/index#seguimiento" target="_blank" style="color:var(--blue);font-family:monospace;font-size:13px">'+co.codigo+'</a></td>'+
+        '<td style="color:var(--text3)">'+(co.fecha||'')+'</td>'+
+        '<td style="color:var(--text3)">'+(co.notas||'')+'</td>'+
+        '<td><button data-cid="'+co.id+'" data-caction="del" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></td>'+
+      '</tr>';
+    }).join('');
+    tbody.querySelectorAll('[data-caction]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var id=this.getAttribute('data-cid');
+        if(confirm('¿Eliminar?'))
+          db.collection('correos').doc(id).delete().then(function(){renderCorreoTable();showToast('Eliminado ✓');});
+      });
+    });
+  });
+}
+
+function saveCorreo(){
+  var cliente=document.getElementById('co-cliente').value;
+  var codigo=document.getElementById('co-codigo').value.trim();
+  if(!cliente||!codigo){alert('Cliente y código son obligatorios.');return;}
+  db.collection('correos').add({
+    cliente:cliente,
+    codigo:codigo,
+    fecha:document.getElementById('co-fecha').value,
+    notas:document.getElementById('co-notas').value.trim(),
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    closeModal('m-correo');showToast('Seguimiento guardado ✓');
+    document.getElementById('co-codigo').value='';
+    document.getElementById('co-notas').value='';
+    renderCorreoTable();
+  });
+}
+
 // stub for backward compat
 function initEventos(){}
 
@@ -1771,7 +2021,7 @@ function initEventos(){}
 function initApp(){
   setFecha();
   var ts=fmt(today);
-  ['cn-f','tn-fe','in-fe','ga-fe','ev-fecha','ed-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=ts;});
+  ['cn-f','tn-fe','in-fe','ga-fe','ev-fecha','ed-fecha','rec-fecha','co-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=ts;});
   var mesActual=p2(today.getMonth()+1);
   var sel=document.getElementById('adm-mes');if(sel)sel.value=mesActual;
   initClientes();
@@ -1782,6 +2032,7 @@ function initApp(){
   setTimeout(function(){
     initLinksRapidos();
     initHonorariosDash();
+    initRecordatorios();
   }, 300);
   // Cargar clientes iniciales si Firestore está vacío
   db.collection('clientes').get().then(function(snap){
