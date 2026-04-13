@@ -462,15 +462,23 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- TAREAS -->
 <div class="section" id="sec-tareas">
   <div class="page-header">
-    <div><div class="page-title">Tareas</div><div class="page-sub">Panel del equipo · al completar, se borra</div></div>
-    <div style="display:flex;gap:8px"><button class="btn-sm" onclick="exportarTareasDia()" style="border-color:var(--green);color:var(--green)">📋 Exportar día</button><button class="btn-primary" onclick="openModal('m-tarea')">+ Nueva tarea</button></div>
+    <div><div class="page-title">Tareas</div><div class="page-sub">Panel del equipo</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sm" onclick="exportarTareasDia()" style="border-color:var(--green);color:var(--green)">📋 Exportar día</button>
+      <button class="btn-primary" onclick="openModal('m-tarea')">+ Nueva tarea</button>
+    </div>
   </div>
   <div class="metrics-3">
-    <div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val" id="ts-total">—</div></div>
+    <div class="metric"><div class="metric-label">Diarias hoy</div><div class="metric-val" id="ts-hoy">—</div></div>
     <div class="metric"><div class="metric-label">Prioridad alta</div><div class="metric-val" style="color:var(--red)" id="ts-alta">—</div></div>
-    <div class="metric"><div class="metric-label">Para hoy</div><div class="metric-val" id="ts-hoy">—</div></div>
+    <div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val" style="color:var(--orange)" id="ts-pendientes">—</div></div>
   </div>
-  <div id="task-container"><div class="loading"><div class="spinner"></div>Cargando tareas...</div></div>
+  <div class="tabs" id="tareas-tabs" style="margin-bottom:1rem">
+    <button class="tab active" onclick="setTareaTab('diarias')">📅 Tareas diarias</button>
+    <button class="tab" onclick="setTareaTab('pendientes')">📌 Tareas pendientes</button>
+  </div>
+  <div id="task-container-diarias"></div>
+  <div id="task-container-pendientes" style="display:none"></div>
 </div>
 
 <!-- AGENDA -->
@@ -484,7 +492,7 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="card-title">Nuevo evento</div>
       <div class="fg"><div class="fl">Tipo</div><select class="fs" id="ev-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
       <div class="fg"><div class="fl">Título *</div><input class="fi" id="ev-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
-      <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="ev-cliente"><option value="">— Sin cliente —</option></select></div>
+      <div class="fg"><div class="fl">Cliente vinculado</div><div style="position:relative"><input class="fi" id="ev-cliente-search" placeholder="Escribí para buscar..." oninput="filtrarClientes('ev-cliente-search','ev-cliente-dropdown')" onfocus="filtrarClientes('ev-cliente-search','ev-cliente-dropdown')" autocomplete="off"><input type="hidden" id="ev-cliente" value=""><div id="ev-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div></div></div>
       <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="ev-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="ev-hora" type="time"></div></div>
       <div class="fg"><div class="fl">Lugar</div><input class="fi" id="ev-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
       <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="ev-notas" placeholder="Detalles adicionales..."></textarea></div>
@@ -564,7 +572,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal"><h3>Nuevo evento</h3>
     <div class="fg"><div class="fl">Tipo</div><select class="fs" id="er-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
     <div class="fg"><div class="fl">Título *</div><input class="fi" id="er-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
-    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="er-cliente"><option value="">— Sin cliente —</option></select></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><div style="position:relative"><input class="fi" id="er-cliente-search" placeholder="Escribí para buscar..." oninput="filtrarClientes('er-cliente-search','er-cliente-dropdown')" onfocus="filtrarClientes('er-cliente-search','er-cliente-dropdown')" autocomplete="off"><input type="hidden" id="er-cliente" value=""><div id="er-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div></div></div>
     <div class="g2">
       <div class="fg"><div class="fl">Fecha</div><input class="fi" id="er-fecha" type="date"></div>
       <div class="fg"><div class="fl">Hora</div><input class="fi" id="er-hora" type="time"></div>
@@ -588,7 +596,7 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- MODAL HONORARIO DASHBOARD -->
 <div class="modal-bg" id="m-honorario-dash" onclick="if(event.target===this)closeModal('m-honorario-dash')">
   <div class="modal"><h3>Cargar honorario pendiente</h3>
-    <div class="fg"><div class="fl">Cliente *</div><select class="fs" id="hd-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Cliente *</div><div style="position:relative"><input class="fi" id="hd-cliente-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('hd-cliente-search','hd-cliente-dropdown')" onfocus="filtrarClientes('hd-cliente-search','hd-cliente-dropdown')" autocomplete="off"><input type="hidden" id="hd-cliente" value=""><div id="hd-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div></div></div>
     <div class="fg"><div class="fl">Concepto *</div>
       <select class="fs" id="hd-concepto">
         <option value="honorarios">Honorarios</option>
@@ -651,7 +659,7 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="fg"><div class="fl">Título *</div><input class="fi" id="rec-titulo" placeholder="Ej: Vencimiento presentación García"></div>
     <div class="fg"><div class="fl">Descripción</div><textarea class="fta" id="rec-desc" placeholder="Detalle del recordatorio..."></textarea></div>
     <div class="fg"><div class="fl">Fecha del recordatorio *</div><input class="fi" id="rec-fecha" type="date"></div>
-    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="rec-cliente"><option value="">— Sin cliente —</option></select></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><div style="position:relative"><input class="fi" id="rec-cliente-search" placeholder="Escribí para buscar..." oninput="filtrarClientes('rec-cliente-search','rec-cliente-dropdown')" onfocus="filtrarClientes('rec-cliente-search','rec-cliente-dropdown')" autocomplete="off"><input type="hidden" id="rec-cliente" value=""><div id="rec-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div></div></div>
     <div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:12px">📧 El día de la fecha indicada llegará un email automático a <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7112100218190810021e121810151e0231161c10181d5f121e1c">[email&#160;protected]</a></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-recordatorio')">Cancelar</button><button class="btn-primary" onclick="saveRecordatorio()">Guardar</button></div>
   </div>
@@ -660,7 +668,7 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- MODAL SEGUIMIENTO CORREO -->
 <div class="modal-bg" id="m-correo" onclick="if(event.target===this)closeModal('m-correo')">
   <div class="modal"><h3>Agregar seguimiento Correo</h3>
-    <div class="fg"><div class="fl">Cliente *</div><select class="fs" id="co-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Cliente *</div><div style="position:relative"><input class="fi" id="co-cliente-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('co-cliente-search','co-cliente-dropdown')" onfocus="filtrarClientes('co-cliente-search','co-cliente-dropdown')" autocomplete="off"><input type="hidden" id="co-cliente" value=""><div id="co-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div></div></div>
     <div class="fg"><div class="fl">Código de seguimiento *</div><input class="fi" id="co-codigo" placeholder="Ej: RA123456789AR"></div>
     <div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="co-fecha" type="date"></div>
     <div class="fg"><div class="fl">Notas</div><input class="fi" id="co-notas" placeholder="Ej: Telegrama parte documental"></div>
@@ -684,11 +692,24 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-tarea" onclick="if(event.target===this)closeModal('m-tarea')">
   <div class="modal"><h3>Nueva tarea</h3>
+    <div class="fg"><div class="fl">Tipo</div>
+      <div style="display:flex;gap:8px">
+        <button id="tn-tipo-diaria" onclick="setTipoTarea('diaria')" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600">📅 Diaria</button>
+        <button id="tn-tipo-pendiente" onclick="setTipoTarea('pendiente')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px">📌 Pendiente</button>
+      </div>
+      <input type="hidden" id="tn-tipo-val" value="diaria">
+    </div>
     <div class="fg"><div class="fl">Tarea *</div><input class="fi" id="tn-ti" placeholder="Ej: Llamar a García para confirmar audiencia"></div>
     <div class="fg"><div class="fl">Descripción / detalle</div><textarea class="fta" id="tn-no" placeholder="Describí qué hay que hacer, contexto, etc..."></textarea></div>
     <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="tn-fe" type="date"></div><div class="fg"><div class="fl">Hora (opcional)</div><input class="fi" id="tn-ho" type="time"></div></div>
     <div class="fg"><div class="fl">Prioridad</div><select class="fs" id="tn-pr"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></div>
-    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="tn-cl"><option value="">— Sin cliente —</option></select></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div>
+      <div style="position:relative">
+        <input class="fi" id="tn-cl-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('tn-cl-search','tn-cl-dropdown')" onfocus="filtrarClientes('tn-cl-search','tn-cl-dropdown')" autocomplete="off">
+        <input type="hidden" id="tn-cl" value="">
+        <div id="tn-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+    </div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-tarea')">Cancelar</button><button class="btn-primary" onclick="saveTarea()">Guardar tarea</button></div>
   </div>
 </div>
@@ -1266,7 +1287,6 @@ function initTareas(){
     q.onSnapshot(function(snap){
       TAREAS_CACHE=[];
       snap.forEach(function(d){var x=d.data();x.id=d.id;TAREAS_CACHE.push(x);});
-      updTStats();
       renderTareas();
       renderDashTareas();
     },function(err){
@@ -1281,59 +1301,108 @@ function initTareas(){
   startTareasListener(true);
 }
 
-function updTStats(){
-  var ts=fmt(today);
-  document.getElementById('ts-total').textContent=TAREAS_CACHE.length;
-  document.getElementById('ts-alta').textContent=TAREAS_CACHE.filter(function(t){return t.prio==='alta';}).length;
-  document.getElementById('ts-hoy').textContent=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).length;
-  document.getElementById('dm-tareas').textContent=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).length;
+function updTStats(diarias, pendientes, ts){
+  ts=ts||fmt(today);
+  diarias=diarias||TAREAS_CACHE.filter(function(t){return t.tipo!=='pendiente';});
+  pendientes=pendientes||TAREAS_CACHE.filter(function(t){return t.tipo==='pendiente';});
+  var hoy=diarias.filter(function(t){return t.fecha===ts;}).length;
+  var alta=TAREAS_CACHE.filter(function(t){return t.prio==='alta';}).length;
+  var el;
+  el=document.getElementById('ts-hoy');if(el)el.textContent=hoy;
+  el=document.getElementById('ts-alta');if(el)el.textContent=alta;
+  el=document.getElementById('ts-pendientes');if(el)el.textContent=pendientes.length;
+  el=document.getElementById('ts-total');if(el)el.textContent=TAREAS_CACHE.length;
+  el=document.getElementById('dm-tareas');if(el)el.textContent=hoy;
 }
 
 function renderDashTareas(){
   var ts=fmt(today);
   var el=document.getElementById('dash-tareas');
   if(!el)return;
-  var list=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).slice(0,6);
-  if(list.length===0){
-    el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>';
-    return;
-  }
+  // Show today + overdue (not done yet)
+  var hoy=TAREAS_CACHE.filter(function(t){return t.fecha===ts&&t.tipo!=='pendiente';});
+  var vencidas=TAREAS_CACHE.filter(function(t){return t.fecha<ts&&t.tipo!=='pendiente';}).slice(0,3);
   var pCls={alta:'b-red',media:'b-orange',baja:'b-green'};
   var pLbl={alta:'Alta',media:'Media',baja:'Baja'};
-  el.innerHTML=list.map(function(t){
-    return '<div class="row-item">'+
-      '<div class="row-info">'+
-        '<div class="row-name">'+t.titulo+'</div>'+
-        '<div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+aLbl[t.asig]+(t.cliente?' · '+t.cliente:'')+'</div>'+
-      '</div>'+
-      '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
-    '</div>';
-  }).join('');
+  var html='';
+  if(vencidas.length>0){
+    html+='<div style="font-size:10px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⚠ Sin completar</div>';
+    html+=vencidas.map(function(t){
+      return '<div class="row-item">'+
+        '<div class="row-info">'+
+          '<div class="row-name" style="color:var(--red)">'+t.titulo+'</div>'+
+          '<div class="row-sub">'+fmtDisp(t.fecha)+(t.cliente?' · '+t.cliente:'')+'</div>'+
+        '</div>'+
+        '<span class="badge b-red">Vencida</span>'+
+      '</div>';
+    }).join('');
+  }
+  if(hoy.length>0){
+    if(vencidas.length>0)html+='<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 6px">Hoy</div>';
+    html+=hoy.slice(0,5).map(function(t){
+      return '<div class="row-item">'+
+        '<div class="row-info">'+
+          '<div class="row-name">'+t.titulo+'</div>'+
+          '<div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+((t.asig&&aLbl[t.asig])||'')+(t.cliente?' · '+t.cliente:'')+'</div>'+
+        '</div>'+
+        '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+      '</div>';
+    }).join('');
+  }
+  if(!html)html='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>';
+  el.innerHTML=html;
 }
 
 
 function renderTareas(){
-  var list=[...TAREAS_CACHE].sort(function(a,b){var po={alta:0,media:1,baja:2};return a.fecha!==b.fecha?a.fecha>b.fecha?1:-1:po[a.prio]-po[b.prio];});
-  if(list.length===0){document.getElementById('task-container').innerHTML='<div class="empty-state">Sin tareas pendientes ✓<br><br>Usá el botón para agregar.</div>';return;}
-  var groups={};list.forEach(function(t){if(!groups[t.fecha])groups[t.fecha]=[];groups[t.fecha].push(t);});
-  var html='';Object.keys(groups).sort().forEach(function(d){
-    html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
-    groups[d].forEach(function(t){
-      html+='<div class="task-item" id="ti-'+t.id+'">'+
-        '<div class="task-body"><div class="task-title">'+t.titulo+'</div>'+
-        '<div class="task-meta"><span class="badge '+tTipoCls[t.tipo]+'">'+tTipoLbl[t.tipo]+'</span><span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
-        '<span class="badge b-gray">'+aLbl[t.asig]+'</span>'+
-        (t.hora?'<span style="font-size:11px;color:var(--text3)">'+t.hora+'hs</span>':'')+
-        (t.cliente?'<span style="font-size:11px;color:var(--text3)">· '+t.cliente+'</span>':'')+
-        '</div>'+(t.notas?'<div class="task-detail">'+t.notas+'</div>':'')+
-        '</div><div class="task-right">'+
-        '<button class="btn-done" onclick="markDone(\''+t.id+'\')">Realizada ✓</button>'+
-        '<button onclick="editTarea(\''+t.id+'\''+')" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:\'DM Sans\',sans-serif">Editar</button>'+
-        '<span style="font-size:10px;color:var(--text3)">'+t.cargadoPor+'</span>'+
-        '</div></div>';
+  var ts=fmt(today);
+  var all=[...TAREAS_CACHE].sort(function(a,b){var po={alta:0,media:1,baja:2};return a.fecha!==b.fecha?a.fecha>b.fecha?1:-1:po[a.prio]-po[b.prio];});
+  // Split: pendientes (tipo==='pendiente') vs diarias (rest)
+  var diarias=all.filter(function(t){return t.tipo!=='pendiente';});
+  var pendientes=all.filter(function(t){return t.tipo==='pendiente';});
+
+  function buildTaskHTML(list, showMover, moverLabel, moverTipo){
+    if(list.length===0)return '<div class="empty-state">Sin tareas. Usá el botón para agregar.</div>';
+    var groups={};
+    list.forEach(function(t){
+      var key=t.fecha||'sin-fecha';
+      if(!groups[key])groups[key]=[];
+      groups[key].push(t);
     });
+    var html='';
+    Object.keys(groups).sort().forEach(function(d){
+      html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
+      groups[d].forEach(function(t){
+        html+='<div class="task-item" id="ti-'+t.id+'">'+
+          '<div class="task-body"><div class="task-title">'+t.titulo+'</div>'+
+          '<div class="task-meta">'+
+          '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+          (t.hora?'<span style="font-size:11px;color:var(--text3)">'+t.hora+'hs</span>':'')+
+          (t.cliente?'<span style="font-size:11px;color:var(--text3)">'+t.cliente+'</span>':'')+
+          '</div>'+(t.notas?'<div class="task-detail">'+t.notas+'</div>':'')+
+          '</div><div class="task-right">'+
+          '<button class="btn-done" onclick="markDone(\''+t.id+'\')">Realizada ✓</button>'+
+          (showMover?'<button onclick="moverTarea(\''+t.id+'\',\''+moverTipo+'\')" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap">'+moverLabel+'</button>':'')+
+          '<button onclick="editTarea(\''+t.id+'\''+')" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">Editar</button>'+
+          '</div></div>';
+      });
+    });
+    return html;
+  }
+
+  var contD=document.getElementById('task-container-diarias');
+  var contP=document.getElementById('task-container-pendientes');
+  if(contD)contD.innerHTML=buildTaskHTML(diarias,true,'→ Pendiente','pendiente');
+  if(contP)contP.innerHTML=buildTaskHTML(pendientes,true,'→ Diaria','diaria');
+
+  // Update stats
+  updTStats(diarias, pendientes, ts);
+}
+
+function moverTarea(id, nuevoTipo){
+  db.collection('tareas').doc(id).set({tipo:nuevoTipo},{merge:true}).then(function(){
+    showToast('Tarea movida ✓');
   });
-  document.getElementById('task-container').innerHTML=html;
 }
 
 function markDone(id){
@@ -1395,18 +1464,30 @@ function editTarea(id){
 function saveTarea(){
   var ti=document.getElementById('tn-ti').value.trim();
   if(!ti){alert('La descripción es obligatoria.');return;}
+  var tipoVal=document.getElementById('tn-tipo-val');
+  var tipo=tipoVal?tipoVal.value:'diaria';
+  var clienteHidden=document.getElementById('tn-cl');
+  var clienteSearch=document.getElementById('tn-cl-search');
+  var cliente=clienteHidden?clienteHidden.value:(clienteSearch?clienteSearch.value:'');
   db.collection('tareas').add({
     titulo:ti,
-    tipo:'tramite',
+    tipo:tipo,
     prio:document.getElementById('tn-pr').value,
     fecha:document.getElementById('tn-fe').value,
     hora:document.getElementById('tn-ho').value,
-    cliente:document.getElementById('tn-cl').value,
+    cliente:cliente,
     asig:'todos',
     notas:document.getElementById('tn-no').value.trim(),
     cargadoPor:currentUserData.nombre,
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){closeModal('m-tarea');showToast('Tarea guardada ✓');});
+  }).then(function(){
+    closeModal('m-tarea');
+    showToast('Tarea guardada ✓');
+    // Reset tipo toggle
+    setTipoTarea('diaria');
+    if(clienteHidden)clienteHidden.value='';
+    if(clienteSearch)clienteSearch.value='';
+  });
 }
 
 // ─── AGENDA / GOOGLE CALENDAR ───
@@ -1511,7 +1592,7 @@ function addEvento(){
   if(!ti){alert('El título es obligatorio.');return;}
   guardarEvento(
     document.getElementById('ev-tipo').value,ti,
-    document.getElementById('ev-cliente').value,
+    (document.getElementById('ev-cliente')?document.getElementById('ev-cliente').value:document.getElementById('ev-cliente-search')?document.getElementById('ev-cliente-search').value:''),
     document.getElementById('ev-fecha').value,
     document.getElementById('ev-hora').value,
     document.getElementById('ev-lugar').value.trim(),
@@ -1581,7 +1662,7 @@ function saveEventoRapido(){
       hora=document.getElementById('er-hora').value,
       lugar=document.getElementById('er-lugar').value.trim(),
       notas=document.getElementById('er-notas').value.trim(),
-      cliente=document.getElementById('er-cliente').value;
+      cliente=(document.getElementById('er-cliente')?document.getElementById('er-cliente').value:document.getElementById('er-cliente-search')?document.getElementById('er-cliente-search').value:'');
 
   function guardarYEnviar(){
     // 1. Guardar en Firestore
@@ -1948,7 +2029,7 @@ function editHonorario(id){
     if(saveBtn){
       saveBtn.textContent='Actualizar';
       saveBtn.onclick=function(){
-        var cliente=document.getElementById('hd-cliente').value;
+        var cliente=(document.getElementById('hd-cliente')?document.getElementById('hd-cliente').value:document.getElementById('hd-cliente-search')?document.getElementById('hd-cliente-search').value:'');
         var montoCuota=getCurrencyValue(document.getElementById('hd-monto-cuota'));
         if(!cliente||!montoCuota){alert('Cliente y monto por cuota son obligatorios.');return;}
         db.collection('honorarios').doc(id).set({
@@ -1972,7 +2053,7 @@ function editHonorario(id){
 }
 
 function saveHonorarioDash(){
-  var cliente=document.getElementById('hd-cliente').value;
+  var cliente=(document.getElementById('hd-cliente')?document.getElementById('hd-cliente').value:document.getElementById('hd-cliente-search')?document.getElementById('hd-cliente-search').value:'');
   var montoCuota=getCurrencyValue(document.getElementById('hd-monto-cuota'));
   var cuotas=parseInt(document.getElementById('hd-cuotas').value)||1;
   if(!cliente||!montoCuota){alert('Cliente y monto por cuota son obligatorios.');return;}
@@ -2144,7 +2225,7 @@ function editRecordatorio(id){
           titulo:titulo,
           desc:document.getElementById('rec-desc').value.trim(),
           fecha:fecha,
-          cliente:document.getElementById('rec-cliente').value,
+          cliente:(document.getElementById('rec-cliente')?document.getElementById('rec-cliente').value:document.getElementById('rec-cliente-search')?document.getElementById('rec-cliente-search').value:''),
           emailEnviado:false
         },{merge:true}).then(function(){
           closeModal('m-recordatorio');
@@ -2166,7 +2247,7 @@ function saveRecordatorio(){
     titulo:titulo,
     desc:document.getElementById('rec-desc').value.trim(),
     fecha:fecha,
-    cliente:document.getElementById('rec-cliente').value,
+    cliente:(document.getElementById('rec-cliente')?document.getElementById('rec-cliente').value:document.getElementById('rec-cliente-search')?document.getElementById('rec-cliente-search').value:''),
     emailEnviado:false,
     creadoPor:currentUserData?currentUserData.nombre:'',
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
@@ -2225,7 +2306,7 @@ function renderCorreoTable(){
 }
 
 function saveCorreo(){
-  var cliente=document.getElementById('co-cliente').value;
+  var cliente=(document.getElementById('co-cliente')?document.getElementById('co-cliente').value:document.getElementById('co-cliente-search')?document.getElementById('co-cliente-search').value:'');
   var codigo=document.getElementById('co-codigo').value.trim();
   if(!cliente||!codigo){alert('Cliente y código son obligatorios.');return;}
   db.collection('correos').add({
@@ -2245,10 +2326,19 @@ function saveCorreo(){
 
 // ─── CURRENCY FORMAT ───
 function formatCurrency(input){
-  var val=input.value.replace(/\./g,'').replace(/[^0-9]/g,'');
-  if(!val){input.value='';return;}
-  input.value=parseInt(val).toLocaleString('es-AR');
+  // Get cursor position
+  var cursor=input.selectionStart;
+  var oldLen=input.value.length;
+  // Clean and format
+  var val=input.value.replace(/\./g,'').replace(/,/g,'').replace(/[^0-9]/g,'');
+  if(!val){input.value='';input.dataset.raw='';return;}
+  var formatted=parseInt(val).toLocaleString('es-AR');
+  input.value=formatted;
   input.dataset.raw=val;
+  // Restore cursor position accounting for added dots
+  var newLen=formatted.length;
+  var newCursor=cursor+(newLen-oldLen);
+  try{input.setSelectionRange(newCursor,newCursor);}catch(e){}
 }
 function getCurrencyValue(input){
   return parseFloat((input.dataset.raw||input.value.replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,''))||0);
@@ -2262,10 +2352,72 @@ function applyCurrencyInputs(){
     el.classList.add('currency-input');
     el.setAttribute('type','text');
     el.setAttribute('inputmode','numeric');
+    el.addEventListener('keyup',function(){formatCurrency(this);});
     el.addEventListener('input',function(){formatCurrency(this);});
-    el.addEventListener('blur',function(){formatCurrency(this);});
+    el.addEventListener('paste',function(){var self=this;setTimeout(function(){formatCurrency(self);},10);});
   });
 }
+
+// ─── TIPO TAREA TOGGLE ───
+function setTipoTarea(tipo){
+  document.getElementById('tn-tipo-val').value=tipo;
+  var btnD=document.getElementById('tn-tipo-diaria');
+  var btnP=document.getElementById('tn-tipo-pendiente');
+  if(!btnD||!btnP)return;
+  if(tipo==='diaria'){
+    btnD.style.border='2px solid var(--blue)';btnD.style.background='var(--blue-bg)';btnD.style.color='var(--blue)';
+    btnP.style.border='1px solid var(--border2)';btnP.style.background='transparent';btnP.style.color='var(--text2)';
+  } else {
+    btnP.style.border='2px solid var(--orange)';btnP.style.background='var(--orange-bg)';btnP.style.color='var(--orange)';
+    btnD.style.border='1px solid var(--border2)';btnD.style.background='transparent';btnD.style.color='var(--text2)';
+  }
+}
+
+// ─── TAREAS TABS ───
+var curTareaTab='diarias';
+function setTareaTab(tab){
+  curTareaTab=tab;
+  document.querySelectorAll('#tareas-tabs .tab').forEach(function(b,i){
+    b.className='tab'+(['diarias','pendientes'][i]===tab?' active':'');
+  });
+  document.getElementById('task-container-diarias').style.display=tab==='diarias'?'block':'none';
+  document.getElementById('task-container-pendientes').style.display=tab==='pendientes'?'block':'none';
+}
+
+// ─── BUSCAR CLIENTE (searchable) ───
+function filtrarClientes(inputId, dropdownId){
+  var input=document.getElementById(inputId);
+  var dropdown=document.getElementById(dropdownId);
+  if(!input||!dropdown)return;
+  var q=input.value.toLowerCase().trim();
+  var list=CLIENTES_CACHE.filter(function(c){
+    return !q||c.nombre.toLowerCase().includes(q);
+  }).slice(0,8);
+  if(list.length===0){dropdown.style.display='none';return;}
+  dropdown.innerHTML=list.map(function(cl){
+    return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)">'+
+      '<strong>'+cl.nombre+'</strong>'+
+      '<span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span>'+
+    '</div>';
+  }).join('');
+  dropdown.style.display='block';
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){
+    item.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      var nombre=this.getAttribute('data-nombre');
+      input.value=nombre;
+      // Set hidden input
+      var hiddenId=inputId.replace('-search','');
+      var hidden=document.getElementById(hiddenId);
+      if(hidden)hidden.value=nombre;
+      dropdown.style.display='none';
+    });
+  });
+  // Close on blur
+  input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
+}
+
+// Update updateClienteSelects to also set search inputs
 // stub for backward compat
 function initEventos(){}
 
