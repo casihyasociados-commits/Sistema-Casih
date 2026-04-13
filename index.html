@@ -349,7 +349,7 @@ input.currency-input{letter-spacing:0.5px;}
       <!-- TAREAS DEL DÍA -->
       <div class="card" style="margin-bottom:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <span style="font-size:15px;font-weight:600;color:var(--text)">Tareas del día</span>
+          <span style="font-size:15px;font-weight:600;color:var(--text)">📅 Tareas del día</span>
           <div style="display:flex;gap:6px">
             <button onclick="openModal('m-tarea')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">+ Nueva</button>
             <button onclick="goTo('tareas')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
@@ -357,6 +357,17 @@ input.currency-input{letter-spacing:0.5px;}
         </div>
         <div id="dash-tareas">
           <div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>
+        </div>
+      </div>
+
+      <!-- TAREAS PENDIENTES -->
+      <div class="card" style="margin-bottom:0;border-left:3px solid var(--orange)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:15px;font-weight:600;color:var(--text)">📌 Tareas pendientes</span>
+          <button onclick="goTo('tareas');setTareaTab('pendientes')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
+        </div>
+        <div id="dash-tareas-pendientes">
+          <div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas pendientes ✓</div>
         </div>
       </div>
 
@@ -1317,40 +1328,61 @@ function updTStats(diarias, pendientes, ts){
 
 function renderDashTareas(){
   var ts=fmt(today);
-  var el=document.getElementById('dash-tareas');
-  if(!el)return;
-  // Show today + overdue (not done yet)
-  var hoy=TAREAS_CACHE.filter(function(t){return t.fecha===ts&&t.tipo!=='pendiente';});
-  var vencidas=TAREAS_CACHE.filter(function(t){return t.fecha<ts&&t.tipo!=='pendiente';}).slice(0,3);
   var pCls={alta:'b-red',media:'b-orange',baja:'b-green'};
   var pLbl={alta:'Alta',media:'Media',baja:'Baja'};
-  var html='';
-  if(vencidas.length>0){
-    html+='<div style="font-size:10px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⚠ Sin completar</div>';
-    html+=vencidas.map(function(t){
-      return '<div class="row-item">'+
-        '<div class="row-info">'+
-          '<div class="row-name" style="color:var(--red)">'+t.titulo+'</div>'+
-          '<div class="row-sub">'+fmtDisp(t.fecha)+(t.cliente?' · '+t.cliente:'')+'</div>'+
-        '</div>'+
-        '<span class="badge b-red">Vencida</span>'+
-      '</div>';
-    }).join('');
+
+  // ── TAREAS DEL DÍA (hoy + vencidas) ──
+  var el=document.getElementById('dash-tareas');
+  if(el){
+    var hoy=TAREAS_CACHE.filter(function(t){return t.fecha===ts&&t.tipo!=='pendiente';});
+    var vencidas=TAREAS_CACHE.filter(function(t){return t.fecha<ts&&t.tipo!=='pendiente';}).slice(0,3);
+    var html='';
+    if(vencidas.length>0){
+      html+='<div style="font-size:10px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⚠ Sin completar</div>';
+      html+=vencidas.map(function(t){
+        return '<div class="row-item">'+
+          '<div class="row-info">'+
+            '<div class="row-name" style="color:var(--red)">'+t.titulo+'</div>'+
+            '<div class="row-sub">'+fmtDisp(t.fecha)+(t.cliente?' · '+t.cliente:'')+'</div>'+
+          '</div>'+
+          '<span class="badge b-red">Vencida</span>'+
+        '</div>';
+      }).join('');
+    }
+    if(hoy.length>0){
+      if(vencidas.length>0)html+='<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 6px">Hoy</div>';
+      html+=hoy.slice(0,5).map(function(t){
+        return '<div class="row-item">'+
+          '<div class="row-info">'+
+            '<div class="row-name">'+t.titulo+'</div>'+
+            '<div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+((t.asig&&aLbl[t.asig])||'')+(t.cliente?' · '+t.cliente:'')+'</div>'+
+          '</div>'+
+          '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+        '</div>';
+      }).join('');
+    }
+    if(!html)html='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>';
+    el.innerHTML=html;
   }
-  if(hoy.length>0){
-    if(vencidas.length>0)html+='<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 6px">Hoy</div>';
-    html+=hoy.slice(0,5).map(function(t){
-      return '<div class="row-item">'+
-        '<div class="row-info">'+
-          '<div class="row-name">'+t.titulo+'</div>'+
-          '<div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+((t.asig&&aLbl[t.asig])||'')+(t.cliente?' · '+t.cliente:'')+'</div>'+
-        '</div>'+
-        '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
-      '</div>';
-    }).join('');
+
+  // ── TAREAS PENDIENTES ──
+  var elP=document.getElementById('dash-tareas-pendientes');
+  if(elP){
+    var pendientes=TAREAS_CACHE.filter(function(t){return t.tipo==='pendiente';}).slice(0,6);
+    if(pendientes.length===0){
+      elP.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas pendientes ✓</div>';
+    } else {
+      elP.innerHTML=pendientes.map(function(t){
+        return '<div class="row-item">'+
+          '<div class="row-info">'+
+            '<div class="row-name">'+t.titulo+'</div>'+
+            '<div class="row-sub">'+(t.notas||'')+(t.cliente?' · '+t.cliente:'')+'</div>'+
+          '</div>'+
+          '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+        '</div>';
+      }).join('');
+    }
   }
-  if(!html)html='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin tareas para hoy ✓</div>';
-  el.innerHTML=html;
 }
 
 
