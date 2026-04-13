@@ -474,7 +474,7 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
 <!-- AGENDA -->
 <div class="section" id="sec-agenda">
   <div class="page-header">
-    <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · casihyasociados@gmail.com</div></div>
+    <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91f2f0e2f8f9e8f0e2fef2f8f0f5fee2d1f6fcf0f8fdbff2fefc">[email&#160;protected]</a></div></div>
     <div id="cal-status" style="display:flex;align-items:center;gap:8px"><div id="cal-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div><span id="cal-label" style="font-size:12px;color:var(--text3)">Conectando calendario...</span></div>
   </div>
   <div class="agenda-layout">
@@ -587,6 +587,12 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
 <div class="modal-bg" id="m-honorario-dash" onclick="if(event.target===this)closeModal('m-honorario-dash')">
   <div class="modal"><h3>Cargar honorario pendiente</h3>
     <div class="fg"><div class="fl">Cliente *</div><select class="fs" id="hd-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Concepto *</div>
+      <select class="fs" id="hd-concepto">
+        <option value="honorarios">Honorarios</option>
+        <option value="cuota_litis">Cuota litis</option>
+      </select>
+    </div>
     <div class="fg"><div class="fl">Causa</div><input class="fi" id="hd-causa" placeholder="Ej: c/ Transporte Norte SA"></div>
     <div class="g2">
       <div class="fg"><div class="fl">Monto total acordado *</div><input class="fi" id="hd-total" type="number" placeholder="0"></div>
@@ -642,7 +648,7 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
     <div class="fg"><div class="fl">Descripción</div><textarea class="fta" id="rec-desc" placeholder="Detalle del recordatorio..."></textarea></div>
     <div class="fg"><div class="fl">Fecha del recordatorio *</div><input class="fi" id="rec-fecha" type="date"></div>
     <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="rec-cliente"><option value="">— Sin cliente —</option></select></div>
-    <div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:12px">📧 El día de la fecha indicada llegará un email automático a casihyasociados@gmail.com</div>
+    <div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:12px">📧 El día de la fecha indicada llegará un email automático a <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7112100218190810021e121810151e0231161c10181d5f121e1c">[email&#160;protected]</a></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-recordatorio')">Cancelar</button><button class="btn-primary" onclick="saveRecordatorio()">Guardar</button></div>
   </div>
 </div>
@@ -712,7 +718,7 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ─── FIREBASE CONFIG ───
 const firebaseConfig = {
   apiKey: "AIzaSyAJgmhuG2v6Bnun37mgqLUA0f0KLdcnvY8",
@@ -1318,6 +1324,7 @@ function renderTareas(){
         '</div>'+(t.notas?'<div class="task-detail">'+t.notas+'</div>':'')+
         '</div><div class="task-right">'+
         '<button class="btn-done" onclick="markDone(\''+t.id+'\')">Realizada ✓</button>'+
+        '<button onclick="editTarea(\''+t.id+'\''+')" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:\'DM Sans\',sans-serif">Editar</button>'+
         '<span style="font-size:10px;color:var(--text3)">'+t.cargadoPor+'</span>'+
         '</div></div>';
     });
@@ -1344,6 +1351,41 @@ function markDone(id){
       db.collection('tareas').doc(id).delete();
     },300);
   }
+}
+
+function editTarea(id){
+  var t=TAREAS_CACHE.find(function(x){return x.id===id;});
+  if(!t)return;
+  var setVal=function(eid,v){var el=document.getElementById(eid);if(el)el.value=v||'';};
+  setVal('tn-ti',t.titulo);
+  setVal('tn-no',t.notas);
+  setVal('tn-fe',t.fecha);
+  setVal('tn-ho',t.hora);
+  setVal('tn-pr',t.prio||'media');
+  setVal('tn-cl',t.cliente);
+  // Change save button to update
+  var saveBtn=document.querySelector('#m-tarea .btn-primary');
+  if(saveBtn){
+    saveBtn.textContent='Actualizar tarea';
+    saveBtn.onclick=function(){
+      var ti=document.getElementById('tn-ti').value.trim();
+      if(!ti){alert('La descripción es obligatoria.');return;}
+      db.collection('tareas').doc(id).update({
+        titulo:ti,
+        prio:document.getElementById('tn-pr').value,
+        fecha:document.getElementById('tn-fe').value,
+        hora:document.getElementById('tn-ho').value,
+        cliente:document.getElementById('tn-cl').value,
+        notas:document.getElementById('tn-no').value.trim(),
+      }).then(function(){
+        closeModal('m-tarea');
+        showToast('Tarea actualizada ✓');
+        saveBtn.textContent='Guardar tarea';
+        saveBtn.onclick=saveTarea;
+      });
+    };
+  }
+  openModal('m-tarea');
 }
 
 function saveTarea(){
@@ -1803,13 +1845,17 @@ function renderHonorariosPanel(snap){
     if(h.esHoyCobro)html+='<div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:6px">🔔 HOY ES DÍA DE COBRO</div>';
     if(h.vencido&&!h.esHoyCobro)html+='<div style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:6px">⚠️ VENCIDO</div>';
     html+='<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">'+h.cliente+'</div>';
-    html+='<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+(h.causa||'Sin causa')+'</div>';
+    var conceptoLbl=h.concepto==='cuota_litis'?'Cuota litis':'Honorarios';
+    var conceptoColor=h.concepto==='cuota_litis'?'var(--purple)':'var(--blue)';
+    html+='<div style="margin-bottom:6px"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:var(--bg4);color:'+conceptoColor+'">'+conceptoLbl+'</span></div>';
+    html+='<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+(h.causa||'')+'</div>';
     html+='<div style="font-size:24px;font-weight:700;color:'+amountColor+';margin-bottom:4px">$'+Math.round(saldo).toLocaleString('es-AR')+'</div>';
     if(h.cuotas>1)html+='<div style="font-size:11px;color:var(--text3)">'+h.cuotas+' cuotas · $'+Math.round(saldo/h.cuotas).toLocaleString('es-AR')+' c/u</div>';
     if(h.diaCobro)html+='<div style="font-size:11px;color:var(--text3)">📅 Cobro: día '+h.diaCobro+' de cada mes</div>';
     if(h.vence)html+='<div style="font-size:11px;color:'+(h.vencido?'var(--red)':'var(--orange)')+'">Vence: '+h.vence+'</div>';
     html+='<div style="display:flex;gap:8px;margin-top:12px">';
     html+='<button data-hid="'+h.id+'" data-haction="cobrar" style="flex:1;font-size:13px;font-weight:700;padding:9px;border-radius:8px;border:none;background:var(--green);color:#000;cursor:pointer">✓ Cobrado</button>';
+    html+='<button data-hid="'+h.id+'" data-haction="editar" style="font-size:12px;padding:9px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">✎</button>';
     html+='<button data-hid="'+h.id+'" data-haction="eliminar" style="font-size:12px;padding:9px 12px;border-radius:8px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
     html+='</div></div>';
   });
@@ -1821,16 +1867,9 @@ function renderHonorariosPanel(snap){
       var id=this.getAttribute('data-hid');
       var action=this.getAttribute('data-haction');
       if(action==='cobrar'){
-        if(confirm('¿Marcar como cobrado?')){
-          db.collection('honorarios').doc(id).update({
-            estado:'cobrado',
-            cobradoEn:firebase.firestore.FieldValue.serverTimestamp()
-          }).then(function(){
-            showToast('Honorario marcado como cobrado ✓');
-            // Refresh panel
-            db.collection('honorarios').get().then(function(snap){renderHonorariosPanel(snap);});
-          });
-        }
+        cobrarHonorario(id);
+      } else if(action==='editar'){
+        editHonorario(id);
       } else {
         if(confirm('¿Eliminar este honorario?')){
           db.collection('honorarios').doc(id).delete().then(function(){
@@ -1844,7 +1883,75 @@ function renderHonorariosPanel(snap){
 }
 function cobrarHonorario(id){
   if(!confirm('¿Marcar como cobrado?'))return;
-  db.collection('honorarios').doc(id).update({estado:'cobrado',cobradoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){showToast('Honorario marcado como cobrado ✓');});
+  // Get honorario data first to create ingreso
+  db.collection('honorarios').doc(id).get().then(function(doc){
+    if(!doc.exists)return;
+    var h=doc.data();
+    var saldo=(h.total||0)-(h.cobrado||0);
+    var concepto=(h.concepto==='cuota_litis'?'Cuota litis':'Honorarios')+' — '+(h.cliente||'');
+    if(h.causa)concepto+=' · '+h.causa;
+    // Mark as cobrado
+    db.collection('honorarios').doc(id).update({
+      estado:'cobrado',
+      cobrado:h.total||0,
+      cobradoEn:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    // Auto-generate ingreso only if saldo > 0
+    if(saldo>0){
+      var hoy=fmt(today);
+      db.collection('ingresos').add({
+        fecha:hoy,
+        concepto:concepto,
+        cliente:h.cliente||'',
+        cat:'honorarios',
+        monto:saldo,
+        mes:p2(today.getMonth()+1),
+        creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    showToast('Honorario cobrado e ingreso registrado ✓');
+  });
+}
+
+function editHonorario(id){
+  db.collection('honorarios').doc(id).get().then(function(doc){
+    if(!doc.exists)return;
+    var h=doc.data();
+    var setVal=function(eid,v){var el=document.getElementById(eid);if(el)el.value=v||'';};
+    setVal('hd-cliente',h.cliente);
+    setVal('hd-concepto',h.concepto||'honorarios');
+    setVal('hd-causa',h.causa);
+    setVal('hd-total',h.total);
+    setVal('hd-cobrado',h.cobrado||0);
+    setVal('hd-cuotas',h.cuotas||1);
+    setVal('hd-dia-cobro',h.diaCobro||'');
+    setVal('hd-vence',h.vence||'');
+    var saveBtn=document.querySelector('#m-honorario-dash .btn-primary');
+    if(saveBtn){
+      saveBtn.textContent='Actualizar';
+      saveBtn.onclick=function(){
+        var cliente=document.getElementById('hd-cliente').value;
+        var total=parseFloat(document.getElementById('hd-total').value)||0;
+        if(!cliente||!total){alert('Cliente y monto son obligatorios.');return;}
+        db.collection('honorarios').doc(id).update({
+          cliente:cliente,
+          concepto:document.getElementById('hd-concepto').value||'honorarios',
+          causa:document.getElementById('hd-causa').value.trim(),
+          total:total,
+          cobrado:parseFloat(document.getElementById('hd-cobrado').value)||0,
+          cuotas:parseInt(document.getElementById('hd-cuotas').value)||1,
+          diaCobro:parseInt(document.getElementById('hd-dia-cobro').value)||0,
+          vence:document.getElementById('hd-vence').value||null
+        }).then(function(){
+          closeModal('m-honorario-dash');
+          showToast('Honorario actualizado ✓');
+          saveBtn.textContent='Guardar';
+          saveBtn.onclick=saveHonorarioDash;
+        });
+      };
+    }
+    openModal('m-honorario-dash');
+  });
 }
 
 function saveHonorarioDash(){
@@ -1854,6 +1961,7 @@ function saveHonorarioDash(){
   var diaCobro=parseInt(document.getElementById('hd-dia-cobro').value)||0;
   db.collection('honorarios').add({
     cliente:cliente,
+    concepto:document.getElementById('hd-concepto').value||'honorarios',
     causa:document.getElementById('hd-causa').value.trim(),
     total:total,
     cobrado:parseFloat(document.getElementById('hd-cobrado').value)||0,
@@ -1973,6 +2081,7 @@ function renderRecordatorios(list){
     if(r.cliente)html+='<div style="font-size:11px;color:var(--text3)">👤 '+r.cliente+'</div>';
     html+='<div style="display:flex;gap:6px;margin-top:10px">';
     html+='<button data-rid="'+r.id+'" data-raction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid #1E3A25;background:var(--green-bg);color:var(--green);cursor:pointer">✓ Listo</button>';
+    html+='<button data-rid="'+r.id+'" data-raction="editar" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">✎</button>';
     html+='<button data-rid="'+r.id+'" data-raction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
     html+='</div></div>';
   });
@@ -1984,11 +2093,47 @@ function renderRecordatorios(list){
       var action=this.getAttribute('data-raction');
       if(action==='done'){
         db.collection('recordatorios').doc(id).delete().then(function(){showToast('Recordatorio completado ✓');});
+      } else if(action==='editar'){
+        editRecordatorio(id);
       } else {
         if(confirm('¿Eliminar este recordatorio?'))
           db.collection('recordatorios').doc(id).delete();
       }
     });
+  });
+}
+
+function editRecordatorio(id){
+  db.collection('recordatorios').doc(id).get().then(function(doc){
+    if(!doc.exists)return;
+    var r=doc.data();
+    var setVal=function(eid,v){var el=document.getElementById(eid);if(el)el.value=v||'';};
+    setVal('rec-titulo',r.titulo);
+    setVal('rec-desc',r.desc);
+    setVal('rec-fecha',r.fecha);
+    setVal('rec-cliente',r.cliente||'');
+    var saveBtn=document.querySelector('#m-recordatorio .btn-primary');
+    if(saveBtn){
+      saveBtn.textContent='Actualizar';
+      saveBtn.onclick=function(){
+        var titulo=document.getElementById('rec-titulo').value.trim();
+        var fecha=document.getElementById('rec-fecha').value;
+        if(!titulo||!fecha){alert('Título y fecha son obligatorios.');return;}
+        db.collection('recordatorios').doc(id).update({
+          titulo:titulo,
+          desc:document.getElementById('rec-desc').value.trim(),
+          fecha:fecha,
+          cliente:document.getElementById('rec-cliente').value,
+          emailEnviado:false
+        }).then(function(){
+          closeModal('m-recordatorio');
+          showToast('Recordatorio actualizado ✓');
+          saveBtn.textContent='Guardar';
+          saveBtn.onclick=saveRecordatorio;
+        });
+      };
+    }
+    openModal('m-recordatorio');
   });
 }
 
@@ -2144,12 +2289,4 @@ function initApp(){
       <div class="fg"><div class="fl">Hora</div><input class="fi" id="ed-hora" type="time"></div>
     </div>
     <div class="fg"><div class="fl">Lugar (opcional)</div><input class="fi" id="ed-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
-    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="ed-notas" placeholder="Detalles adicionales..."></textarea></div>
-    <div class="modal-footer">
-      <button class="btn-sm" onclick="closeModal('m-evento-dash')">Cancelar</button>
-      <button class="btn-primary" onclick="saveEventoDash()">Guardar evento</button>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+    <div class="fg"
