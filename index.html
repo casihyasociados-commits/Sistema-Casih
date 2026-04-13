@@ -595,10 +595,12 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
     </div>
     <div class="fg"><div class="fl">Causa</div><input class="fi" id="hd-causa" placeholder="Ej: c/ Transporte Norte SA"></div>
     <div class="g2">
-      <div class="fg"><div class="fl">Monto total acordado *</div><input class="fi" id="hd-total" type="number" placeholder="0"></div>
-      <div class="fg"><div class="fl">Cantidad de cuotas</div><input class="fi" id="hd-cuotas" type="number" placeholder="1" min="1"></div>
+      <div class="fg"><div class="fl">Monto por cuota *</div><input class="fi" id="hd-monto-cuota" type="number" placeholder="Ej: 500000"></div>
+      <div class="fg"><div class="fl">Cantidad de cuotas</div><input class="fi" id="hd-cuotas" type="number" placeholder="1" min="1" value="1"></div>
     </div>
-    <div class="fg"><div class="fl">Monto ya cobrado</div><input class="fi" id="hd-cobrado" type="number" placeholder="0"></div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">
+      💡 Cada vez que apretás "✓ Cobrar cuota" se registra una cuota como ingreso automáticamente
+    </div>
     <div class="g2">
       <div class="fg"><div class="fl">Fecha de vencimiento (opcional)</div><input class="fi" id="hd-vence" type="date"></div>
       <div class="fg"><div class="fl">Día del mes de cobro</div><input class="fi" id="hd-dia-cobro" type="number" min="1" max="31" placeholder="Ej: 5"></div>
@@ -905,7 +907,7 @@ function updateAdm(){
   // Honorarios
   db.collection('honorarios').get().then(function(snap){
     var ph=0,pc=0,list=[];
-    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);if(x.estado!=='cobrado'){ph+=((x.total||0)-(x.cobrado||0));pc++;}});
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);if(x.estado!=='cobrado'){var mc=x.montoCuota||x.total||0;var ct=x.cuotas||1;var cc=x.cuotasCobradas||0;ph+=mc*(ct-cc);pc++;}});
     document.getElementById('adm-honor').textContent=fmtARS(ph);
     document.getElementById('adm-honor-sub').textContent=pc+' causas sin cobrar';
     renderHonTable(list);
@@ -1837,7 +1839,11 @@ function renderHonorariosPanel(snap){
 
   var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">';
   list.forEach(function(h){
-    var saldo=(h.total||0)-(h.cobrado||0);
+    var montoCuota=h.montoCuota||h.total||0;
+    var cuotasTotal=h.cuotas||1;
+    var cuotasCobradas=h.cuotasCobradas||0;
+    var cuotasRestantes=cuotasTotal-cuotasCobradas;
+    var saldoTotal=montoCuota*cuotasRestantes;
     var borderColor=h.esHoyCobro?'var(--green)':h.vencido?'var(--red)':'var(--border)';
     var bgColor=h.esHoyCobro?'var(--green-bg)':h.vencido?'var(--red-bg)':'var(--bg3)';
     var amountColor=h.esHoyCobro?'var(--green)':h.vencido?'var(--red)':'var(--orange)';
@@ -1849,12 +1855,12 @@ function renderHonorariosPanel(snap){
     var conceptoColor=h.concepto==='cuota_litis'?'var(--purple)':'var(--blue)';
     html+='<div style="margin-bottom:6px"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:var(--bg4);color:'+conceptoColor+'">'+conceptoLbl+'</span></div>';
     html+='<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+(h.causa||'')+'</div>';
-    html+='<div style="font-size:24px;font-weight:700;color:'+amountColor+';margin-bottom:4px">$'+Math.round(saldo).toLocaleString('es-AR')+'</div>';
-    if(h.cuotas>1)html+='<div style="font-size:11px;color:var(--text3)">'+h.cuotas+' cuotas · $'+Math.round(saldo/h.cuotas).toLocaleString('es-AR')+' c/u</div>';
+    html+='<div style="font-size:24px;font-weight:700;color:'+amountColor+';margin-bottom:4px">$'+Math.round(montoCuota).toLocaleString('es-AR')+' <span style="font-size:13px;font-weight:400">/ cuota</span></div>';
+    if(cuotasTotal>1)html+='<div style="font-size:12px;color:var(--text2);margin-bottom:4px">Cuotas: <strong>'+cuotasCobradas+'/'+cuotasTotal+'</strong> cobradas · Saldo: $'+Math.round(saldoTotal).toLocaleString('es-AR')+'</div>';
     if(h.diaCobro)html+='<div style="font-size:11px;color:var(--text3)">📅 Cobro: día '+h.diaCobro+' de cada mes</div>';
     if(h.vence)html+='<div style="font-size:11px;color:'+(h.vencido?'var(--red)':'var(--orange)')+'">Vence: '+h.vence+'</div>';
     html+='<div style="display:flex;gap:8px;margin-top:12px">';
-    html+='<button data-hid="'+h.id+'" data-haction="cobrar" style="flex:1;font-size:13px;font-weight:700;padding:9px;border-radius:8px;border:none;background:var(--green);color:#000;cursor:pointer">✓ Cobrado</button>';
+    html+='<button data-hid="'+h.id+'" data-haction="cobrar" style="flex:1;font-size:13px;font-weight:700;padding:9px;border-radius:8px;border:none;background:var(--green);color:#000;cursor:pointer">✓ Cobrar cuota</button>';
     html+='<button data-hid="'+h.id+'" data-haction="editar" style="font-size:12px;padding:9px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">✎</button>';
     html+='<button data-hid="'+h.id+'" data-haction="eliminar" style="font-size:12px;padding:9px 12px;border-radius:8px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
     html+='</div></div>';
@@ -1882,34 +1888,45 @@ function renderHonorariosPanel(snap){
   });
 }
 function cobrarHonorario(id){
-  if(!confirm('¿Marcar como cobrado?'))return;
-  // Get honorario data first to create ingreso
   db.collection('honorarios').doc(id).get().then(function(doc){
     if(!doc.exists)return;
     var h=doc.data();
-    var saldo=(h.total||0)-(h.cobrado||0);
-    var concepto=(h.concepto==='cuota_litis'?'Cuota litis':'Honorarios')+' — '+(h.cliente||'');
-    if(h.causa)concepto+=' · '+h.causa;
-    // Mark as cobrado
+    var cuotasCobradas=(h.cuotasCobradas||0)+1;
+    var cuotasTotal=h.cuotas||1;
+    var montoCuota=h.montoCuota||h.total||0; // fallback for old records
+    var conceptoLabel=(h.concepto==='cuota_litis'?'Cuota litis':'Honorarios');
+    var cuotaNum=cuotasCobradas+(cuotasTotal>1?' (cuota '+cuotasCobradas+'/'+cuotasTotal+')':'');
+    var concepto=conceptoLabel+' — '+h.cliente+(h.causa?' · '+h.causa:'')+' '+cuotaNum;
+    var todasCobradas=cuotasCobradas>=cuotasTotal;
+
+    if(!confirm('¿Registrar cobro de cuota '+cuotasCobradas+'/'+cuotasTotal+' — $'+Math.round(montoCuota).toLocaleString('es-AR')+'?'))return;
+
+    // Update honorario
     db.collection('honorarios').doc(id).update({
-      estado:'cobrado',
-      cobrado:h.total||0,
-      cobradoEn:firebase.firestore.FieldValue.serverTimestamp()
+      cuotasCobradas:cuotasCobradas,
+      estado:todasCobradas?'cobrado':'parcial',
+      ultimoCobro:fmt(today),
+      cobradoEn:todasCobradas?firebase.firestore.FieldValue.serverTimestamp():null
     });
-    // Auto-generate ingreso only if saldo > 0
-    if(saldo>0){
-      var hoy=fmt(today);
-      db.collection('ingresos').add({
-        fecha:hoy,
-        concepto:concepto,
-        cliente:h.cliente||'',
-        cat:'honorarios',
-        monto:saldo,
-        mes:p2(today.getMonth()+1),
-        creadoEn:firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-    showToast('Honorario cobrado e ingreso registrado ✓');
+
+    // Register ingreso
+    db.collection('ingresos').add({
+      fecha:fmt(today),
+      concepto:concepto,
+      cliente:h.cliente||'',
+      cat:'honorarios',
+      monto:montoCuota,
+      mes:p2(today.getMonth()+1),
+      honorarioId:id,
+      creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      if(todasCobradas){
+        showToast('✓ Última cuota cobrada — honorario completado e ingreso registrado');
+      } else {
+        showToast('✓ Cuota '+cuotasCobradas+'/'+cuotasTotal+' cobrada — $'+Math.round(montoCuota).toLocaleString('es-AR')+' registrado como ingreso');
+      }
+      updateAdm();
+    });
   });
 }
 
@@ -1921,8 +1938,7 @@ function editHonorario(id){
     setVal('hd-cliente',h.cliente);
     setVal('hd-concepto',h.concepto||'honorarios');
     setVal('hd-causa',h.causa);
-    setVal('hd-total',h.total);
-    setVal('hd-cobrado',h.cobrado||0);
+    setVal('hd-monto-cuota',h.montoCuota||h.total||'');
     setVal('hd-cuotas',h.cuotas||1);
     setVal('hd-dia-cobro',h.diaCobro||'');
     setVal('hd-vence',h.vence||'');
@@ -1931,14 +1947,13 @@ function editHonorario(id){
       saveBtn.textContent='Actualizar';
       saveBtn.onclick=function(){
         var cliente=document.getElementById('hd-cliente').value;
-        var total=parseFloat(document.getElementById('hd-total').value)||0;
-        if(!cliente||!total){alert('Cliente y monto son obligatorios.');return;}
+        var montoCuota=parseFloat(document.getElementById('hd-monto-cuota').value)||0;
+        if(!cliente||!montoCuota){alert('Cliente y monto por cuota son obligatorios.');return;}
         db.collection('honorarios').doc(id).update({
           cliente:cliente,
           concepto:document.getElementById('hd-concepto').value||'honorarios',
           causa:document.getElementById('hd-causa').value.trim(),
-          total:total,
-          cobrado:parseFloat(document.getElementById('hd-cobrado').value)||0,
+          montoCuota:parseFloat(document.getElementById('hd-monto-cuota').value)||0,
           cuotas:parseInt(document.getElementById('hd-cuotas').value)||1,
           diaCobro:parseInt(document.getElementById('hd-dia-cobro').value)||0,
           vence:document.getElementById('hd-vence').value||null
@@ -1956,24 +1971,28 @@ function editHonorario(id){
 
 function saveHonorarioDash(){
   var cliente=document.getElementById('hd-cliente').value;
-  var total=parseFloat(document.getElementById('hd-total').value)||0;
-  if(!cliente||!total){alert('Cliente y monto son obligatorios.');return;}
+  var montoCuota=parseFloat(document.getElementById('hd-monto-cuota').value)||0;
+  var cuotas=parseInt(document.getElementById('hd-cuotas').value)||1;
+  if(!cliente||!montoCuota){alert('Cliente y monto por cuota son obligatorios.');return;}
   var diaCobro=parseInt(document.getElementById('hd-dia-cobro').value)||0;
   db.collection('honorarios').add({
     cliente:cliente,
     concepto:document.getElementById('hd-concepto').value||'honorarios',
     causa:document.getElementById('hd-causa').value.trim(),
-    total:total,
-    cobrado:parseFloat(document.getElementById('hd-cobrado').value)||0,
-    cuotas:parseInt(document.getElementById('hd-cuotas').value)||1,
+    montoCuota:montoCuota,
+    cuotas:cuotas,
+    cuotasCobradas:0,
     diaCobro:diaCobro,
     vence:document.getElementById('hd-vence').value||null,
     estado:'pendiente',
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){closeModal('m-honorario-dash');showToast('Honorario cargado ✓');
-    ['hd-causa','hd-total','hd-cobrado','hd-cuotas','hd-vence','hd-dia-cobro'].forEach(function(id){
+  }).then(function(){
+    closeModal('m-honorario-dash');
+    showToast('Honorario cargado ✓');
+    ['hd-causa','hd-monto-cuota','hd-cuotas','hd-vence','hd-dia-cobro'].forEach(function(id){
       var el=document.getElementById(id);if(el)el.value='';
     });
+    var cuotasEl=document.getElementById('hd-cuotas');if(cuotasEl)cuotasEl.value='1';
   });
 }
 
