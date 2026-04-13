@@ -274,6 +274,8 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{
   .btn-primary{font-size:13px!important;padding:8px 14px!important;}
   .btn-sm{font-size:12px!important;padding:5px 10px!important;}
 }
+
+input.currency-input{letter-spacing:0.5px;}
 </style>
 </head>
 <body>
@@ -787,7 +789,7 @@ function addD(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function fmtDisp(f){if(!f)return '';var d=new Date(f+'T00:00:00'),diff=Math.round((d-today)/864e5);if(diff===0)return 'Hoy';if(diff===1)return 'Mañana';if(diff<0)return 'Hace '+Math.abs(diff)+' días';return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});}
 function fmtARS(n){return '$'+Math.round(n).toLocaleString('es-AR');}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(function(){t.className='toast';},2500);}
-function openModal(id){document.getElementById(id).className='modal-bg open';}
+function openModal(id){document.getElementById(id).className='modal-bg open';setTimeout(applyCurrencyInputs,50);}
 function closeModal(id){document.getElementById(id).className='modal-bg';}
 
 // ─── NAV ───
@@ -827,7 +829,7 @@ function selCat(cat){
 }
 function guardarGasto(){
   if(!curCat)return;
-  var monto=parseFloat(document.getElementById('gasto-monto').value);
+  var monto=getCurrencyValue(document.getElementById('gasto-monto'));
   var catDesc=document.getElementById('ct-'+curCat).value.trim();
   var concepto=catDesc||({servicios:'Servicios',oficina:'Gastos de oficina',procesales:'Gastos procesales',varios:'Gastos varios'}[curCat]);
   if(!monto){alert('Ingresá el monto.');return;}
@@ -951,19 +953,19 @@ function renderAnual(){
 }
 
 function saveIngreso(){
-  var co=document.getElementById('in-co').value.trim(),mo=parseFloat(document.getElementById('in-mo').value);
+  var co=document.getElementById('in-co').value.trim(),mo=getCurrencyValue(document.getElementById('in-mo'));
   if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
   var fe=document.getElementById('in-fe').value;
   db.collection('ingresos').add({fecha:fe,concepto:co,cliente:document.getElementById('in-cl').value.trim(),cat:document.getElementById('in-cat').value,monto:mo,mes:fe.slice(5,7),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-ingreso');updateAdm();showToast('Ingreso guardado ✓');});
 }
 function saveGasto(){
-  var co=document.getElementById('ga-co').value.trim(),mo=parseFloat(document.getElementById('ga-mo').value);
+  var co=document.getElementById('ga-co').value.trim(),mo=getCurrencyValue(document.getElementById('ga-mo'));
   if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
   var fe=document.getElementById('ga-fe').value;
   db.collection('gastos').add({fecha:fe,concepto:co,cat:document.getElementById('ga-cat').value,cargadoPor:currentUserData.nombre,monto:mo,mes:fe.slice(5,7),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-gasto');updateAdm();showToast('Gasto guardado ✓');});
 }
 function saveHonorario(){
-  var cl=document.getElementById('ho-cl').value.trim(),to=parseFloat(document.getElementById('ho-to').value)||0;
+  var cl=document.getElementById('ho-cl').value.trim(),to=getCurrencyValue(document.getElementById('ho-to'));
   if(!cl||!to){alert('Cliente y monto total obligatorios.');return;}
   db.collection('honorarios').add({cliente:cl,causa:document.getElementById('ho-ca').value.trim(),total:to,cobrado:parseFloat(document.getElementById('ho-co').value)||0,estado:document.getElementById('ho-es').value,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-honorario');updateAdm();showToast('Honorario registrado ✓');});
 }
@@ -1372,14 +1374,14 @@ function editTarea(id){
     saveBtn.onclick=function(){
       var ti=document.getElementById('tn-ti').value.trim();
       if(!ti){alert('La descripción es obligatoria.');return;}
-      db.collection('tareas').doc(id).update({
+      db.collection('tareas').doc(id).set({
         titulo:ti,
         prio:document.getElementById('tn-pr').value,
         fecha:document.getElementById('tn-fe').value,
         hora:document.getElementById('tn-ho').value,
         cliente:document.getElementById('tn-cl').value,
-        notas:document.getElementById('tn-no').value.trim(),
-      }).then(function(){
+        notas:document.getElementById('tn-no').value.trim()
+      },{merge:true}).then(function(){
         closeModal('m-tarea');
         showToast('Tarea actualizada ✓');
         saveBtn.textContent='Guardar tarea';
@@ -1947,9 +1949,9 @@ function editHonorario(id){
       saveBtn.textContent='Actualizar';
       saveBtn.onclick=function(){
         var cliente=document.getElementById('hd-cliente').value;
-        var montoCuota=parseFloat(document.getElementById('hd-monto-cuota').value)||0;
+        var montoCuota=getCurrencyValue(document.getElementById('hd-monto-cuota'));
         if(!cliente||!montoCuota){alert('Cliente y monto por cuota son obligatorios.');return;}
-        db.collection('honorarios').doc(id).update({
+        db.collection('honorarios').doc(id).set({
           cliente:cliente,
           concepto:document.getElementById('hd-concepto').value||'honorarios',
           causa:document.getElementById('hd-causa').value.trim(),
@@ -1957,7 +1959,7 @@ function editHonorario(id){
           cuotas:parseInt(document.getElementById('hd-cuotas').value)||1,
           diaCobro:parseInt(document.getElementById('hd-dia-cobro').value)||0,
           vence:document.getElementById('hd-vence').value||null
-        }).then(function(){
+        },{merge:true}).then(function(){
           closeModal('m-honorario-dash');
           showToast('Honorario actualizado ✓');
           saveBtn.textContent='Guardar';
@@ -1971,7 +1973,7 @@ function editHonorario(id){
 
 function saveHonorarioDash(){
   var cliente=document.getElementById('hd-cliente').value;
-  var montoCuota=parseFloat(document.getElementById('hd-monto-cuota').value)||0;
+  var montoCuota=getCurrencyValue(document.getElementById('hd-monto-cuota'));
   var cuotas=parseInt(document.getElementById('hd-cuotas').value)||1;
   if(!cliente||!montoCuota){alert('Cliente y monto por cuota son obligatorios.');return;}
   var diaCobro=parseInt(document.getElementById('hd-dia-cobro').value)||0;
@@ -2138,13 +2140,13 @@ function editRecordatorio(id){
         var titulo=document.getElementById('rec-titulo').value.trim();
         var fecha=document.getElementById('rec-fecha').value;
         if(!titulo||!fecha){alert('Título y fecha son obligatorios.');return;}
-        db.collection('recordatorios').doc(id).update({
+        db.collection('recordatorios').doc(id).set({
           titulo:titulo,
           desc:document.getElementById('rec-desc').value.trim(),
           fecha:fecha,
           cliente:document.getElementById('rec-cliente').value,
           emailEnviado:false
-        }).then(function(){
+        },{merge:true}).then(function(){
           closeModal('m-recordatorio');
           showToast('Recordatorio actualizado ✓');
           saveBtn.textContent='Guardar';
@@ -2240,6 +2242,30 @@ function saveCorreo(){
   });
 }
 
+
+// ─── CURRENCY FORMAT ───
+function formatCurrency(input){
+  var val=input.value.replace(/\./g,'').replace(/[^0-9]/g,'');
+  if(!val){input.value='';return;}
+  input.value=parseInt(val).toLocaleString('es-AR');
+  input.dataset.raw=val;
+}
+function getCurrencyValue(input){
+  return parseFloat((input.dataset.raw||input.value.replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,''))||0);
+}
+function applyCurrencyInputs(){
+  var ids=['hd-monto-cuota','hd-total','hd-cobrado','in-mo','ga-mo','ho-to','ho-co','gasto-monto'];
+  ids.forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el||el.dataset.currencyApplied)return;
+    el.dataset.currencyApplied='1';
+    el.classList.add('currency-input');
+    el.setAttribute('type','text');
+    el.setAttribute('inputmode','numeric');
+    el.addEventListener('input',function(){formatCurrency(this);});
+    el.addEventListener('blur',function(){formatCurrency(this);});
+  });
+}
 // stub for backward compat
 function initEventos(){}
 
@@ -2259,6 +2285,7 @@ function initApp(){
     initLinksRapidos();
     initHonorariosDash();
     initRecordatorios();
+    applyCurrencyInputs();
   }, 300);
   // Cargar clientes iniciales si Firestore está vacío
   db.collection('clientes').get().then(function(snap){
