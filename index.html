@@ -1149,10 +1149,10 @@ function renderClientes(){
     var avCls=c.tipo==='estudio'?'av-purple':c.tipo==='publicidad'?'av-blue':c.tipo==='uocra'?'av-green':'av-orange';
     var refTag=c.ref==='si'?'<span class="badge b-green" style="font-size:9px;margin-right:3px">Referido</span>':'';
     var cvBtns=(c.tipo==='posible'||c.tipo==='uocra')?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button><button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button><button class="btn-sm" onclick="agendarCita(\''+c.id+'\',\''+c.nombre+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📅 Cita</button>':'';
-    var driveBtn=c.drive?
+    var driveBtn=c.drive&&c.driveFolderId?
   '<a href="'+c.drive+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 10px;border:1px solid var(--blue-bg);border-radius:6px;font-weight:500">📁 Drive</a>'+
-  '<button onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+c.nombre+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">⬆ Subir doc</button>'
-  :'<span style="font-size:10px;color:var(--text3);font-style:italic">Carpeta Drive pendiente</span>';
+  '<button onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+c.nombre+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">⬆ Subir</button>'
+  :'<button onclick="vincularCarpeta(\''+c.id+'\',\''+c.nombre+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--orange-bg);background:transparent;color:var(--orange);cursor:pointer">📁 Vincular Drive</button>';
     return '<div class="client-card '+c.tipo+'">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+(mLbl[c.motivo]||c.motivo)+(c.dni?' · DNI: '+c.dni:'')+'</div></div></div>'+
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa)+'</span><span style="font-size:11px;color:var(--text3)">'+c.tel+'</span></div>'+
@@ -1176,24 +1176,30 @@ function getDriveClientesFolder(callback){
 function _doCrearCarpeta(nombreCliente, callback){
   getDriveClientesFolder(function(parentId){
     if(!parentId){if(callback)callback(null,null);return;}
-    // Check if folder already exists
+    // Always search first - handles existing folders
     gapi.client.drive.files.list({
       q:"name='"+nombreCliente+"' and '"+parentId+"' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
-      fields:'files(id,webViewLink)'
+      fields:'files(id,webViewLink,name)'
     }).then(function(resp){
       if(resp.result.files&&resp.result.files.length>0){
-        // Already exists
-        callback(resp.result.files[0].id, resp.result.files[0].webViewLink);
+        // Found existing folder - return its ID
+        var f=resp.result.files[0];
+        console.log('Found existing folder for '+nombreCliente+': '+f.id);
+        callback(f.id, f.webViewLink);
       } else {
-        // Create new
+        // Create new folder
         gapi.client.drive.files.create({
           resource:{name:nombreCliente,mimeType:'application/vnd.google-apps.folder',parents:[parentId]},
           fields:'id,webViewLink'
         }).then(function(r){
+          console.log('Created new folder for '+nombreCliente+': '+r.result.id);
           callback(r.result.id, r.result.webViewLink);
         }).catch(function(e){console.warn('Create folder error:',e);callback(null,null);});
       }
-    }).catch(function(e){console.warn('List folder error:',e);callback(null,null);});
+    }).catch(function(e){
+      console.warn('List folder error:',e);
+      callback(null,null);
+    });
   });
 }
 
@@ -1227,7 +1233,9 @@ function crearCarpetaCliente(nombreCliente, callback){
 // Create Drive folders for all existing clients that don't have one
 function crearCarpetasClientesExistentes(){
   // Only clients WITHOUT driveFolderId
-  var sinCarpeta=CLIENTES_CACHE.filter(function(cl){return !cl.driveFolderId||cl.driveFolderId===''||cl.driveFolderId==='undefined';});
+  var sinCarpeta=CLIENTES_CACHE.filter(function(cl){
+    return !cl.driveFolderId||cl.driveFolderId===''||cl.driveFolderId==='undefined'||cl.driveFolderId==='null';
+  });
   if(sinCarpeta.length===0){
     showToast('✓ Todos los clientes ya tienen carpeta en Drive');
     return;
@@ -1297,6 +1305,37 @@ function agendarCita(id,nombre){
     if(sel){for(var i=0;i<sel.options.length;i++){if(sel.options[i].text===nombre){sel.selectedIndex=i;break;}}}
   },100);
   openModal('m-evento-rapido');
+}
+
+
+function vincularCarpeta(clienteId, nombreCliente){
+  if(!calConnected||!gapi.client.getToken()){
+    showToast('Conectando con Google Drive...');
+    crearCarpetaCliente(nombreCliente, function(folderId, folderLink){
+      if(folderId){
+        db.collection('clientes').doc(clienteId).update({drive:folderLink, driveFolderId:folderId});
+        showToast('✓ Carpeta Drive vinculada: '+nombreCliente);
+      } else {
+        showToast('No se pudo vincular. Verificá la conexión con Google.');
+      }
+    });
+    return;
+  }
+  showToast('Buscando carpeta de '+nombreCliente+'...');
+  _doCrearCarpeta(nombreCliente, function(folderId, folderLink){
+    if(folderId){
+      db.collection('clientes').doc(clienteId).update({drive:folderLink, driveFolderId:folderId});
+      showToast('✓ Carpeta vinculada correctamente');
+    } else {
+      showToast('No se encontró la carpeta. Se creará una nueva.');
+      crearCarpetaCliente(nombreCliente, function(fid, fl){
+        if(fid){
+          db.collection('clientes').doc(clienteId).update({drive:fl, driveFolderId:fid});
+          showToast('✓ Carpeta creada y vinculada');
+        }
+      });
+    }
+  });
 }
 
 function convC(id,t){
