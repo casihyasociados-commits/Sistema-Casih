@@ -118,6 +118,7 @@ tr:hover td{background:var(--bg3);}
 .client-card.estudio{border-left-color:var(--purple);}
 .client-card.publicidad{border-left-color:var(--blue);}
 .client-card.posible{border-left-color:var(--orange);}
+.client-card.uocra{border-left-color:var(--green);}
 .cc-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
 .cc-motivo{font-size:11px;color:var(--text3);margin-bottom:8px;}
 .cc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;}
@@ -442,16 +443,18 @@ input.currency-input{letter-spacing:0.5px;}
       <button class="btn-primary" onclick="openModal('m-cliente')">+ Nuevo cliente</button>
     </div>
   </div>
-  <div class="metrics">
+  <div class="metrics" style="grid-template-columns:repeat(5,minmax(0,1fr))">
     <div class="metric"><div class="metric-label">Total</div><div class="metric-val" id="cs-total">—</div></div>
     <div class="metric"><div class="metric-label">Del estudio</div><div class="metric-val" style="color:var(--purple)" id="cs-est">—</div></div>
     <div class="metric"><div class="metric-label">Publicidad</div><div class="metric-val" style="color:var(--blue)" id="cs-pub">—</div></div>
     <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" style="color:var(--orange)" id="cs-pos">—</div></div>
+    <div class="metric"><div class="metric-label">Uocra</div><div class="metric-val" style="color:var(--green)" id="cs-uocra">—</div></div>
   </div>
   <div class="tabs" id="c-tabs">
     <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
     <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
     <button class="tab" onclick="setCtab('posible')">Posibles clientes</button>
+    <button class="tab" onclick="setCtab('uocra')">🏗️ Uocra</button>
     <button class="tab" onclick="setCtab('correo')">📦 Seguimiento Correo</button>
   </div>
   <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
@@ -694,14 +697,85 @@ input.currency-input{letter-spacing:0.5px;}
 
 <!-- MODALES -->
 <div class="modal-bg" id="m-cliente" onclick="if(event.target===this)closeModal('m-cliente')">
-  <div class="modal"><h3>Nuevo cliente</h3>
-    <div class="g2"><div class="fg"><div class="fl">Nombre *</div><input class="fi" id="cn-n" placeholder="Apellido, Nombre"></div><div class="fg"><div class="fl">Teléfono</div><input class="fi" id="cn-t" placeholder="351 6 123456"></div></div>
-    <div class="fg"><div class="fl">Tipo de cliente</div><select class="fs" id="cn-tipo"><option value="posible">Posible cliente</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
-    <div class="g2"><div class="fg"><div class="fl">Motivo</div><select class="fs" id="cn-m"><option value="Art">ART</option><option value="Despidos">Despidos</option><option value="Enfermedades profesionales">Enf. profesionales</option><option value="Accidente de trabajo">Accidente de trabajo</option><option value="Jubilacion">Jubilación</option><option value="Otro">Otro</option></select></div><div class="fg"><div class="fl">Etapa</div><select class="fs" id="cn-e"><option value="Cita">Cita</option><option value="Tramite">Trámite</option><option value="Examemes medicos">Exáms. médicos</option><option value="Telegrama">Telegrama</option></select></div></div>
+  <div class="modal" style="width:560px"><h3 id="m-cliente-titulo">Nuevo cliente</h3>
+
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px">Datos básicos</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha *</div><input class="fi" id="cn-f" type="date"></div>
+      <div class="fg"><div class="fl">Tipo de cliente</div>
+        <select class="fs" id="cn-tipo">
+          <option value="posible">Posible cliente</option>
+          <option value="publicidad">Publicidad</option>
+          <option value="estudio">Del estudio</option>
+          <option value="uocra">Uocra</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="cn-n" placeholder="Apellido, Nombre"></div>
+      <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="cn-t" placeholder="351 6 123456"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">DNI</div><input class="fi" id="cn-dni" placeholder="Ej: 30.123.456"></div>
+      <div class="fg"><div class="fl">CUIL</div><input class="fi" id="cn-cuil" placeholder="Ej: 20-30123456-1"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha de nacimiento</div><input class="fi" id="cn-fnac" type="date"></div>
+      <div class="fg"><div class="fl">Edad</div><input class="fi" id="cn-edad" placeholder="Ej: 35" type="number"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="cn-nac" placeholder="Ej: Argentina"></div>
+      <div class="fg"><div class="fl">Estado civil</div>
+        <select class="fs" id="cn-ecivil">
+          <option value="">— Seleccionar —</option>
+          <option value="soltero">Soltero/a</option>
+          <option value="casado">Casado/a</option>
+          <option value="divorciado">Divorciado/a</option>
+          <option value="viudo">Viudo/a</option>
+          <option value="union">Unión convivencial</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="cn-dom" placeholder="Calle, número, ciudad"></div>
+
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Datos laborales <span style="font-weight:400;text-transform:none;font-size:10px">(opcionales)</span></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha de ingreso</div><input class="fi" id="cn-fingreso" type="date"></div>
+      <div class="fg"><div class="fl">Fecha de egreso</div><input class="fi" id="cn-fegreso" type="date"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Categoría</div><input class="fi" id="cn-cat" placeholder="Ej: Oficial, Peón, etc."></div>
+      <div class="fg"><div class="fl">Empleador</div><input class="fi" id="cn-empleador" placeholder="Nombre de la empresa"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Jornada</div><input class="fi" id="cn-jornada" placeholder="Ej: 8hs, part-time"></div>
+      <div class="fg"><div class="fl">Tareas</div><input class="fi" id="cn-tareas-lab" placeholder="Ej: Albañil, electricista"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Caso</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Motivo</div>
+        <select class="fs" id="cn-m">
+          <option value="Art">ART</option>
+          <option value="Despidos">Despidos</option>
+          <option value="Enfermedades profesionales">Enf. profesionales</option>
+          <option value="Accidente de trabajo">Accidente de trabajo</option>
+          <option value="Jubilacion">Jubilación</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="fg"><div class="fl">Etapa</div>
+        <select class="fs" id="cn-e">
+          <option value="Cita">Cita</option>
+          <option value="Tramite">Trámite</option>
+          <option value="Examemes medicos">Exáms. médicos</option>
+          <option value="Telegrama">Telegrama</option>
+        </select>
+      </div>
+    </div>
     <div class="fg"><div class="fl">N° de expediente</div><input class="fi" id="cn-exp" placeholder="Ej: 45.231/2025"></div>
-    <div class="fg"><div class="fl">Última actualización</div><input class="fi" id="cn-f" type="date"></div>
+    <div class="fg"><div class="fl">Observaciones</div><textarea class="fta" id="cn-no" placeholder="Notas, estado actual, observaciones..."></textarea></div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar el cliente.</div>
-    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="cn-no" placeholder="Estado actual..."></textarea></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
   </div>
 </div>
@@ -1045,6 +1119,8 @@ function updCStats(){
   document.getElementById('cs-est').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='estudio';}).length;
   document.getElementById('cs-pub').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='publicidad';}).length;
   document.getElementById('cs-pos').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='posible';}).length;
+  var uocraEl=document.getElementById('cs-uocra');
+  if(uocraEl)uocraEl.textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='uocra';}).length;
   document.getElementById('dm-clientes').textContent=CLIENTES_CACHE.length;
 }
 
@@ -1055,7 +1131,7 @@ function updateClienteSelects(){
 
 function setCtab(t){
   curCtab=t;
-  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','correo'][i]===t?' active':'');});
+  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','uocra','correo'][i]===t?' active':'');});
   var isCorreo=t==='correo';
   document.getElementById('client-grid').style.display=isCorreo?'none':'grid';
   document.getElementById('client-empty').style.display='none';
@@ -1070,15 +1146,15 @@ function renderClientes(){
   if(list.length===0){gr.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
   gr.innerHTML=list.map(function(c){
-    var avCls=c.tipo==='estudio'?'av-purple':c.tipo==='publicidad'?'av-blue':'av-orange';
+    var avCls=c.tipo==='estudio'?'av-purple':c.tipo==='publicidad'?'av-blue':c.tipo==='uocra'?'av-green':'av-orange';
     var refTag=c.ref==='si'?'<span class="badge b-green" style="font-size:9px;margin-right:3px">Referido</span>':'';
-    var cvBtns=c.tipo==='posible'?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button><button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button><button class="btn-sm" onclick="agendarCita(\''+c.id+'\',\''+c.nombre+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📅 Cita</button>':'';
+    var cvBtns=(c.tipo==='posible'||c.tipo==='uocra')?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button><button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button><button class="btn-sm" onclick="agendarCita(\''+c.id+'\',\''+c.nombre+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📅 Cita</button>':'';
     var driveBtn=c.drive?
   '<a href="'+c.drive+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 10px;border:1px solid var(--blue-bg);border-radius:6px;font-weight:500">📁 Drive</a>'+
   '<button onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+c.nombre+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">⬆ Subir doc</button>'
   :'<span style="font-size:10px;color:var(--text3);font-style:italic">Carpeta Drive pendiente</span>';
     return '<div class="client-card '+c.tipo+'">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+refTag+(mLbl[c.motivo]||c.motivo)+'</div></div></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+(mLbl[c.motivo]||c.motivo)+(c.dni?' · DNI: '+c.dni:'')+'</div></div></div>'+
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa)+'</span><span style="font-size:11px;color:var(--text3)">'+c.tel+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       '<div class="cc-footer"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
@@ -1261,14 +1337,18 @@ function editCliente(id){
   var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
   if(!c)return;
   var setVal=function(id,v){var el=document.getElementById(id);if(el)el.value=v||'';};
-  setVal('cn-n',c.nombre);
-  setVal('cn-t',c.tel);
+  setVal('cn-n',c.nombre); setVal('cn-t',c.tel);
   setVal('cn-tipo',c.tipo||'posible');
-  setVal('cn-m',c.motivo||'Art');
-  setVal('cn-e',c.etapa||'Cita');
+  setVal('cn-m',c.motivo||'Art'); setVal('cn-e',c.etapa||'Cita');
   setVal('cn-f',c.fecha);
-  setVal('cn-no',c.notas);
-  setVal('cn-exp',c.expte);
+  setVal('cn-dni',c.dni); setVal('cn-cuil',c.cuil);
+  setVal('cn-fnac',c.fechaNac); setVal('cn-edad',c.edad);
+  setVal('cn-nac',c.nacionalidad); setVal('cn-ecivil',c.estadoCivil);
+  setVal('cn-dom',c.domicilio);
+  setVal('cn-fingreso',c.fechaIngreso); setVal('cn-fegreso',c.fechaEgreso);
+  setVal('cn-cat',c.categoria); setVal('cn-empleador',c.empleador);
+  setVal('cn-jornada',c.jornada); setVal('cn-tareas-lab',c.tareasLab);
+  setVal('cn-exp',c.expte); setVal('cn-no',c.notas);
   // Override save to update instead of add
   document.querySelector('#m-cliente .btn-primary').onclick=function(){
     var n=document.getElementById('cn-n').value.trim();
