@@ -304,7 +304,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
-    <button class="nav-btn" onclick="goTo('documentos')">📄 Modelos</button>
+    <button class="nav-btn" onclick="goTo('documentos')">Modelos</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -605,7 +605,7 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- DOCUMENTOS -->
 <div class="section" id="sec-documentos">
   <div class="page-header">
-    <div><div class="page-title">📄 Modelos de documentos</div><div class="page-sub">Generá documentos con los datos del cliente precargados · editá antes de guardar</div></div>
+    <div><div class="page-title">Modelos</div><div class="page-sub">Generá documentos con los datos del cliente precargados · editá antes de guardar</div></div>
   </div>
   <div class="card" style="margin-bottom:16px">
     <div class="card-title">Seleccionar modelo y cliente</div>
@@ -627,18 +627,18 @@ input.currency-input{letter-spacing:0.5px;}
         </div>
       </div>
     </div>
-    <button class="btn-primary" onclick="generarDocumento()">Generar documento</button>
+    <button class="btn-primary" onclick="generarDoc()">Generar documento</button>
   </div>
   <div class="card" id="doc-editor-card" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div class="card-title" style="margin-bottom:0" id="doc-editor-titulo">Documento</div>
       <div style="display:flex;gap:8px">
-        <button onclick="imprimirDocumento()" class="btn-sm">🖨️ Imprimir</button>
-        <button onclick="guardarDocEnDrive()" class="btn-sm" style="border-color:var(--blue);color:var(--blue)">📁 Guardar en Drive</button>
+        <button onclick="imprimirDoc()" class="btn-sm">🖨️ Imprimir</button>
+        <button onclick="copiarDoc()" class="btn-primary">📋 Copiar texto</button>
       </div>
     </div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Podés editar el texto antes de guardar. Los campos en [MAYÚSCULAS] son datos faltantes del cliente.</div>
-    <textarea id="doc-contenido" class="fta" style="min-height:480px;font-family:monospace;font-size:13px;line-height:1.8"></textarea>
+    <textarea id="doc-editor" class="fta" style="min-height:480px;font-family:monospace;font-size:13px;line-height:1.8"></textarea>
   </div>
 </div>
 
@@ -1597,6 +1597,7 @@ function renderDashTareas(){
   // ── TAREAS DEL DÍA (hoy + vencidas) ──
   var el=document.getElementById('dash-tareas');
   if(el){
+    if(!TAREAS_CACHE){var el2=document.getElementById('dash-tareas');if(el2)el2.innerHTML='<div style="font-size:13px;color:var(--text3)">Cargando...</div>';return;}
     var hoy=TAREAS_CACHE.filter(function(t){return t.fecha===ts&&t.tipo!=='pendiente';});
     var vencidas=TAREAS_CACHE.filter(function(t){return t.fecha<ts&&t.tipo!=='pendiente';}).slice(0,3);
     var html='';
@@ -1922,7 +1923,7 @@ function renderEventos(){
   var html='';Object.keys(groups).sort().forEach(function(d){
     html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
     groups[d].forEach(function(e){
-      html+='<div class="ev-item"><div class="ev-dot" style="background:'+(evColors[e.tipo]||'#888')+'"></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+e.titulo+'</div><div style="font-size:11px;color:var(--text3)">'+(e.hora?e.hora+'hs · ':'')+evLabels[e.tipo]+(e.cliente?' · '+e.cliente:'')+(e.lugar?' · '+e.lugar:'')+'</div></div><span class="badge '+(evBadges[e.tipo]||'b-gray')+'">'+evLabels[e.tipo]+'</span><button class="btn-danger" style="margin-left:6px" onclick="delEvento(\''+e.id+'\')">✕</button></div>';
+      html+='<div class="ev-item"><div class="ev-dot" style="background:'+(evColors[e.tipo]||'#888')+'"></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+e.titulo+'</div><div style="font-size:11px;color:var(--text3)">'+(e.hora?e.hora+'hs · ':'')+(evLabels[e.tipo]||e.tipo||'')+(e.cliente?' · '+e.cliente:'')+(e.lugar?' · '+e.lugar:'')+'</div></div><span class="badge '+(evBadges[e.tipo]||'b-gray')+'">'+evLabels[e.tipo]+'</span><button class="btn-danger" style="margin-left:6px" onclick="delEvento(\''+e.id+'\')">✕</button></div>';
     });
   });
   document.getElementById('ev-list').innerHTML=html;
