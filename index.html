@@ -1283,7 +1283,9 @@ function renderClientes(){
 
 
 // ─── GOOGLE DRIVE ───
-var finBtn=c.tipo!=='finalizado'?'<button onclick="finalizarCliente(\''+c.id+'\',\''+c.nombre.replace(/\'/g,"\\'")+'\'" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid #1E3A25;background:transparent;color:var(--green);cursor:pointer">✅ Finalizar</button>':'<button onclick="convC(\''+c.id+'\',\'posible\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">↩ Reabrir</button>';
+var finBtn=c.tipo!=='finalizado'?
+  '<button data-fid="'+c.id+'" data-faction="finalizar" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid #1E3A25;background:transparent;color:var(--green);cursor:pointer">✓ Finalizar</button>':
+  '<button data-fid="'+c.id+'" data-faction="reabrir" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">↩ Reabrir</button>';
 var DRIVE_CLIENTES_FOLDER_ID = null; // ID of main "Clientes" folder
 
 function getDriveClientesFolder(callback){
@@ -1460,21 +1462,6 @@ function vincularCarpeta(clienteId, nombreCliente){
 function finalizarCliente(id,nombre){
   if(!confirm('¿Archivar a '+nombre+' como finalizado?'))return;
   db.collection('clientes').doc(id).update({tipo:'finalizado',fechaFinalizado:fmt(today)}).then(function(){showToast('Cliente archivado ✓');});
-}
-
-function finalizarCliente(id){
-  if(!confirm('¿Marcar este cliente como finalizado? Se archivará en la pestaña Finalizados.'))return;
-  db.collection('clientes').doc(id).update({
-    tipo:'finalizado',
-    fechaFinalizado:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){showToast('Cliente archivado en Finalizados ✓');});
-}
-
-function reactivarCliente(id){
-  if(!confirm('¿Reactivar este cliente?'))return;
-  db.collection('clientes').doc(id).update({tipo:'posible'}).then(function(){
-    showToast('Cliente reactivado ✓');
-  });
 }
 
 function convC(id,t){
@@ -3007,6 +2994,15 @@ function imprimirDoc(){
   win.print();
 }
 
+// Alias for HTML button
+function generarDocumento(){
+  // Get client from search input
+  var searchEl=document.getElementById('doc-cliente-search');
+  var nombre=searchEl?searchEl.value.trim():'';
+  var cl=nombre?CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}):null;
+  if(cl)docClienteActual=cl;
+  generarDoc();
+}
 // Also update filtrarClientes to handle doc-cliente-search
 
 // ─── ANÁLISIS CON GRÁFICOS ───
