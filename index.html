@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Casih & Asociados — Sistema de Gestión</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -302,8 +304,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
-    <button class="nav-btn" onclick="goTo('documentos')">📄 Documentos</button>
-    <button class="nav-btn" onclick="goTo('documentos')">📄 Docs</button>
+    <button class="nav-btn" onclick="goTo('documentos')">📄 Modelos</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -566,8 +567,7 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="tabs" style="margin-bottom:0" id="adm-tabs">
         <button class="tab active" onclick="setAdmTab('ingresos')">Ingresos</button>
         <button class="tab" onclick="setAdmTab('gastos')">Gastos</button>
-        <button class="tab" onclick="setAdmTab('honorarios')">Honorarios</button>
-        <button class="tab" onclick="setAdmTab('anual')">Análisis anual</button>
+        <button class="tab" onclick="setAdmTab('analisis')">Análisis</button>
       </div>
       <select class="fs" id="adm-mes" onchange="updateAdm()" style="width:auto;padding:6px 10px;font-size:12px">
         <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
@@ -581,12 +581,22 @@ input.currency-input{letter-spacing:0.5px;}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Todos los gastos del mes (incluye los del dashboard)</div><button class="btn-primary" onclick="openModal('m-gasto')">+ Agregar gasto</button></div>
       <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Cargado por</th><th>Monto</th><th></th></tr><tbody id="gas-table"></tbody></table></div>
     </div>
-    <div id="adm-honorarios" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Registro de honorarios y estado de cobro</div><button class="btn-primary" onclick="openModal('m-honorario')">+ Registrar honorario</button></div>
-      <div class="card"><table><tr><th>Cliente</th><th>Causa</th><th>Total</th><th>Cobrado</th><th>Saldo</th><th>Estado</th><th></th></tr><tbody id="hon-table"></tbody></table></div>
-    </div>
-    <div id="adm-anual" style="display:none">
-      <div class="card"><div class="card-title">Resumen anual 2026</div><table><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th><th>Margen</th></tr><tbody id="anual-table"></tbody></table></div>
+
+    <div id="adm-analisis" style="display:none">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Resultado mensual 2026</div>
+        <canvas id="chart-mensual" style="max-height:280px"></canvas>
+      </div>
+      <div class="grid2">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title">Gastos por categoría</div>
+          <canvas id="chart-categorias" style="max-height:220px"></canvas>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title">Resumen mensual</div>
+          <table><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th></tr><tbody id="anual-table"></tbody></table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -604,8 +614,8 @@ input.currency-input{letter-spacing:0.5px;}
         <div class="fl">Modelo de documento</div>
         <select class="fs" id="doc-modelo">
           <option value="">— Seleccionar modelo —</option>
-          <option value="tcl_blanqueo">TCL — Aclare más blanqueo</option>
-          <option value="liquidacion_uocra">Diferencia liquidación final UOCRA</option>
+          <option value="blanqueo_aclarar">TCL — Aclare más blanqueo</option>
+          <option value="diferencia_liquidacion">Diferencia en liquidación final (UOCRA)</option>
         </select>
       </div>
       <div class="fg">
@@ -1088,9 +1098,13 @@ var catLbl={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',vari
 var catCls={servicios:'b-blue',oficina:'b-purple',procesales:'b-orange',varios:'b-gray',fijo:'b-blue',impuesto:'b-red',honorarios:'b-green',anticipo:'b-green'};
 
 function setAdmTab(t){
-  ['ingresos','gastos','honorarios','anual'].forEach(function(x){document.getElementById('adm-'+x).style.display=x===t?'block':'none';});
-  document.querySelectorAll('#adm-tabs .tab').forEach(function(b,i){b.className='tab'+(['ingresos','gastos','honorarios','anual'][i]===t?' active':'');});
-  if(t==='anual')renderAnual();
+  ['ingresos','gastos','analisis'].forEach(function(x){
+    var el=document.getElementById('adm-'+x);if(el)el.style.display=x===t?'block':'none';
+  });
+  document.querySelectorAll('#adm-tabs .tab').forEach(function(b,i){
+    b.className='tab'+(['ingresos','gastos','analisis'][i]===t?' active':'');
+  });
+  if(t==='analisis')renderAnalisis();
 }
 
 function updateAdm(){
@@ -1245,12 +1259,12 @@ function setCtab(t){
 }
 
 function renderClientes(){
-  var list=CLIENTES_CACHE.filter(function(c){return c.tipo===curCtab;});
+  var list=CLIENTES_CACHE.filter(function(cl){return cl.tipo===curCtab;});
   var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
   if(list.length===0){gr.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
-  gr.innerHTML=list.map(function(c){
-    var avCls=c.tipo==='estudio'?'av-purple':c.tipo==='publicidad'?'av-blue':c.tipo==='uocra'?'av-green':'av-orange';
+  gr.innerHTML=list.map(function(cl){
+    var c=cl;var avCls=cl.tipo==='estudio'?'av-purple':cl.tipo==='publicidad'?'av-blue':cl.tipo==='uocra'?'av-green':'av-orange';
     var refTag=c.ref==='si'?'<span class="badge b-green" style="font-size:9px;margin-right:3px">Referido</span>':'';
     var cvBtns=(c.tipo==='posible'||c.tipo==='uocra')?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button><button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button><button class="btn-sm" onclick="agendarCita(\''+c.id+'\',\''+c.nombre+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📅 Cita</button>':'';
     var driveBtn=c.drive&&c.driveFolderId?
@@ -1644,6 +1658,8 @@ function renderTareas(){
 
   function buildTaskHTML(list, showMover, moverLabel, moverTipo){
     if(list.length===0)return '<div class="empty-state">Sin tareas. Usá el botón para agregar.</div>';
+    var pCls={alta:'b-red',media:'b-orange',baja:'b-green'};
+    var pLbl={alta:'Alta',media:'Media',baja:'Baja'};
     var groups={};
     list.forEach(function(t){
       var key=t.fecha||'sin-fecha';
@@ -1913,6 +1929,7 @@ function renderEventos(){
 }
 
 function renderDashEventos(){
+  if(!EVENTOS_CACHE||!EVENTOS_CACHE.length){var dmEv=document.getElementById('dm-eventos');if(dmEv)dmEv.textContent=0;return;}
   var ts=fmt(today),weekEnd=fmt(addD(today,7));
   var count=EVENTOS_CACHE.filter(function(e){return e.fecha>=ts&&e.fecha<=weekEnd;}).length;
   var el=document.getElementById('dm-eventos');if(el)el.textContent=count;
@@ -2990,6 +3007,81 @@ function imprimirDoc(){
 }
 
 // Also update filtrarClientes to handle doc-cliente-search
+
+// ─── ANÁLISIS CON GRÁFICOS ───
+var chartMensual=null, chartCat=null;
+
+function renderAnalisis(){
+  var meses=['01','02','03','04','05','06','07','08','09','10','11','12'];
+  var mesesNom=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var ingData={},gasData={},catData={};
+
+  Promise.all([
+    db.collection('ingresos').get().then(function(s){
+      s.forEach(function(d){var x=d.data();ingData[x.mes]=(ingData[x.mes]||0)+(x.monto||0);});
+    }),
+    db.collection('gastos').get().then(function(s){
+      s.forEach(function(d){
+        var x=d.data();
+        gasData[x.mes]=(gasData[x.mes]||0)+(x.monto||0);
+        catData[x.cat]=(catData[x.cat]||0)+(x.monto||0);
+      });
+    })
+  ]).then(function(){
+    var ingArr=meses.map(function(m){return ingData[m]||0;});
+    var gasArr=meses.map(function(m){return gasData[m]||0;});
+    var resArr=ingArr.map(function(v,i){return v-gasArr[i];});
+
+    // Chart 1: Mensual bar chart
+    var ctx1=document.getElementById('chart-mensual');
+    if(ctx1){
+      if(chartMensual)chartMensual.destroy();
+      chartMensual=new Chart(ctx1,{
+        type:'bar',
+        data:{
+          labels:mesesNom,
+          datasets:[
+            {label:'Ingresos',data:ingArr,backgroundColor:'rgba(61,214,140,0.7)',borderColor:'#3DD68C',borderWidth:1},
+            {label:'Gastos',data:gasArr,backgroundColor:'rgba(226,84,84,0.7)',borderColor:'#E25454',borderWidth:1},
+            {label:'Resultado',data:resArr,type:'line',borderColor:'#4A90E2',backgroundColor:'rgba(74,144,226,0.1)',borderWidth:2,fill:true,tension:0.3}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{labels:{color:'#C0C0C0'}}},scales:{x:{ticks:{color:'#888'}},y:{ticks:{color:'#888',callback:function(v){return '$'+Math.round(v/1000)+'K';}}}}}
+      });
+    }
+
+    // Chart 2: Categorias donut
+    var ctx2=document.getElementById('chart-categorias');
+    if(ctx2&&Object.keys(catData).length>0){
+      if(chartCat)chartCat.destroy();
+      var catLblMap={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',varios:'Varios',fijo:'Fijo',impuesto:'Impuestos',honorarios:'Honorarios'};
+      var cats=Object.keys(catData);
+      var colors=['#4A90E2','#3DD68C','#F5A623','#E25454','#9B7FE8','#5A6B8A','#3DD6C0'];
+      chartCat=new Chart(ctx2,{
+        type:'doughnut',
+        data:{
+          labels:cats.map(function(k){return catLblMap[k]||k;}),
+          datasets:[{data:cats.map(function(k){return catData[k];}),backgroundColor:colors.slice(0,cats.length),borderWidth:0}]
+        },
+        options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#C0C0C0',font:{size:12}}}}}
+      });
+    }
+
+    // Table
+    var rows='',tI=0,tG=0;
+    meses.forEach(function(m,i){
+      var ing=ingData[m]||0,gas=gasData[m]||0;
+      if(ing===0&&gas===0)return;
+      var n=ing-gas;tI+=ing;tG+=gas;
+      rows+='<tr><td>'+mesesNom[i]+'</td><td style="color:var(--green)">$'+Math.round(ing).toLocaleString('es-AR')+'</td><td style="color:var(--red)">$'+Math.round(gas).toLocaleString('es-AR')+'</td><td style="color:'+(n>=0?'var(--green)':'var(--red)')+';font-weight:600">$'+Math.round(n).toLocaleString('es-AR')+'</td></tr>';
+    });
+    if(!rows)rows='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:1rem">Sin datos aún.</td></tr>';
+    else{var tn=tI-tG;rows+='<tr style="border-top:2px solid var(--border2)"><td style="font-weight:600">Total</td><td style="color:var(--green);font-weight:600">$'+Math.round(tI).toLocaleString('es-AR')+'</td><td style="color:var(--red);font-weight:600">$'+Math.round(tG).toLocaleString('es-AR')+'</td><td style="color:'+(tn>=0?'var(--green)':'var(--red)')+';font-weight:600">$'+Math.round(tn).toLocaleString('es-AR')+'</td></tr>';}
+    var tbody=document.getElementById('anual-table');
+    if(tbody)tbody.innerHTML=rows;
+  });
+}
+
 // stub for backward compat
 function initEventos(){}
 
