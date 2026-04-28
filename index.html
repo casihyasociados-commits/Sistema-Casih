@@ -119,6 +119,8 @@ tr:hover td{background:var(--bg3);}
 .client-card.publicidad{border-left-color:var(--blue);}
 .client-card.posible{border-left-color:var(--orange);}
 .client-card.uocra{border-left-color:var(--green);}
+.client-card.finalizado{border-left-color:var(--text3);opacity:0.75;}
+.client-card.finalizado{border-left-color:var(--text3);opacity:0.8;}
 .cc-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
 .cc-motivo{font-size:11px;color:var(--text3);margin-bottom:8px;}
 .cc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;}
@@ -300,6 +302,8 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
+    <button class="nav-btn" onclick="goTo('documentos')">📄 Documentos</button>
+    <button class="nav-btn" onclick="goTo('documentos')">📄 Docs</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -405,6 +409,10 @@ input.currency-input{letter-spacing:0.5px;}
           <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:13px">
           <button class="btn-primary" onclick="guardarGasto()" style="font-size:13px;padding:8px 16px">Guardar</button>
         </div>
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Gastos cargados hoy</div>
+          <div id="dash-gastos-recientes"><div style="font-size:12px;color:var(--text3)">Sin gastos hoy.</div></div>
+        </div>
       </div>
 
     </div>
@@ -449,12 +457,14 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="metric"><div class="metric-label">Publicidad</div><div class="metric-val" style="color:var(--blue)" id="cs-pub">—</div></div>
     <div class="metric"><div class="metric-label">Posibles</div><div class="metric-val" style="color:var(--orange)" id="cs-pos">—</div></div>
     <div class="metric"><div class="metric-label">Uocra</div><div class="metric-val" style="color:var(--green)" id="cs-uocra">—</div></div>
+    <div class="metric"><div class="metric-label">Finalizados</div><div class="metric-val" style="color:var(--text3)" id="cs-fin">—</div></div>
   </div>
   <div class="tabs" id="c-tabs">
     <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
     <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
     <button class="tab" onclick="setCtab('posible')">Posibles clientes</button>
     <button class="tab" onclick="setCtab('uocra')">🏗️ Uocra</button>
+    <button class="tab" onclick="setCtab('finalizado')">✅ Finalizados</button>
     <button class="tab" onclick="setCtab('correo')">📦 Seguimiento Correo</button>
   </div>
   <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
@@ -578,6 +588,97 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="adm-anual" style="display:none">
       <div class="card"><div class="card-title">Resumen anual 2026</div><table><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th><th>Margen</th></tr><tbody id="anual-table"></tbody></table></div>
     </div>
+  </div>
+</div>
+
+
+<!-- DOCUMENTOS -->
+<div class="section" id="sec-documentos">
+  <div class="page-header">
+    <div><div class="page-title">📄 Modelos de documentos</div><div class="page-sub">Generá documentos con los datos del cliente precargados · editá antes de guardar</div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Seleccionar modelo y cliente</div>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="fg">
+        <div class="fl">Modelo de documento</div>
+        <select class="fs" id="doc-modelo">
+          <option value="">— Seleccionar modelo —</option>
+          <option value="tcl_blanqueo">TCL — Aclare más blanqueo</option>
+          <option value="liquidacion_uocra">Diferencia liquidación final UOCRA</option>
+        </select>
+      </div>
+      <div class="fg">
+        <div class="fl">Cliente</div>
+        <div style="position:relative">
+          <input class="fi" id="doc-cliente-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('doc-cliente-search','doc-cliente-dropdown')" onfocus="filtrarClientes('doc-cliente-search','doc-cliente-dropdown')" autocomplete="off">
+          <input type="hidden" id="doc-cliente" value="">
+          <div id="doc-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="generarDocumento()">Generar documento</button>
+  </div>
+  <div class="card" id="doc-editor-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0" id="doc-editor-titulo">Documento</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="imprimirDocumento()" class="btn-sm">🖨️ Imprimir</button>
+        <button onclick="guardarDocEnDrive()" class="btn-sm" style="border-color:var(--blue);color:var(--blue)">📁 Guardar en Drive</button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Podés editar el texto antes de guardar. Los campos en [MAYÚSCULAS] son datos faltantes del cliente.</div>
+    <textarea id="doc-contenido" class="fta" style="min-height:480px;font-family:monospace;font-size:13px;line-height:1.8"></textarea>
+  </div>
+</div>
+
+<!-- DOCUMENTOS -->
+<div class="section" id="sec-documentos">
+  <div class="page-header">
+    <div><div class="page-title">Documentos</div><div class="page-sub">Modelos de telegramas · Generación automática con datos del cliente</div></div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:16px">
+    <!-- Selector de modelo y cliente -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Generar documento</div>
+      <div class="fg">
+        <div class="fl">Modelo *</div>
+        <select class="fs" id="doc-modelo" onchange="previewDoc()">
+          <option value="">— Seleccionar modelo —</option>
+          <option value="diferencia_liquidacion">Telegrama — Diferencia en liquidación final (UOCRA)</option>
+          <option value="blanqueo_aclarar">Telegrama — Aclarar situación / blanqueo laboral (UOCRA)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <div class="fl">Cliente *</div>
+        <div style="position:relative">
+          <input class="fi" id="doc-cliente-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('doc-cliente-search','doc-cliente-dropdown');previewDoc()" onfocus="filtrarClientes('doc-cliente-search','doc-cliente-dropdown')" autocomplete="off">
+          <input type="hidden" id="doc-cliente-id" value="">
+          <div id="doc-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:4px" onclick="generarDoc()">⚡ Completar datos del cliente</button>
+    </div>
+
+    <!-- Info del cliente seleccionado -->
+    <div class="card" style="margin-bottom:0" id="doc-cliente-info">
+      <div class="card-title">Datos del cliente</div>
+      <div style="font-size:13px;color:var(--text3)">Seleccioná un cliente para ver sus datos.</div>
+    </div>
+  </div>
+
+  <!-- Editor del documento -->
+  <div class="card" id="doc-editor-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0" id="doc-editor-titulo">Documento</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="imprimirDoc()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">🖨️ Imprimir</button>
+        <button onclick="copiarDoc()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">📋 Copiar texto</button>
+      </div>
+    </div>
+    <textarea id="doc-editor" class="fta" style="min-height:400px;font-size:13px;line-height:1.7;font-family:Georgia,serif"></textarea>
+    <div style="font-size:12px;color:var(--text3);margin-top:8px">Podés editar el texto antes de copiar o imprimir. Los campos marcados con [COMPLETAR] requieren datos que no están en la ficha del cliente.</div>
   </div>
 </div>
 
@@ -911,6 +1012,7 @@ function goTo(s){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes')renderClientes();
+  if(s==='documentos'){var el=document.getElementById('doc-editor-card');if(el)el.style.display='none';}
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
@@ -1121,7 +1223,9 @@ function updCStats(){
   document.getElementById('cs-pos').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='posible';}).length;
   var uocraEl=document.getElementById('cs-uocra');
   if(uocraEl)uocraEl.textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='uocra';}).length;
-  document.getElementById('dm-clientes').textContent=CLIENTES_CACHE.length;
+  var finEl=document.getElementById('cs-fin');
+  if(finEl)finEl.textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='finalizado';}).length;
+  document.getElementById('dm-clientes').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo!=='finalizado';}).length;
 }
 
 function updateClienteSelects(){
@@ -1131,7 +1235,7 @@ function updateClienteSelects(){
 
 function setCtab(t){
   curCtab=t;
-  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','uocra','correo'][i]===t?' active':'');});
+  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','uocra','finalizado','correo'][i]===t?' active':'');});
   var isCorreo=t==='correo';
   document.getElementById('client-grid').style.display=isCorreo?'none':'grid';
   document.getElementById('client-empty').style.display='none';
@@ -1158,13 +1262,14 @@ function renderClientes(){
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa)+'</span><span style="font-size:11px;color:var(--text3)">'+c.tel+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       '<div class="cc-footer"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
-      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+driveBtn+'<button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button><button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+finBtn+driveBtn+'<button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+(c.tipo!=='finalizado'?'<button onclick="finalizarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--text3);background:transparent;color:var(--text3);cursor:pointer">✓ Finalizar</button>':'<button onclick="reactivarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer">↩ Reactivar</button>')+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
 }
 
 
 // ─── GOOGLE DRIVE ───
+var finBtn=c.tipo!=='finalizado'?'<button onclick="finalizarCliente(\''+c.id+'\',\''+c.nombre.replace(/\'/g,"\\'")+'\'" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid #1E3A25;background:transparent;color:var(--green);cursor:pointer">✅ Finalizar</button>':'<button onclick="convC(\''+c.id+'\',\'posible\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">↩ Reabrir</button>';
 var DRIVE_CLIENTES_FOLDER_ID = null; // ID of main "Clientes" folder
 
 function getDriveClientesFolder(callback){
@@ -1335,6 +1440,26 @@ function vincularCarpeta(clienteId, nombreCliente){
         }
       });
     }
+  });
+}
+
+function finalizarCliente(id,nombre){
+  if(!confirm('¿Archivar a '+nombre+' como finalizado?'))return;
+  db.collection('clientes').doc(id).update({tipo:'finalizado',fechaFinalizado:fmt(today)}).then(function(){showToast('Cliente archivado ✓');});
+}
+
+function finalizarCliente(id){
+  if(!confirm('¿Marcar este cliente como finalizado? Se archivará en la pestaña Finalizados.'))return;
+  db.collection('clientes').doc(id).update({
+    tipo:'finalizado',
+    fechaFinalizado:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){showToast('Cliente archivado en Finalizados ✓');});
+}
+
+function reactivarCliente(id){
+  if(!confirm('¿Reactivar este cliente?'))return;
+  db.collection('clientes').doc(id).update({tipo:'posible'}).then(function(){
+    showToast('Cliente reactivado ✓');
   });
 }
 
@@ -2574,6 +2699,322 @@ function filtrarClientes(inputId, dropdownId){
 }
 
 // Update updateClienteSelects to also set search inputs
+
+function initGastosRecientes(){
+  db.collection('gastos').onSnapshot(function(snap){
+    var hoy=fmt(today);
+    var list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;if(x.fecha===hoy)list.push(x);});
+    list.sort(function(a,b){return (b.creadoEn&&a.creadoEn)?(b.creadoEn.seconds||0)-(a.creadoEn.seconds||0):0;});
+    var el=document.getElementById('dash-gastos-recientes');
+    if(!el)return;
+    if(list.length===0){el.innerHTML='<div style="font-size:12px;color:var(--text3)">Sin gastos hoy.</div>';return;}
+    var catLblLocal={servicios:'💡',oficina:'🖨️',procesales:'⚖️',varios:'📋',fijo:'🏢',impuesto:'📋'};
+    el.innerHTML=list.map(function(g){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">'+
+        '<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">'+
+          '<span>'+(catLblLocal[g.cat]||'📋')+'</span>'+
+          '<span style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+g.concepto+'</span>'+
+          '<span style="color:var(--text3);font-size:10px;flex-shrink:0">'+g.cargadoPor+'</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+
+          '<span style="color:var(--red);font-weight:600">$'+Math.round(g.monto||0).toLocaleString('es-AR')+'</span>'+
+          '<button onclick="delGastoRapido(\''+g.id+'\')" style="font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  },function(e){console.warn('Gastos recientes:',e);});
+}
+
+function delGastoRapido(id){
+  if(!confirm('¿Eliminar este gasto?'))return;
+  db.collection('gastos').doc(id).delete().then(function(){showToast('Gasto eliminado ✓');});
+}
+
+
+// ─── MÓDULO DE DOCUMENTOS ───
+var PLANTILLAS={
+  tcl_blanqueo:{
+    titulo:'TCL — Aclare Más Blanqueo',
+    template:function(cl){
+      var nl='\n';
+      var hoy=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+      return 'Córdoba, '+hoy+nl+nl+
+'Sr./Sra. '+(cl.empleador||'[EMPLEADOR]')+nl+
+'Presente.-'+nl+nl+
+'De mi mayor consideración:'+nl+nl+
+'Por medio de la presente, en nombre y representación de '+(cl.nombre||'[NOMBRE]')+', DNI N° '+(cl.dni||'[DNI]')+', CUIL N° '+(cl.cuil||'[CUIL]')+', con domicilio en '+(cl.domicilio||'[DOMICILIO]')+', me dirijo a Ud. a fin de intimarles a que en el plazo de 48 hs. hábiles aclaren la situación laboral de mi mandante respecto de los rubros que han sido abonados bajo el concepto de "blanqueo" en sus liquidaciones de haberes.'+nl+nl+
+'En tal sentido, se intima a que informen:'+nl+nl+
+'1) El detalle de los rubros comprendidos en el blanqueo practicado.'+nl+
+'2) Si los mismos han sido debidamente registrados en los libros laborales.'+nl+
+'3) La incidencia de dichos rubros en el cálculo del SAC, licencias, horas extras y demás conceptos remuneratorios.'+nl+nl+
+'Bajo apercibimiento de iniciar las acciones legales pertinentes.'+nl+nl+
+'Sin otro particular, saludo a Ud. atentamente.'+nl+nl+nl+
+'_________________________'+nl+
+(cl.nombre||'[NOMBRE]')+nl+
+'DNI: '+(cl.dni||'[DNI]');
+    }
+  },
+  liquidacion_uocra:{
+    titulo:'Diferencia Liquidación Final UOCRA',
+    template:function(cl){
+      var nl='\n';
+      var hoy=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+      return 'Córdoba, '+hoy+nl+nl+
+'Sr./Sra. '+(cl.empleador||'[EMPLEADOR]')+nl+
+'Presente.-'+nl+nl+
+'De mi mayor consideración:'+nl+nl+
+'Por medio de la presente, en nombre y representación de '+(cl.nombre||'[NOMBRE]')+', DNI N° '+(cl.dni||'[DNI]')+', CUIL N° '+(cl.cuil||'[CUIL]')+', con domicilio en '+(cl.domicilio||'[DOMICILIO]')+', quien se desempeñó bajo relación de dependencia en esa empresa en calidad de '+(cl.tareasLab||'[TAREAS]')+', categoría '+(cl.categoria||'[CATEGORÍA]')+', con fecha de ingreso '+(cl.fechaIngreso||'[FECHA INGRESO]')+' y fecha de egreso '+(cl.fechaEgreso||'[FECHA EGRESO]')+'.'+nl+nl+
+'Me dirijo a Ud. a los efectos de intimar, en el plazo de 48 hs. hábiles, el pago de las diferencias existentes en la liquidación final practicada, la cual no refleja correctamente los rubros y montos que corresponden conforme el Convenio Colectivo de Trabajo de la UOCRA y la normativa laboral vigente.'+nl+nl+
+'Se reclaman diferencias en los siguientes rubros:'+nl+nl+
+'- Indemnización por antigüedad (Art. 245 LCT)'+nl+
+'- Preaviso'+nl+
+'- Integración mes de despido'+nl+
+'- S.A.C. proporcional'+nl+
+'- Vacaciones proporcionales no gozadas'+nl+
+'- Diferencias salariales por categoría'+nl+nl+
+'Bajo apercibimiento de iniciar las acciones judiciales que correspondan, con más intereses, costas y honorarios.'+nl+nl+
+'Sin otro particular, saludo a Ud. atentamente.'+nl+nl+nl+
+'_________________________'+nl+
+(cl.nombre||'[NOMBRE]')+nl+
+'DNI: '+(cl.dni||'[DNI]');
+    }
+  }
+};
+
+function generarDocumento(){
+  var modelo=document.getElementById('doc-modelo').value;
+  var clienteNombre=(document.getElementById('doc-cliente').value||document.getElementById('doc-cliente-search').value||'').trim();
+  if(!modelo){alert('Seleccioná un modelo.');return;}
+  if(!clienteNombre){alert('Seleccioná un cliente.');return;}
+  var cl=CLIENTES_CACHE.find(function(x){return x.nombre===clienteNombre;});
+  if(!cl){alert('Cliente no encontrado.');return;}
+  var plantilla=PLANTILLAS[modelo];
+  if(!plantilla)return;
+  var texto=plantilla.template(cl);
+  document.getElementById('doc-contenido').value=texto;
+  document.getElementById('doc-editor-titulo').textContent=plantilla.titulo+' — '+cl.nombre;
+  document.getElementById('doc-editor-card').style.display='block';
+  document.getElementById('doc-editor-card').scrollIntoView({behavior:'smooth'});
+}
+
+function imprimirDocumento(){
+  var texto=document.getElementById('doc-contenido').value;
+  var titulo=document.getElementById('doc-editor-titulo').textContent;
+  var win=window.open('','_blank');
+  win.document.write('<html><head><title>'+titulo+'</title><style>body{font-family:Arial,sans-serif;font-size:13px;line-height:1.8;padding:40px;max-width:780px;margin:0 auto;}pre{white-space:pre-wrap;font-family:Arial,sans-serif;}</style></head><body><pre>'+texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></body></html>');
+  win.document.close();
+  win.print();
+}
+
+function guardarDocEnDrive(){
+  var texto=document.getElementById('doc-contenido').value;
+  var titulo=document.getElementById('doc-editor-titulo').textContent;
+  var clienteNombre=(document.getElementById('doc-cliente').value||document.getElementById('doc-cliente-search').value||'').trim();
+  var cl=CLIENTES_CACHE.find(function(x){return x.nombre===clienteNombre;});
+  if(!cl||!cl.driveFolderId){showToast('El cliente no tiene carpeta Drive vinculada.');return;}
+  if(!calConnected||!gapi.client.getToken()){showToast('Conectá Google Drive primero.');return;}
+  var blob=new Blob([texto],{type:'text/plain'});
+  var file=new File([blob],titulo+'.txt',{type:'text/plain'});
+  subirArchivoADrive(file,cl.driveFolderId,cl.nombre,
+    function(data){
+      showToast('Documento guardado en Drive ✓');
+      db.collection('documentos').add({clienteId:cl.id,clienteNombre:cl.nombre,nombre:titulo+'.txt',driveId:data.id,driveLink:data.webViewLink,subidoPor:currentUserData?currentUserData.nombre:'',fecha:fmt(today),creadoEn:firebase.firestore.FieldValue.serverTimestamp()});
+    },
+    function(e){showToast('Error al guardar: '+e.message);}
+  );
+}
+
+
+// ─── GASTOS HOY (visibles para secretarias) ───
+function initGastosHoy(){
+  var hoy=fmt(today);
+  db.collection('gastos').where('fecha','==',hoy).onSnapshot(function(snap){
+    var list=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+    renderGastosHoy(list);
+  },function(err){
+    db.collection('gastos').get().then(function(snap){
+      var hoy2=fmt(today);
+      var list=[];
+      snap.forEach(function(d){var x=d.data();x.id=d.id;if(x.fecha===hoy2)list.push(x);});
+      renderGastosHoy(list);
+    });
+  });
+}
+
+function renderGastosHoy(list){
+  var el=document.getElementById('gastos-hoy-list');
+  if(!el)return;
+  if(list.length===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3)">Sin gastos cargados hoy.</div>';
+    return;
+  }
+  var catLbl2={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',varios:'Varios'};
+  el.innerHTML=list.map(function(g){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">'+
+      '<div>'+
+        '<div style="font-size:13px;color:var(--text)">'+g.concepto+'</div>'+
+        '<div style="font-size:11px;color:var(--text3)">'+(catLbl2[g.cat]||g.cat)+' · '+(g.cargadoPor||'')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<span style="font-size:13px;font-weight:600;color:var(--red)">$'+Math.round(g.monto||0).toLocaleString('es-AR')+'</span>'+
+        '<button data-gid="'+g.id+'" data-gaction="del" style="font-size:11px;padding:3px 7px;border-radius:5px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  el.querySelectorAll('[data-gaction]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=this.getAttribute('data-gid');
+      if(confirm('¿Eliminar este gasto?'))
+        db.collection('gastos').doc(id).delete().then(function(){showToast('Gasto eliminado ✓');});
+    });
+  });
+}
+
+
+// ─── MÓDULO DOCUMENTOS ───
+var MODELOS = {
+  diferencia_liquidacion: {
+    titulo: 'Telegrama — Diferencia en liquidación final (UOCRA)',
+    campos: ['empleador','domicilioLaboral','nombre','dni','fechaEgreso','categoria','jornada'],
+    template: function(cl){
+      var emp = cl.empleador || '[EMPLEADOR]';
+      var domLab = cl.domicilioLablar || '[DOMICILIO LABORAL DEL EMPLEADOR]';
+      var nombre = cl.nombre || '[NOMBRE Y APELLIDO]';
+      var dni = cl.dni || '[DNI]';
+      var cuil = cl.cuil || '[CUIL]';
+      var fegreso = cl.fechaEgreso || '[FECHA DE EGRESO]';
+      var cat = cl.categoria || '[CATEGORÍA]';
+      var jornada = cl.jornada || '[JORNADA]';
+      return 'DESTINATARIO: '+emp+'
+'+
+        'Actividad: Construcción
+'+
+        'Domicilio laboral: '+domLab+'
+'+
+        'CORDOBA - CORDOBA
+'+
+        'CUIT: [CUIT EMPLEADOR]
+
+'+
+        'REMITENTE: '+nombre+'
+'+
+        'DNI Nº: '+dni+'
+'+
+        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A
+'+
+        'CORDOBA - CORDOBA
+'+
+        'CUIL: '+cuil+'
+
+'+
+        'Atento disolución del vínculo laboral con fecha '+fegreso+' habiéndome abonado las sumas del distracto de manera insuficiente, las cuales fueron tomadas a cuenta de lo realmente devengado, LOS INTIMO a que en tres días hábiles me abonen la Liquidación Final, debiendo incluir en ella las diferencias de haberes devengadas a mi favor y horas extraordinarias por abonar menos horas de las efectivamente trabajadas teniendo en cuenta mi verdadera situación fáctica: Categoría: '+cat+' Jornada: '+jornada+' Asimismo, LOS INTIMO para que en el plazo de 48 hs me hagan entrega de la Tarjeta Soy Constructor que obra en su poder y me abone la diferencia en el fondo de cese laboral arts. 15 y 17, bajo apercibimiento de los Arts. 18 y 19 de la ley 22.250. También reclamo se abone Adicional por Presentismo que estipula CCT 76/75 por el periodo no prescripto, atento que mi asistencia fue perfecta. Por otro lado al tener constancia que las sumas retenidas de mis haberes en concepto de Jubilación, Ley 19032, Obra Social, ANSSAL, Cuota Sindical y Seguro de Vida no han sido efectivamente ingresadas a los organismos pertinentes LOS INTIMO para que, dentro del término de TREINTA (30) días corridos contados a partir de la recepción de la presente, ingrese los importes adeudados, más los intereses y multas que pudieren corresponder, a los respectivos Organismos recaudadores, bajo apercibimiento del Art. 132 bis de la LCT. Hago reservas de iniciar acciones judiciales para el cobro de lo adeudado, con más intereses y costas, bajo apercibimiento de la aplicación de la Indemnización del art. 2 de la ley 25.323. Se deja planteada la reserva de inaplicabilidad de las Leyes 27.742 y 27.802, así como del DNU 70/2023 en sus disposiciones laborales, por resultar inconstitucionales y afectar el derecho de propiedad de mi mandante (Art. 17 C.N.). Asimismo, se impugna su aplicación retroactiva a relaciones jurídicas preexistentes, en virtud de lo dispuesto por el Art. 7 del CCCN. Esta parte se reserva el derecho de ampliar argumentos en la etapa procesal oportuna. Subsidiariamente se reclamara daños y perjuicio por el perjuicio irreparable al haber estado la relación laboral de manera informal sin registrar en los organismos correspondientes. A los fines del presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. "A", Ciudad de Córdoba "ESTUDIO JURIDICO CASIH Y ASOC." Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
+    }
+  },
+  blanqueo_aclarar: {
+    titulo: 'Telegrama — Aclarar situación / blanqueo laboral (UOCRA)',
+    campos: ['empleador','domicilioLaboral','nombre','dni','cuil','fechaIngreso','categoria','jornada','tareasLab'],
+    template: function(cl){
+      var emp = cl.empleador || '[EMPLEADOR]';
+      var domLab = cl.domicilioLablar || '[DOMICILIO LABORAL DEL EMPLEADOR]';
+      var nombre = cl.nombre || '[NOMBRE Y APELLIDO]';
+      var dni = cl.dni || '[DNI]';
+      var cuil = cl.cuil || '[CUIL]';
+      var fingreso = cl.fechaIngreso || '[FECHA DE INGRESO REAL]';
+      var cat = cl.categoria || '[CATEGORÍA PROFESIONAL]';
+      var jornada = cl.jornada || '[JORNADA DE TRABAJO]';
+      var tareas = cl.tareasLab || '[OBRA DONDE PRESTÓ TAREAS]';
+      return 'DESTINATARIO: '+emp+'
+'+
+        'Actividad: Construcción
+'+
+        'Domicilio laboral: '+domLab+'
+'+
+        'CORDOBA - CORDOBA
+'+
+        'CUIT: [CUIT EMPLEADOR]
+
+'+
+        'REMITENTE: '+nombre+'
+'+
+        'DNI Nº: '+dni+'
+'+
+        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A
+'+
+        'CORDOBA - CORDOBA
+'+
+        'CUIL: '+cuil+'
+
+'+
+        'Atento a no permitirme ingresar a mi lugar de trabajo desde el [FECHA], negándose a asignarme las tareas propias de mi categoría y especialidad, con respuestas evasivas y dilatorias, lo emplazo para que en el término de dos (2) días hábiles aclare fehacientemente mi situación laboral permitiéndome el ingreso a mi lugar de trabajo y proporcionándome las tareas propias de mi categoría en lugar y horario habitual de trabajo, bajo apercibimiento de considerarme gravemente injuriado por su exclusiva responsabilidad y colocarme en situación de despido. Dado que mi fuerza de trabajo se encuentra a vuestra disposición, hago reservas por salarios caídos. Asimismo, atento a no tener constancia que la relación se encuentra debidamente registrada por ante los organismos pertinentes, lo emplazo para que en el término de 2 (dos) días hábiles manifieste su voluntad de registrar la relación laboral en forma, a cuyo fin aporto los siguientes datos: Fecha de ingreso REAL: '+fingreso+' Categoría Profesional: '+cat+' Jornada de Trabajo: '+jornada+' Obra donde presto tareas: '+tareas+' La intimación efectuada es bajo apercibimiento del reclamo de daños y perjuicio por el perjuicio irreparable al estar la relación laboral de manera informal. Todo bajo apercibimiento de considerar su silencio o desconocimiento insincero de las circunstancias fácticas de la relación laboral como grave injuria a mis derechos laborales y colocarme en situación de despido indirecto. Hago reservas de salarios caídos. SE DEJA PLANTEADO DESDE LA PRESENTE INTIMACION QUE ESTA PARTE HACE RESERVA DE LA INAPLICABILIDAD DE LA LEY 27.742, DNU 70/2023 y 27.802. EN LAS PARTES REFERENTES AL TRABAJO POR SER INCONSTITUCIONAL AFECTANDO EL DERECHO DE PROPIEDAD DEL ACTOR TUTELADO POR EL ART. 17 DE NUESTRA CN Y NO PUEDE APLICARSE RETROACTIVAMENTE A RELACIONES PREEXISTENTES ART. 7 CCCN. A los fines del presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. "A", Ciudad de Córdoba "ESTUDIO JURIDICO CASIH Y ASOC." Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
+    }
+  }
+};
+
+var docClienteActual = null;
+
+function previewDoc(){
+  var clienteSearch = document.getElementById('doc-cliente-search');
+  if(!clienteSearch)return;
+  var nombre = clienteSearch.value;
+  var cl = CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});
+  docClienteActual = cl || null;
+  if(cl){
+    var infoEl = document.getElementById('doc-cliente-info');
+    if(infoEl){
+      infoEl.innerHTML = '<div class="card-title">Datos del cliente</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px">'+
+        '<div><span style="color:var(--text3)">Nombre:</span> '+cl.nombre+'</div>'+
+        '<div><span style="color:var(--text3)">DNI:</span> '+(cl.dni||'<span style="color:var(--red)">Sin dato</span>')+'</div>'+
+        '<div><span style="color:var(--text3)">CUIL:</span> '+(cl.cuil||'<span style="color:var(--red)">Sin dato</span>')+'</div>'+
+        '<div><span style="color:var(--text3)">Empleador:</span> '+(cl.empleador||'<span style="color:var(--red)">Sin dato</span>')+'</div>'+
+        '<div><span style="color:var(--text3)">Categoría:</span> '+(cl.categoria||'<span style="color:var(--orange)">Sin dato</span>')+'</div>'+
+        '<div><span style="color:var(--text3)">Jornada:</span> '+(cl.jornada||'<span style="color:var(--orange)">Sin dato</span>')+'</div>'+
+        '<div><span style="color:var(--text3)">F. Ingreso:</span> '+(cl.fechaIngreso||'<span style="color:var(--orange)">Sin dato</span>')+'</div>'+
+        '<div><span style="color:var(--text3)">F. Egreso:</span> '+(cl.fechaEgreso||'<span style="color:var(--orange)">Sin dato</span>')+'</div>'+
+        '</div>';
+    }
+  }
+  // Set hidden id
+  var hiddenId = document.getElementById('doc-cliente-id');
+  if(hiddenId && cl) hiddenId.value = cl.id||'';
+}
+
+function generarDoc(){
+  var modelo = document.getElementById('doc-modelo').value;
+  if(!modelo){alert('Seleccioná un modelo.');return;}
+  if(!docClienteActual){alert('Seleccioná un cliente.');return;}
+  var m = MODELOS[modelo];
+  if(!m)return;
+  var texto = m.template(docClienteActual);
+  var editor = document.getElementById('doc-editor');
+  var card = document.getElementById('doc-editor-card');
+  var titulo = document.getElementById('doc-editor-titulo');
+  if(editor) editor.value = texto;
+  if(card) card.style.display = 'block';
+  if(titulo) titulo.textContent = m.titulo + ' — ' + docClienteActual.nombre;
+  editor.scrollIntoView({behavior:'smooth'});
+}
+
+function copiarDoc(){
+  var editor = document.getElementById('doc-editor');
+  if(!editor)return;
+  navigator.clipboard.writeText(editor.value).then(function(){
+    showToast('Texto copiado al portapapeles ✓');
+  });
+}
+
+function imprimirDoc(){
+  var editor = document.getElementById('doc-editor');
+  if(!editor)return;
+  var win = window.open('','_blank');
+  win.document.write('<html><head><title>Documento</title><style>body{font-family:Georgia,serif;font-size:13px;line-height:1.8;padding:40px;max-width:800px;margin:0 auto;white-space:pre-wrap;}</style></head><body>'+editor.value.replace(/\n/g,'<br>')+'</body></html>');
+  win.document.close();
+  win.print();
+}
+
+// Also update filtrarClientes to handle doc-cliente-search
 // stub for backward compat
 function initEventos(){}
 
@@ -2594,6 +3035,7 @@ function initApp(){
     initHonorariosDash();
     initRecordatorios();
     applyCurrencyInputs();
+    initGastosRecientes();
   }, 300);
   // Cargar clientes iniciales si Firestore está vacío
   db.collection('clientes').get().then(function(snap){
