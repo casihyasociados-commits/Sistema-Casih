@@ -2877,81 +2877,56 @@ function renderGastosHoy(list){
 var MODELOS = {
   diferencia_liquidacion: {
     titulo: 'Telegrama — Diferencia en liquidación final (UOCRA)',
-    campos: ['empleador','domicilioLaboral','nombre','dni','fechaEgreso','categoria','jornada'],
     template: function(cl){
-      var emp = cl.empleador || '[EMPLEADOR]';
-      var domLab = cl.domicilioLablar || '[DOMICILIO LABORAL DEL EMPLEADOR]';
-      var nombre = cl.nombre || '[NOMBRE Y APELLIDO]';
-      var dni = cl.dni || '[DNI]';
-      var cuil = cl.cuil || '[CUIL]';
-      var fegreso = cl.fechaEgreso || '[FECHA DE EGRESO]';
-      var cat = cl.categoria || '[CATEGORÍA]';
-      var jornada = cl.jornada || '[JORNADA]';
-      return 'DESTINATARIO: '+emp+'
-'+
-        'Actividad: Construcción
-'+
-        'Domicilio laboral: '+domLab+'
-'+
-        'CORDOBA - CORDOBA
-'+
-        'CUIT: [CUIT EMPLEADOR]
-
-'+
-        'REMITENTE: '+nombre+'
-'+
-        'DNI Nº: '+dni+'
-'+
-        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A
-'+
-        'CORDOBA - CORDOBA
-'+
-        'CUIL: '+cuil+'
-
-'+
-        'Atento disolución del vínculo laboral con fecha '+fegreso+' habiéndome abonado las sumas del distracto de manera insuficiente, las cuales fueron tomadas a cuenta de lo realmente devengado, LOS INTIMO a que en tres días hábiles me abonen la Liquidación Final, debiendo incluir en ella las diferencias de haberes devengadas a mi favor y horas extraordinarias por abonar menos horas de las efectivamente trabajadas teniendo en cuenta mi verdadera situación fáctica: Categoría: '+cat+' Jornada: '+jornada+' Asimismo, LOS INTIMO para que en el plazo de 48 hs me hagan entrega de la Tarjeta Soy Constructor que obra en su poder y me abone la diferencia en el fondo de cese laboral arts. 15 y 17, bajo apercibimiento de los Arts. 18 y 19 de la ley 22.250. También reclamo se abone Adicional por Presentismo que estipula CCT 76/75 por el periodo no prescripto, atento que mi asistencia fue perfecta. Por otro lado al tener constancia que las sumas retenidas de mis haberes en concepto de Jubilación, Ley 19032, Obra Social, ANSSAL, Cuota Sindical y Seguro de Vida no han sido efectivamente ingresadas a los organismos pertinentes LOS INTIMO para que, dentro del término de TREINTA (30) días corridos contados a partir de la recepción de la presente, ingrese los importes adeudados, más los intereses y multas que pudieren corresponder, a los respectivos Organismos recaudadores, bajo apercibimiento del Art. 132 bis de la LCT. Hago reservas de iniciar acciones judiciales para el cobro de lo adeudado, con más intereses y costas, bajo apercibimiento de la aplicación de la Indemnización del art. 2 de la ley 25.323. Se deja planteada la reserva de inaplicabilidad de las Leyes 27.742 y 27.802, así como del DNU 70/2023 en sus disposiciones laborales, por resultar inconstitucionales y afectar el derecho de propiedad de mi mandante (Art. 17 C.N.). Asimismo, se impugna su aplicación retroactiva a relaciones jurídicas preexistentes, en virtud de lo dispuesto por el Art. 7 del CCCN. Esta parte se reserva el derecho de ampliar argumentos en la etapa procesal oportuna. Subsidiariamente se reclamara daños y perjuicio por el perjuicio irreparable al haber estado la relación laboral de manera informal sin registrar en los organismos correspondientes. A los fines del presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. "A", Ciudad de Córdoba "ESTUDIO JURIDICO CASIH Y ASOC." Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
+      var nl='\n';
+      var emp=cl.empleador||'[EMPLEADOR]';
+      var domLab=cl.domicilioLablar||'[DOMICILIO LABORAL DEL EMPLEADOR]';
+      var nombre=cl.nombre||'[NOMBRE Y APELLIDO]';
+      var dni=cl.dni||'[DNI]';
+      var cuil=cl.cuil||'[CUIL]';
+      var fegreso=cl.fechaEgreso||'[FECHA DE EGRESO]';
+      var cat=cl.categoria||'[CATEGORÍA]';
+      var jornada=cl.jornada||'[JORNADA]';
+      return 'DESTINATARIO: '+emp+nl+
+        'Actividad: Construcción'+nl+
+        'Domicilio laboral: '+domLab+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIT: [CUIT EMPLEADOR]'+nl+nl+
+        'REMITENTE: '+nombre+nl+
+        'DNI Nº: '+dni+nl+
+        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A'+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIL: '+cuil+nl+nl+
+        'Atento disolución del vínculo laboral con fecha '+fegreso+' habiéndome abonado las sumas del distracto de manera insuficiente, las cuales fueron tomadas a cuenta de lo realmente devengado, LOS INTIMO a que en tres días hábiles me abonen la Liquidación Final, debiendo incluir en ella las diferencias de haberes devengadas a mi favor y horas extraordinarias por abonar menos horas de las efectivamente trabajadas teniendo en cuenta mi verdadera situación fáctica: Categoría: '+cat+' Jornada: '+jornada+' Asimismo, LOS INTIMO para que en el plazo de 48 hs me hagan entrega de la Tarjeta Soy Constructor que obra en su poder y me abone la diferencia en el fondo de cese laboral arts. 15 y 17, bajo apercibimiento de los Arts. 18 y 19 de la ley 22.250. También reclamo se abone Adicional por Presentismo que estipula CCT 76/75 por el periodo no prescripto, atento que mi asistencia fue perfecta. Por otro lado al tener constancia que las sumas retenidas de mis haberes en concepto de Jubilación, Ley 19032, Obra Social, ANSSAL, Cuota Sindical y Seguro de Vida no han sido efectivamente ingresadas a los organismos pertinentes LOS INTIMO para que, dentro del término de TREINTA (30) días corridos contados a partir de la recepción de la presente, ingrese los importes adeudados, más los intereses y multas que pudieren corresponder, a los respectivos Organismos recaudadores, bajo apercibimiento del Art. 132 bis de la LCT. Hago reservas de iniciar acciones judiciales para el cobro de lo adeudado, con más intereses y costas, bajo apercibimiento de la aplicación de la Indemnización del art. 2 de la ley 25.323. Se deja planteada la reserva de inaplicabilidad de las Leyes 27.742 y 27.802, así como del DNU 70/2023 en sus disposiciones laborales, por resultar inconstitucionales y afectar el derecho de propiedad de mi mandante (Art. 17 C.N.). Asimismo, se impugna su aplicación retroactiva a relaciones jurídicas preexistentes, en virtud de lo dispuesto por el Art. 7 del CCCN. Esta parte se reserva el derecho de ampliar argumentos en la etapa procesal oportuna. Subsidiariamente se reclamara daños y perjuicio por el perjuicio irreparable al haber estado la relación laboral de manera informal sin registrar en los organismos correspondientes. A los fines del presente constituyo domicilio legal en Arturo M. Bas N\u00ba 389 Piso 1\u00ba Of. "A", Ciudad de Córdoba "ESTUDIO JURIDICO CASIH Y ASOC." Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
     }
   },
   blanqueo_aclarar: {
     titulo: 'Telegrama — Aclarar situación / blanqueo laboral (UOCRA)',
-    campos: ['empleador','domicilioLaboral','nombre','dni','cuil','fechaIngreso','categoria','jornada','tareasLab'],
     template: function(cl){
-      var emp = cl.empleador || '[EMPLEADOR]';
-      var domLab = cl.domicilioLablar || '[DOMICILIO LABORAL DEL EMPLEADOR]';
-      var nombre = cl.nombre || '[NOMBRE Y APELLIDO]';
-      var dni = cl.dni || '[DNI]';
-      var cuil = cl.cuil || '[CUIL]';
-      var fingreso = cl.fechaIngreso || '[FECHA DE INGRESO REAL]';
-      var cat = cl.categoria || '[CATEGORÍA PROFESIONAL]';
-      var jornada = cl.jornada || '[JORNADA DE TRABAJO]';
-      var tareas = cl.tareasLab || '[OBRA DONDE PRESTÓ TAREAS]';
-      return 'DESTINATARIO: '+emp+'
-'+
-        'Actividad: Construcción
-'+
-        'Domicilio laboral: '+domLab+'
-'+
-        'CORDOBA - CORDOBA
-'+
-        'CUIT: [CUIT EMPLEADOR]
-
-'+
-        'REMITENTE: '+nombre+'
-'+
-        'DNI Nº: '+dni+'
-'+
-        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A
-'+
-        'CORDOBA - CORDOBA
-'+
-        'CUIL: '+cuil+'
-
-'+
-        'Atento a no permitirme ingresar a mi lugar de trabajo desde el [FECHA], negándose a asignarme las tareas propias de mi categoría y especialidad, con respuestas evasivas y dilatorias, lo emplazo para que en el término de dos (2) días hábiles aclare fehacientemente mi situación laboral permitiéndome el ingreso a mi lugar de trabajo y proporcionándome las tareas propias de mi categoría en lugar y horario habitual de trabajo, bajo apercibimiento de considerarme gravemente injuriado por su exclusiva responsabilidad y colocarme en situación de despido. Dado que mi fuerza de trabajo se encuentra a vuestra disposición, hago reservas por salarios caídos. Asimismo, atento a no tener constancia que la relación se encuentra debidamente registrada por ante los organismos pertinentes, lo emplazo para que en el término de 2 (dos) días hábiles manifieste su voluntad de registrar la relación laboral en forma, a cuyo fin aporto los siguientes datos: Fecha de ingreso REAL: '+fingreso+' Categoría Profesional: '+cat+' Jornada de Trabajo: '+jornada+' Obra donde presto tareas: '+tareas+' La intimación efectuada es bajo apercibimiento del reclamo de daños y perjuicio por el perjuicio irreparable al estar la relación laboral de manera informal. Todo bajo apercibimiento de considerar su silencio o desconocimiento insincero de las circunstancias fácticas de la relación laboral como grave injuria a mis derechos laborales y colocarme en situación de despido indirecto. Hago reservas de salarios caídos. SE DEJA PLANTEADO DESDE LA PRESENTE INTIMACION QUE ESTA PARTE HACE RESERVA DE LA INAPLICABILIDAD DE LA LEY 27.742, DNU 70/2023 y 27.802. EN LAS PARTES REFERENTES AL TRABAJO POR SER INCONSTITUCIONAL AFECTANDO EL DERECHO DE PROPIEDAD DEL ACTOR TUTELADO POR EL ART. 17 DE NUESTRA CN Y NO PUEDE APLICARSE RETROACTIVAMENTE A RELACIONES PREEXISTENTES ART. 7 CCCN. A los fines del presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. "A", Ciudad de Córdoba "ESTUDIO JURIDICO CASIH Y ASOC." Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
+      var nl='\n';
+      var emp=cl.empleador||'[EMPLEADOR]';
+      var domLab=cl.domicilioLablar||'[DOMICILIO LABORAL DEL EMPLEADOR]';
+      var nombre=cl.nombre||'[NOMBRE Y APELLIDO]';
+      var dni=cl.dni||'[DNI]';
+      var cuil=cl.cuil||'[CUIL]';
+      var fingreso=cl.fechaIngreso||'[FECHA DE INGRESO REAL]';
+      var cat=cl.categoria||'[CATEGORÍA PROFESIONAL]';
+      var jornada=cl.jornada||'[JORNADA DE TRABAJO]';
+      var tareas=cl.tareasLab||'[OBRA DONDE PRESTÓ TAREAS]';
+      return 'DESTINATARIO: '+emp+nl+
+        'Actividad: Construcción'+nl+
+        'Domicilio laboral: '+domLab+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIT: [CUIT EMPLEADOR]'+nl+nl+
+        'REMITENTE: '+nombre+nl+
+        'DNI N\u00ba: '+dni+nl+
+        'Domicilio: Arturo M Bas N\u00ba 389 1\u00baPiso Of. A'+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIL: '+cuil+nl+nl+
+        'Atento a no permitirme ingresar a mi lugar de trabajo desde el [FECHA], negándose a asignarme las tareas propias de mi categoría y especialidad, con respuestas evasivas y dilatorias, lo emplazo para que en el término de dos (2) días hábiles aclare fehacientemente mi situación laboral permitiéndome el ingreso a mi lugar de trabajo y proporcionándome las tareas propias de mi categoría en lugar y horario habitual de trabajo, bajo apercibimiento de considerarme gravemente injuriado por su exclusiva responsabilidad y colocarme en situación de despido. Dado que mi fuerza de trabajo se encuentra a vuestra disposición, hago reservas por salarios caídos. Asimismo, atento a no tener constancia que la relación se encuentra debidamente registrada por ante los organismos pertinentes, lo emplazo para que en el término de 2 (dos) días hábiles manifieste su voluntad de registrar la relación laboral en forma, a cuyo fin aporto los siguientes datos: Fecha de ingreso REAL: '+fingreso+' Categoría Profesional: '+cat+' Jornada de Trabajo: '+jornada+' Obra donde presto tareas: '+tareas+' La intimación efectuada es bajo apercibimiento del reclamo de daños y perjuicio por el perjuicio irreparable al estar la relación laboral de manera informal. Todo bajo apercibimiento de considerar su silencio o desconocimiento insincero de las circunstancias fácticas de la relación laboral como grave injuria a mis derechos laborales y colocarme en situación de despido indirecto. Hago reservas de salarios caídos. SE DEJA PLANTEADO DESDE LA PRESENTE INTIMACION QUE ESTA PARTE HACE RESERVA DE LA INAPLICABILIDAD DE LA LEY 27.742, DNU 70/2023 y 27.802. EN LAS PARTES REFERENTES AL TRABAJO POR SER INCONSTITUCIONAL AFECTANDO EL DERECHO DE PROPIEDAD DEL ACTOR TUTELADO POR EL ART. 17 DE NUESTRA CN Y NO PUEDE APLICARSE RETROACTIVAMENTE A RELACIONES PREEXISTENTES ART. 7 CCCN. A los fines del presente constituyo domicilio legal en Arturo M. Bas N\u00ba 389 Piso 1\u00ba Of. "A", Ciudad de Córdoba "ESTUDIO JURIDICO CASIH Y ASOC." Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
     }
   }
-};
-
+}
 var docClienteActual = null;
 
 function previewDoc(){
