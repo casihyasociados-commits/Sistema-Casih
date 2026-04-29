@@ -2865,23 +2865,56 @@ function previewDoc(){
 function generarDoc(){
   var modelo = document.getElementById('doc-modelo').value;
   if(!modelo){alert('Seleccioná un modelo.');return;}
-  // Try to find client if not set yet
+  // Try to find client
   if(!docClienteActual){
     var srch=document.getElementById('doc-cliente-search');
     var hid=document.getElementById('doc-cliente');
-    var nombre=(srch?srch.value:'') || (hid?hid.value:'');
-    if(nombre) docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre.trim();})||null;
+    var nombre=(srch?srch.value.trim():'') || (hid?hid.value.trim():'');
+    if(nombre) docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;
   }
   if(!docClienteActual){alert('Seleccioná un cliente de la lista.');return;}
-  var m = MODELOS[modelo];
-  if(!m)return;
-  var texto = m.template(docClienteActual);
+  var cl=docClienteActual;
+  var nl='\n';
+  // Inline templates - no external dependency
+  var templates={
+    diferencia_liquidacion:function(){
+      return 'DESTINATARIO: '+(cl.empleador||'[EMPLEADOR]')+nl+
+        'Actividad: Construcción'+nl+
+        'Domicilio laboral: '+(cl.domicilio||'[DOMICILIO LABORAL]')+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIT: [CUIT EMPLEADOR]'+nl+nl+
+        'REMITENTE: '+(cl.nombre||'[NOMBRE]')+nl+
+        'DNI Nº: '+(cl.dni||'[DNI]')+nl+
+        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A'+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIL: '+(cl.cuil||'[CUIL]')+nl+nl+
+        'Atento disolución del vínculo laboral con fecha '+(cl.fechaEgreso||'[FECHA EGRESO]')+' habiéndome abonado las sumas del distracto de manera insuficiente, las cuales fueron tomadas a cuenta de lo realmente devengado, LOS INTIMO a que en tres días hábiles me abonen la Liquidación Final, debiendo incluir en ella las diferencias de haberes devengadas a mi favor y horas extraordinarias por abonar menos horas de las efectivamente trabajadas teniendo en cuenta mi verdadera situación fáctica: Categoría: '+(cl.categoria||'[CATEGORÍA]')+' Jornada: '+(cl.jornada||'[JORNADA]')+' Asimismo, LOS INTIMO para que en el plazo de 48 hs me hagan entrega de la Tarjeta Soy Constructor que obra en su poder y me abone la diferencia en el fondo de cese laboral arts. 15 y 17, bajo apercibimiento de los Arts. 18 y 19 de la ley 22.250. También reclamo se abone Adicional por Presentismo que estipula CCT 76/75 por el periodo no prescripto, atento que mi asistencia fue perfecta. Por otro lado al tener constancia que las sumas retenidas de mis haberes en concepto de Jubilación, Ley 19032, Obra Social, ANSSAL, Cuota Sindical y Seguro de Vida no han sido efectivamente ingresadas a los organismos pertinentes LOS INTIMO para que, dentro del término de TREINTA (30) días corridos contados a partir de la recepción de la presente, ingrese los importes adeudados, más los intereses y multas que pudieren corresponder, a los respectivos Organismos recaudadores, bajo apercibimiento del Art. 132 bis de la LCT. Hago reservas de iniciar acciones judiciales para el cobro de lo adeudado, con más intereses y costas, bajo apercibimiento de la aplicación de la Indemnización del art. 2 de la ley 25.323. A los fines del presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. A, Ciudad de Córdoba ESTUDIO JURIDICO CASIH Y ASOC. Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
+    },
+    blanqueo_aclarar:function(){
+      return 'DESTINATARIO: '+(cl.empleador||'[EMPLEADOR]')+nl+
+        'Actividad: Construcción'+nl+
+        'Domicilio laboral: '+(cl.domicilio||'[DOMICILIO LABORAL]')+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIT: [CUIT EMPLEADOR]'+nl+nl+
+        'REMITENTE: '+(cl.nombre||'[NOMBRE]')+nl+
+        'DNI Nº: '+(cl.dni||'[DNI]')+nl+
+        'Domicilio: Arturo M Bas Nº 389 1ºPiso Of. A'+nl+
+        'CORDOBA - CORDOBA'+nl+
+        'CUIL: '+(cl.cuil||'[CUIL]')+nl+nl+
+        'Atento a no permitirme ingresar a mi lugar de trabajo desde el [FECHA], negándose a asignarme las tareas propias de mi categoría y especialidad, con respuestas evasivas y dilatorias, lo emplazo para que en el término de dos (2) días hábiles aclare fehacientemente mi situación laboral permitiéndome el ingreso a mi lugar de trabajo y proporcionándome las tareas propias de mi categoría en lugar y horario habitual de trabajo, bajo apercibimiento de considerarme gravemente injuriado por su exclusiva responsabilidad y colocarme en situación de despido. Dado que mi fuerza de trabajo se encuentra a vuestra disposición, hago reservas por salarios caídos. Asimismo, atento a no tener constancia que la relación se encuentra debidamente registrada por ante los organismos pertinentes, lo emplazo para que en el término de 2 (dos) días hábiles manifieste su voluntad de registrar la relación laboral en forma, a cuyo fin aporto los siguientes datos: Fecha de ingreso REAL: '+(cl.fechaIngreso||'[FECHA INGRESO]')+' Categoría Profesional: '+(cl.categoria||'[CATEGORÍA]')+' Jornada de Trabajo: '+(cl.jornada||'[JORNADA]')+' Obra donde presto tareas: '+(cl.tareasLab||'[OBRA]')+' La intimación efectuada es bajo apercibimiento del reclamo de daños y perjuicio por el perjuicio irreparable al estar la relación laboral de manera informal. A los fines del presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. A, Ciudad de Córdoba ESTUDIO JURIDICO CASIH Y ASOC. Te. 3516327201. Queda Uds. debidamente notificados y constituidos en mora.';
+    }
+  };
+  var fn=templates[modelo];
+  if(!fn){alert('Modelo no encontrado: '+modelo);return;}
+  var texto=fn();
+  var m={titulo:modelo==='diferencia_liquidacion'?'Diferencia en liquidación final (UOCRA)':'TCL — Aclare más blanqueo'};
+  // texto already generated above
   var editor = document.getElementById('doc-editor');
   var card = document.getElementById('doc-editor-card');
   var titulo = document.getElementById('doc-editor-titulo');
   if(editor) editor.value = texto;
   if(card) card.style.display = 'block';
-  if(titulo) titulo.textContent = m.titulo + ' — ' + docClienteActual.nombre;
+  if(titulo) titulo.textContent = m.titulo + ' — ' + cl.nombre;
   editor.scrollIntoView({behavior:'smooth'});
 }
 
