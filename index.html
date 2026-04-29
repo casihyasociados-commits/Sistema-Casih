@@ -1562,7 +1562,7 @@ function renderDashTareas(){
             '<div class="row-name">'+t.titulo+'</div>'+
             '<div class="row-sub">'+(t.hora?t.hora+'hs · ':'')+((t.asig&&aLbl[t.asig])||'')+(t.cliente?' · '+t.cliente:'')+'</div>'+
           '</div>'+
-          '<span class="badge '+pCls[t.prio]+'">'+pLbl[t.prio]+'</span>'+
+          '<span class="badge '+(pCls[t.prio]||'b-gray')+'">'+((pLbl[t.prio])||'')+'</span>'+
         '</div>';
       }).join('');
     }
@@ -2141,8 +2141,13 @@ function renderHonorariosPanel(snap){
   snap.forEach(function(d){
     var x=d.data();x.id=d.id;
     if(x.estado==='cobrado')return;
-    if(x.vence&&x.vence<hoy)x.vencido=true;
-    if(x.diaCobro&&parseInt(x.diaCobro)===diaHoy)x.esHoyCobro=true;
+    if(x.diaCobro){
+      var dC=parseInt(x.diaCobro);
+      var mStr=new Date().getFullYear()+'-'+p2(new Date().getMonth()+1);
+      var cobMes=(x.ultimoCobro||'').substring(0,7)===mStr;
+      if(!cobMes&&diaHoy>dC)x.vencido=true;
+      if(!cobMes&&diaHoy===dC)x.esHoyCobro=true;
+    } else if(x.vence&&x.vence<hoy){x.vencido=true;}
     list.push(x);
   });
 
@@ -2630,8 +2635,8 @@ function filtrarClientes(inputId, dropdownId){
   var dropdown=document.getElementById(dropdownId);
   if(!input||!dropdown)return;
   var q=input.value.toLowerCase().trim();
-  var list=CLIENTES_CACHE.filter(function(c){
-    return !q||c.nombre.toLowerCase().includes(q);
+  var list=CLIENTES_CACHE.filter(function(cx){
+    return !q||cx.nombre.toLowerCase().includes(q);
   }).slice(0,8);
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){
@@ -2696,70 +2701,8 @@ function delGastoRapido(id){
 
 
 // ─── MÓDULO DE DOCUMENTOS ───
-var PLANTILLAS={
-  tcl_blanqueo:{
-    titulo:'TCL — Aclare Más Blanqueo',
-    template:function(cl){
-      var nl='\n';
-      var hoy=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-      return 'Córdoba, '+hoy+nl+nl+
-'Sr./Sra. '+(cl.empleador||'[EMPLEADOR]')+nl+
-'Presente.-'+nl+nl+
-'De mi mayor consideración:'+nl+nl+
-'Por medio de la presente, en nombre y representación de '+(cl.nombre||'[NOMBRE]')+', DNI N° '+(cl.dni||'[DNI]')+', CUIL N° '+(cl.cuil||'[CUIL]')+', con domicilio en '+(cl.domicilio||'[DOMICILIO]')+', me dirijo a Ud. a fin de intimarles a que en el plazo de 48 hs. hábiles aclaren la situación laboral de mi mandante respecto de los rubros que han sido abonados bajo el concepto de "blanqueo" en sus liquidaciones de haberes.'+nl+nl+
-'En tal sentido, se intima a que informen:'+nl+nl+
-'1) El detalle de los rubros comprendidos en el blanqueo practicado.'+nl+
-'2) Si los mismos han sido debidamente registrados en los libros laborales.'+nl+
-'3) La incidencia de dichos rubros en el cálculo del SAC, licencias, horas extras y demás conceptos remuneratorios.'+nl+nl+
-'Bajo apercibimiento de iniciar las acciones legales pertinentes.'+nl+nl+
-'Sin otro particular, saludo a Ud. atentamente.'+nl+nl+nl+
-'_________________________'+nl+
-(cl.nombre||'[NOMBRE]')+nl+
-'DNI: '+(cl.dni||'[DNI]');
-    }
-  },
-  liquidacion_uocra:{
-    titulo:'Diferencia Liquidación Final UOCRA',
-    template:function(cl){
-      var nl='\n';
-      var hoy=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-      return 'Córdoba, '+hoy+nl+nl+
-'Sr./Sra. '+(cl.empleador||'[EMPLEADOR]')+nl+
-'Presente.-'+nl+nl+
-'De mi mayor consideración:'+nl+nl+
-'Por medio de la presente, en nombre y representación de '+(cl.nombre||'[NOMBRE]')+', DNI N° '+(cl.dni||'[DNI]')+', CUIL N° '+(cl.cuil||'[CUIL]')+', con domicilio en '+(cl.domicilio||'[DOMICILIO]')+', quien se desempeñó bajo relación de dependencia en esa empresa en calidad de '+(cl.tareasLab||'[TAREAS]')+', categoría '+(cl.categoria||'[CATEGORÍA]')+', con fecha de ingreso '+(cl.fechaIngreso||'[FECHA INGRESO]')+' y fecha de egreso '+(cl.fechaEgreso||'[FECHA EGRESO]')+'.'+nl+nl+
-'Me dirijo a Ud. a los efectos de intimar, en el plazo de 48 hs. hábiles, el pago de las diferencias existentes en la liquidación final practicada, la cual no refleja correctamente los rubros y montos que corresponden conforme el Convenio Colectivo de Trabajo de la UOCRA y la normativa laboral vigente.'+nl+nl+
-'Se reclaman diferencias en los siguientes rubros:'+nl+nl+
-'- Indemnización por antigüedad (Art. 245 LCT)'+nl+
-'- Preaviso'+nl+
-'- Integración mes de despido'+nl+
-'- S.A.C. proporcional'+nl+
-'- Vacaciones proporcionales no gozadas'+nl+
-'- Diferencias salariales por categoría'+nl+nl+
-'Bajo apercibimiento de iniciar las acciones judiciales que correspondan, con más intereses, costas y honorarios.'+nl+nl+
-'Sin otro particular, saludo a Ud. atentamente.'+nl+nl+nl+
-'_________________________'+nl+
-(cl.nombre||'[NOMBRE]')+nl+
-'DNI: '+(cl.dni||'[DNI]');
-    }
-  }
-};
+// Document templates unified into MODELOS below
 
-function generarDocumento(){
-  var modelo=document.getElementById('doc-modelo').value;
-  var clienteNombre=(document.getElementById('doc-cliente').value||document.getElementById('doc-cliente-search').value||'').trim();
-  if(!modelo){alert('Seleccioná un modelo.');return;}
-  if(!clienteNombre){alert('Seleccioná un cliente.');return;}
-  var cl=CLIENTES_CACHE.find(function(x){return x.nombre===clienteNombre;});
-  if(!cl){alert('Cliente no encontrado.');return;}
-  var plantilla=PLANTILLAS[modelo];
-  if(!plantilla)return;
-  var texto=plantilla.template(cl);
-  document.getElementById('doc-contenido').value=texto;
-  document.getElementById('doc-editor-titulo').textContent=plantilla.titulo+' — '+cl.nombre;
-  document.getElementById('doc-editor-card').style.display='block';
-  document.getElementById('doc-editor-card').scrollIntoView({behavior:'smooth'});
-}
 
 function imprimirDocumento(){
   var texto=document.getElementById('doc-contenido').value;
@@ -2961,11 +2904,11 @@ function imprimirDoc(){
 
 // Alias for HTML button
 function generarDocumento(){
-  // Get client from search input
-  var searchEl=document.getElementById('doc-cliente-search');
-  var nombre=searchEl?searchEl.value.trim():'';
-  var cl=nombre?CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}):null;
-  if(cl)docClienteActual=cl;
+  var srch=document.getElementById('doc-cliente-search');
+  if(srch&&srch.value.trim()){
+    var nombre=srch.value.trim();
+    docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||docClienteActual;
+  }
   generarDoc();
 }
 // Also update filtrarClientes to handle doc-cliente-search
