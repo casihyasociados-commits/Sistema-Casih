@@ -643,54 +643,8 @@ input.currency-input{letter-spacing:0.5px;}
 </div>
 
 <!-- DOCUMENTOS -->
-<div class="section" id="sec-documentos">
-  <div class="page-header">
-    <div><div class="page-title">Documentos</div><div class="page-sub">Modelos de telegramas · Generación automática con datos del cliente</div></div>
-  </div>
 
-  <div class="grid2" style="margin-bottom:16px">
-    <!-- Selector de modelo y cliente -->
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title">Generar documento</div>
-      <div class="fg">
-        <div class="fl">Modelo *</div>
-        <select class="fs" id="doc-modelo" onchange="previewDoc()">
-          <option value="">— Seleccionar modelo —</option>
-          <option value="diferencia_liquidacion">Telegrama — Diferencia en liquidación final (UOCRA)</option>
-          <option value="blanqueo_aclarar">Telegrama — Aclarar situación / blanqueo laboral (UOCRA)</option>
-        </select>
-      </div>
-      <div class="fg">
-        <div class="fl">Cliente *</div>
-        <div style="position:relative">
-          <input class="fi" id="doc-cliente-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('doc-cliente-search','doc-cliente-dropdown');previewDoc()" onfocus="filtrarClientes('doc-cliente-search','doc-cliente-dropdown')" autocomplete="off">
-          <input type="hidden" id="doc-cliente-id" value="">
-          <div id="doc-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
-        </div>
-      </div>
-      <button class="btn-primary" style="width:100%;margin-top:4px" onclick="generarDoc()">⚡ Completar datos del cliente</button>
-    </div>
 
-    <!-- Info del cliente seleccionado -->
-    <div class="card" style="margin-bottom:0" id="doc-cliente-info">
-      <div class="card-title">Datos del cliente</div>
-      <div style="font-size:13px;color:var(--text3)">Seleccioná un cliente para ver sus datos.</div>
-    </div>
-  </div>
-
-  <!-- Editor del documento -->
-  <div class="card" id="doc-editor-card" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="card-title" style="margin-bottom:0" id="doc-editor-titulo">Documento</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="imprimirDoc()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">🖨️ Imprimir</button>
-        <button onclick="copiarDoc()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">📋 Copiar texto</button>
-      </div>
-    </div>
-    <textarea id="doc-editor" class="fta" style="min-height:400px;font-size:13px;line-height:1.7;font-family:Georgia,serif"></textarea>
-    <div style="font-size:12px;color:var(--text3);margin-top:8px">Podés editar el texto antes de copiar o imprimir. Los campos marcados con [COMPLETAR] requieren datos que no están en la ficha del cliente.</div>
-  </div>
-</div>
 
 </div><!-- end main -->
 </div><!-- end app -->
@@ -1276,7 +1230,7 @@ function renderClientes(){
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa)+'</span><span style="font-size:11px;color:var(--text3)">'+c.tel+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       '<div class="cc-footer"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
-      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+finBtn+driveBtn+'<button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+(c.tipo!=='finalizado'?'<button onclick="finalizarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--text3);background:transparent;color:var(--text3);cursor:pointer">✓ Finalizar</button>':'<button onclick="reactivarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer">↩ Reactivar</button>')+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+driveBtn+'<button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+(c.tipo!=='finalizado'?'<button onclick="finalizarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--text3);background:transparent;color:var(--text3);cursor:pointer">✓ Finalizar</button>':'<button onclick="reactivarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer">↩ Reactivar</button>')+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
 }
@@ -2697,6 +2651,10 @@ function filtrarClientes(inputId, dropdownId){
       var hidden=document.getElementById(hiddenId);
       if(hidden)hidden.value=nombre;
       dropdown.style.display='none';
+      // If doc search, update docClienteActual
+      if(inputId==='doc-cliente-search'){
+        docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;
+      }
     });
   });
   // Close on blur
@@ -2964,7 +2922,14 @@ function previewDoc(){
 function generarDoc(){
   var modelo = document.getElementById('doc-modelo').value;
   if(!modelo){alert('Seleccioná un modelo.');return;}
-  if(!docClienteActual){alert('Seleccioná un cliente.');return;}
+  // Try to find client if not set yet
+  if(!docClienteActual){
+    var srch=document.getElementById('doc-cliente-search');
+    var hid=document.getElementById('doc-cliente');
+    var nombre=(srch?srch.value:'') || (hid?hid.value:'');
+    if(nombre) docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre.trim();})||null;
+  }
+  if(!docClienteActual){alert('Seleccioná un cliente de la lista.');return;}
   var m = MODELOS[modelo];
   if(!m)return;
   var texto = m.template(docClienteActual);
