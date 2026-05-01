@@ -2909,13 +2909,86 @@ function generarDoc(){
   var texto=fn();
   var m={titulo:modelo==='diferencia_liquidacion'?'Diferencia en liquidación final (UOCRA)':'TCL — Aclare más blanqueo'};
   // texto already generated above
-  var editor = document.getElementById('doc-editor');
+  // Build telegram HTML preview
   var card = document.getElementById('doc-editor-card');
   var titulo = document.getElementById('doc-editor-titulo');
-  if(editor) editor.value = texto;
-  if(card) card.style.display = 'block';
   if(titulo) titulo.textContent = m.titulo + ' — ' + cl.nombre;
-  editor.scrollIntoView({behavior:'smooth'});
+
+  var lines = texto.split('\n');
+  var dest_nombre = lines[0].replace('DESTINATARIO: ','');
+  var dest_dom = lines[2].replace('Domicilio laboral: ','');
+  var dest_cuit = lines[4].replace('CUIT: ','');
+  var rem_nombre = lines[6].replace('REMITENTE: ','');
+  var rem_dni = lines[7].replace('DNI Nº: ','');
+  var rem_domicilio = 'Arturo M Bas Nº 389 1ºPiso Of. A';
+  var rem_cuil = lines[10].replace('CUIL: ','');
+  var cuerpo = lines.slice(12).join('\n').trim();
+
+  var preview = document.getElementById('doc-telegram-preview');
+  if(preview){
+    preview.innerHTML =
+      '<div style="font-family:Arial,sans-serif;font-size:12px;color:#000;background:#fff;padding:20px;border:1px solid #ccc;border-radius:4px">'+
+      // Header
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+        '<div style="font-style:italic;font-weight:bold;font-size:18px;border:2px solid #000;padding:6px 16px;border-radius:4px">Telegrama Ley N° 23.789</div>'+
+        '<div style="font-size:10px;font-weight:bold;text-align:right;border:2px solid #e00;padding:4px 8px;color:#e00">CORREO<br>ARGENTINO<br><span style="font-size:8px">CORREO OFICIAL</span></div>'+
+      '</div>'+
+      '<div style="font-weight:bold;margin-bottom:8px">Más de 30 palabras</div>'+
+      // Two column table
+      '<table style="width:100%;border-collapse:collapse;margin-bottom:10px">'+
+        '<tr>'+
+          '<td style="width:50%;border:1px solid #000;padding:4px;vertical-align:top">'+
+            '<div style="font-weight:bold;background:#000;color:#fff;padding:2px 4px;margin-bottom:4px">DESTINATARIO</div>'+
+            '<div contenteditable="true" id="ed-dest-nombre" style="border-bottom:1px solid #ccc;min-height:18px;padding:2px">'+dest_nombre+'</div>'+
+            '<div style="font-size:10px;color:#666">Apellido y nombre o razón social</div>'+
+            '<div style="font-weight:bold">Construcción</div>'+
+            '<div style="font-size:10px;color:#666">Ramo o actividad principal</div>'+
+            '<div style="display:flex;gap:8px;margin-top:4px">'+
+              '<div style="flex:1"><div contenteditable="true" id="ed-dest-dom" style="border-bottom:1px solid #ccc;min-height:18px;padding:2px">'+dest_dom+'</div><div style="font-size:10px;color:#666">Domicilio laboral</div></div>'+
+              '<div style="width:80px"><div contenteditable="true" id="ed-dest-cp" style="border-bottom:1px solid #ccc;min-height:18px;padding:2px"></div><div style="font-size:10px;color:#666">Código Postal</div></div>'+
+            '</div>'+
+            '<div style="display:flex;gap:8px;margin-top:4px">'+
+              '<div style="flex:1"><div style="font-weight:bold">CORDOBA</div><div style="font-size:10px;color:#666">Localidad</div></div>'+
+              '<div style="flex:1"><div style="font-weight:bold">CORDOBA</div><div style="font-size:10px;color:#666">Provincia</div></div>'+
+            '</div>'+
+          '</td>'+
+          '<td style="width:50%;border:1px solid #000;padding:4px;vertical-align:top">'+
+            '<div style="font-weight:bold;background:#000;color:#fff;padding:2px 4px;margin-bottom:4px">REMITENTE</div>'+
+            '<div contenteditable="true" id="ed-rem-nombre" style="border-bottom:1px solid #ccc;min-height:18px;padding:2px">'+rem_nombre+'</div>'+
+            '<div style="font-size:10px;color:#666">Apellido y nombre</div>'+
+            '<div style="display:flex;gap:8px;margin-top:4px">'+
+              '<div style="flex:1"><div contenteditable="true" id="ed-rem-dni" style="border-bottom:1px solid #ccc;min-height:18px;padding:2px">'+rem_dni+'</div><div style="font-size:10px;color:#666">DNI Nº</div></div>'+
+              '<div style="width:80px"><div contenteditable="true" id="ed-rem-fecha" style="border-bottom:1px solid #ccc;min-height:18px;padding:2px"></div><div style="font-size:10px;color:#666">Fecha</div></div>'+
+            '</div>'+
+            '<div style="font-weight:bold;margin-top:4px">Arturo M Bas Nº 389 1ºPiso Of. A <span style="float:right">5000</span></div>'+
+            '<div style="font-size:10px;color:#666">Domicilio real &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Código Postal</div>'+
+            '<div style="display:flex;gap:8px;margin-top:4px">'+
+              '<div style="flex:1"><div style="font-weight:bold">CORDOBA</div><div style="font-size:10px;color:#666">Localidad</div></div>'+
+              '<div style="flex:1"><div style="font-weight:bold">CORDOBA</div><div style="font-size:10px;color:#666">Provincia</div></div>'+
+            '</div>'+
+          '</td>'+
+        '</tr>'+
+      '</table>'+
+      '<div style="margin-bottom:8px"><span style="font-weight:bold">CUIT</span> <span contenteditable="true" id="ed-cuit" style="border-bottom:1px solid #ccc;min-width:120px;display:inline-block;padding:2px">'+dest_cuit+'</span></div>'+
+      // Body text
+      '<div style="border:1px solid #000;padding:10px;min-height:200px;text-align:justify;line-height:1.6">'+
+        '<div contenteditable="true" id="ed-cuerpo" style="min-height:180px;outline:none">'+cuerpo.replace(/\n/g,'<br>')+'</div>'+
+      '</div>'+
+      // Footer checkboxes
+      '<div style="display:flex;justify-content:space-around;margin-top:12px;font-size:11px">'+
+        '<label><input type="checkbox" id="cb1"> <span style="text-decoration:underline">1 - Comunicación de renuncia</span></label>'+
+        '<label><input type="checkbox" id="cb2"> <span style="text-decoration:underline">2 - Comunicación de ausencia</span></label>'+
+        '<label><input type="checkbox" id="cb3"> <span style="text-decoration:underline">3 - Otro tipo de comunicación</span></label>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:16px;align-items:center">'+
+        '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Ministerio_de_Trabajo_Empleo_y_Seguridad_Social_Argentina.svg/200px-Ministerio_de_Trabajo_Empleo_y_Seguridad_Social_Argentina.svg.png" style="height:30px;opacity:0.7" onerror="this.style.display='none'">'+
+        '<div style="border:1px solid #000;width:200px;height:40px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999">Sello / Firma</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  if(card) card.style.display = 'block';
+  if(card) card.scrollIntoView({behavior:'smooth'});
 }
 
 function copiarDoc(){
@@ -2927,12 +3000,24 @@ function copiarDoc(){
 }
 
 function imprimirDoc(){
-  var editor = document.getElementById('doc-editor');
-  if(!editor)return;
+  var preview = document.getElementById('doc-telegram-preview');
+  if(!preview||!preview.innerHTML)return;
   var win = window.open('','_blank');
-  win.document.write('<html><head><title>Documento</title><style>body{font-family:Georgia,serif;font-size:13px;line-height:1.8;padding:40px;max-width:800px;margin:0 auto;white-space:pre-wrap;}</style></head><body>'+editor.value.replace(/\n/g,'<br>')+'</body></html>');
+  win.document.write('<html><head><title>Telegrama</title><style>'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#000;margin:20px;}'+
+    '[contenteditable]{outline:none;border-bottom:1px solid #999!important;}'+
+    '@media print{[contenteditable]{border-bottom:1px solid #000!important;}}'+
+    '</style></head><body>'+preview.innerHTML+'</body></html>');
   win.document.close();
   win.print();
+}
+
+function imprimirTelegrama(){imprimirDoc();}
+
+function copiarDoc(){
+  var cuerpo = document.getElementById('ed-cuerpo');
+  if(!cuerpo)return;
+  navigator.clipboard.writeText(cuerpo.innerText).then(function(){showToast('Texto del cuerpo copiado ✓');});
 }
 
 // Alias for HTML button
