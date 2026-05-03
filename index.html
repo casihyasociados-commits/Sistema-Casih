@@ -633,7 +633,8 @@ input.currency-input{letter-spacing:0.5px;}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <div style="font-size:13px;font-weight:600;color:var(--text)" id="doc-editor-titulo">Documento</div>
       <div style="display:flex;gap:8px">
-        <button onclick="imprimirTelegrama()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">🖨️ Imprimir / Guardar PDF</button>
+        <button onclick="guardarTelegramaEnDrive()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">📁 Guardar en Drive</button>
+        <button onclick="imprimirTelegrama()" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">🖨️ Imprimir / PDF</button>
       </div>
     </div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Todos los campos son editables. Los campos en <span style="color:var(--orange)">[MAYÚSCULAS]</span> requieren datos no cargados en la ficha del cliente.</div>
@@ -2908,7 +2909,7 @@ function generarDoc(){
   var texto=fn();
   var m={titulo:modelo==='diferencia_liquidacion'?'Diferencia en liquidación final (UOCRA)':'TCL — Aclare más blanqueo'};
   // texto already generated above
-  // Build telegram HTML preview
+  // Build telegram HTML preview - identical to original format
   var card = document.getElementById('doc-editor-card');
   var titulo = document.getElementById('doc-editor-titulo');
   if(titulo) titulo.textContent = m.titulo + ' — ' + cl.nombre;
@@ -2917,59 +2918,77 @@ function generarDoc(){
   var destDom=lines[2].replace('Domicilio laboral: ','');
   var destCuit=lines[4].replace('CUIT: ','');
   var remNombre=lines[6].replace('REMITENTE: ','');
-  var remDni=lines[7].replace('DNI Nº: ','');
+  var remDni=lines[7].replace('DNI N\u00ba: ','').replace('DNI Nº: ','');
   var remCuil=lines[10].replace('CUIL: ','');
   var cuerpo=lines.slice(12).join(' ').trim();
+  var hoyFmt=new Date().toLocaleDateString('es-AR');
   var preview=document.getElementById('doc-telegram-preview');
   if(preview){
-    var html='<div style="font-family:Arial,sans-serif;font-size:12px;color:#000;background:#fff;padding:20px;border:1px solid #ccc;border-radius:4px">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-    html+='<div style="font-style:italic;font-weight:bold;font-size:18px;border:2px solid #000;padding:6px 16px;border-radius:4px">Telegrama Ley Nº 23.789</div>';
-    html+='<div style="font-size:11px;font-weight:bold;text-align:right;border:2px solid #c00;padding:4px 8px;color:#c00">CORREO ARGENTINO<br><span style="font-size:9px">CORREO OFICIAL</span></div>';
+    // Identical to official Telegrama Ley 23.789 form
+    var html='<div id="telegrama-doc" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#000;background:#fff;padding:16px;border:1px solid #999;max-width:760px;margin:0 auto">';
+    // ── HEADER ──
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html+='<div style="font-style:italic;font-weight:bold;font-size:20px;border:2px solid #000;padding:5px 14px;border-radius:3px;letter-spacing:-0.5px"><em>Telegrama Ley Nº 23.789</em></div>';
+    html+='<div style="text-align:right;font-size:10px;font-weight:bold;color:#c00;border:2px solid #c00;padding:3px 8px;border-radius:2px;line-height:1.3">CORREO<br>ARGENTINO<br><span style="font-weight:normal;font-size:8px">CORREO OFICIAL</span></div>';
     html+='</div>';
-    html+='<div style="font-weight:bold;margin-bottom:8px">Más de 30 palabras</div>';
-    html+='<table style="width:100%;border-collapse:collapse;margin-bottom:10px">';
+    html+='<div style="font-weight:bold;font-size:12px;margin-bottom:6px">Más de 30 palabras</div>';
+    // ── TWO COLUMN TABLE - identical structure to official form ──
+    html+='<table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:6px">';
     html+='<tr>';
-    html+='<td style="width:50%;border:1px solid #000;padding:6px;vertical-align:top">';
-    html+='<div style="font-weight:bold;background:#000;color:#fff;padding:2px 6px;margin:-6px -6px 6px">DESTINATARIO</div>';
-    html+='<div contenteditable="true" id="ed-dest-nombre" style="border-bottom:1px solid #aaa;min-height:18px;padding:2px 0;margin-bottom:2px">'+destNombre+'</div>';
-    html+='<div style="font-size:10px;color:#777;margin-bottom:6px">Apellido y nombre o razón social</div>';
-    html+='<div style="font-weight:bold;margin-bottom:6px">Construcción</div>';
-    html+='<div style="display:flex;gap:8px">';
-    html+='<div style="flex:1"><div contenteditable="true" id="ed-dest-dom" style="border-bottom:1px solid #aaa;min-height:18px;padding:2px 0">'+destDom+'</div><div style="font-size:10px;color:#777">Domicilio laboral</div></div>';
-    html+='<div style="width:80px"><div contenteditable="true" id="ed-dest-cp" style="border-bottom:1px solid #aaa;min-height:18px;padding:2px 0"></div><div style="font-size:10px;color:#777">Cód. Postal</div></div>';
+    // DESTINATARIO column
+    html+='<td style="width:50%;border-right:1px solid #000;padding:0;vertical-align:top">';
+    html+='<div style="background:#000;color:#fff;font-weight:bold;font-size:11px;padding:2px 6px;letter-spacing:1px">DESTINATARIO</div>';
+    html+='<div style="padding:4px 6px">';
+    html+='<div contenteditable="true" id="ed-dest-nombre" style="border-bottom:1px solid #000;min-height:16px;padding:1px 0;font-size:12px">'+destNombre+'</div>';
+    html+='<div style="font-size:9px;color:#555;margin-bottom:3px">Apellido y nombre o razón social</div>';
+    html+='<div style="font-weight:bold;font-size:11px">Construcción</div>';
+    html+='<div style="font-size:9px;color:#555;margin-bottom:3px">Ramo o actividad principal</div>';
+    html+='<div style="display:flex;gap:0">';
+    html+='<div style="flex:1;margin-right:4px"><div contenteditable="true" id="ed-dest-dom" style="border-bottom:1px solid #000;min-height:16px;padding:1px 0;font-size:12px">'+destDom+'</div><div style="font-size:9px;color:#555">Domicilio laboral</div></div>';
+    html+='<div style="width:70px"><div contenteditable="true" id="ed-dest-cp" style="border-bottom:1px solid #000;min-height:16px;padding:1px 0;font-size:12px"></div><div style="font-size:9px;color:#555">Cód. Postal</div></div>';
     html+='</div>';
-    html+='<div style="display:flex;gap:8px;margin-top:4px">';
-    html+='<div style="flex:1"><b>CORDOBA</b><div style="font-size:10px;color:#777">Localidad</div></div>';
-    html+='<div style="flex:1"><b>CORDOBA</b><div style="font-size:10px;color:#777">Provincia</div></div>';
+    html+='<div style="display:flex;margin-top:3px">';
+    html+='<div style="flex:1"><div style="font-weight:bold;font-size:11px">CORDOBA</div><div style="font-size:9px;color:#555">Localidad</div></div>';
+    html+='<div style="flex:1"><div style="font-weight:bold;font-size:11px">CORDOBA</div><div style="font-size:9px;color:#555">Provincia</div></div>';
+    html+='</div>';
     html+='</div></td>';
-    html+='<td style="width:50%;border:1px solid #000;padding:6px;vertical-align:top">';
-    html+='<div style="font-weight:bold;background:#000;color:#fff;padding:2px 6px;margin:-6px -6px 6px">REMITENTE</div>';
-    html+='<div contenteditable="true" id="ed-rem-nombre" style="border-bottom:1px solid #aaa;min-height:18px;padding:2px 0;margin-bottom:2px">'+remNombre+'</div>';
-    html+='<div style="font-size:10px;color:#777;margin-bottom:6px">Apellido y nombre</div>';
-    html+='<div style="display:flex;gap:8px">';
-    html+='<div style="flex:1"><div contenteditable="true" id="ed-rem-dni" style="border-bottom:1px solid #aaa;min-height:18px;padding:2px 0">'+remDni+'</div><div style="font-size:10px;color:#777">DNI Nº</div></div>';
-    html+='<div style="width:80px"><div contenteditable="true" id="ed-rem-fecha" style="border-bottom:1px solid #aaa;min-height:18px;padding:2px 0"></div><div style="font-size:10px;color:#777">Fecha</div></div>';
+    // REMITENTE column
+    html+='<td style="width:50%;padding:0;vertical-align:top">';
+    html+='<div style="background:#000;color:#fff;font-weight:bold;font-size:11px;padding:2px 6px;letter-spacing:1px">REMITENTE</div>';
+    html+='<div style="padding:4px 6px">';
+    html+='<div contenteditable="true" id="ed-rem-nombre" style="border-bottom:1px solid #000;min-height:16px;padding:1px 0;font-size:12px">'+remNombre+'</div>';
+    html+='<div style="font-size:9px;color:#555;margin-bottom:3px">Apellido y nombre</div>';
+    html+='<div style="display:flex;gap:0">';
+    html+='<div style="flex:1;margin-right:4px"><div contenteditable="true" id="ed-rem-dni" style="border-bottom:1px solid #000;min-height:16px;padding:1px 0;font-size:12px">'+remDni+'</div><div style="font-size:9px;color:#555">DNI Nº</div></div>';
+    html+='<div style="width:90px"><div contenteditable="true" id="ed-rem-fecha" style="border-bottom:1px solid #000;min-height:16px;padding:1px 0;font-size:12px">'+hoyFmt+'</div><div style="font-size:9px;color:#555">Fecha</div></div>';
     html+='</div>';
-    html+='<div style="margin-top:4px"><b>Arturo M Bas Nº 389 1°Piso Of. A &nbsp;&nbsp; 5000</b></div>';
-    html+='<div style="font-size:10px;color:#777">Domicilio real &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Cód. Postal</div>';
-    html+='<div style="display:flex;gap:8px;margin-top:4px">';
-    html+='<div style="flex:1"><b>CORDOBA</b><div style="font-size:10px;color:#777">Localidad</div></div>';
-    html+='<div style="flex:1"><b>CORDOBA</b><div style="font-size:10px;color:#777">Provincia</div></div>';
-    html+='</div></td></tr></table>';
-    html+='<div style="margin-bottom:8px"><b>CUIT</b> <span contenteditable="true" id="ed-cuit" style="border-bottom:1px solid #aaa;min-width:120px;display:inline-block;padding:2px">'+destCuit+'</span></div>';
-    html+='<div style="border:1px solid #000;padding:12px;min-height:200px;text-align:justify;line-height:1.6">';
-    html+='<div contenteditable="true" id="ed-cuerpo" style="min-height:180px;outline:none">'+cuerpo+'</div>';
+    html+='<div style="font-weight:bold;font-size:11px;margin-top:3px;display:flex;justify-content:space-between"><span>Arturo M Bas Nº 389 1°Piso Of. A</span><span>5000</span></div>';
+    html+='<div style="font-size:9px;color:#555;display:flex;justify-content:space-between"><span>Domicilio real</span><span>Cód. Postal</span></div>';
+    html+='<div style="display:flex;margin-top:3px">';
+    html+='<div style="flex:1"><div style="font-weight:bold;font-size:11px">CORDOBA</div><div style="font-size:9px;color:#555">Localidad</div></div>';
+    html+='<div style="flex:1"><div style="font-weight:bold;font-size:11px">CORDOBA</div><div style="font-size:9px;color:#555">Provincia</div></div>';
     html+='</div>';
-    html+='<div style="display:flex;justify-content:space-around;margin-top:12px;font-size:11px">';
-    html+='<label><input type="checkbox"> 1 - Comunicación de renuncia</label>';
-    html+='<label><input type="checkbox"> 2 - Comunicación de ausencia</label>';
-    html+='<label><input type="checkbox"> 3 - Otro tipo de comunicación</label>';
+    html+='</div></td>';
+    html+='</tr></table>';
+    // ── CUIT ──
+    html+='<div style="margin-bottom:6px;font-size:11px"><b>CUIT</b> <span contenteditable="true" id="ed-cuit" style="border-bottom:1px solid #000;min-width:150px;display:inline-block;padding:1px 2px;font-size:12px">'+destCuit+'</span></div>';
+    // ── BODY ──
+    html+='<div style="border:1px solid #000;padding:8px;text-align:justify;line-height:1.5;min-height:220px">';
+    html+='<div contenteditable="true" id="ed-cuerpo" style="min-height:200px;outline:none;font-size:11px;line-height:1.6">'+cuerpo+'</div>';
     html+='</div>';
-    html+='<div style="display:flex;justify-content:space-between;margin-top:16px;align-items:center">';
-    html+='<div style="font-size:10px;color:#555">MTSS — Ministerio de Trabajo y Seguridad Social</div>';
-    html+='<div style="border:1px solid #000;width:200px;height:40px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999">Sello / Firma</div>';
-    html+='</div></div>';
+    // ── FOOTER CHECKBOXES ──
+    html+='<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;padding:0 4px">';
+    html+='<label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="cb1"> <u>1 - Comunicación de renuncia</u> <span style="display:inline-block;width:14px;height:14px;border:1px solid #000;margin-left:4px"></span></label>';
+    html+='<label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="cb2"> <u>2 - Comunicación de ausencia</u> <span style="display:inline-block;width:14px;height:14px;border:1px solid #000;margin-left:4px"></span></label>';
+    html+='<label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="cb3"> <u>3 - Otro tipo de comunicación</u> <span style="display:inline-block;width:14px;height:14px;border:1px solid #000;margin-left:4px"></span></label>';
+    html+='</div>';
+    html+='<div style="font-size:9px;color:#555;margin-top:4px;font-style:italic">En caso de comunicaciones efectuadas a organismos previsionales u obras sociales, se consignará su domicilio legal.</div>';
+    // ── BOTTOM: MTSS + firma ──
+    html+='<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px">';
+    html+='<div style="display:flex;align-items:center;gap:6px"><div style="width:32px;height:32px;border-radius:50%;background:#2a7a2a;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:bold">MTSS</div><div style="font-size:9px;font-weight:bold;color:#333">Ministerio de Trabajo<br>y Seguridad Social</div></div>';
+    html+='<div style="border:1px solid #000;width:220px;height:50px"></div>';
+    html+='</div>';
+    html+='</div>';
     preview.innerHTML=html;
   }
   if(card) card.style.display = 'block';
@@ -2989,12 +3008,12 @@ function imprimirDoc(){
   if(!preview||!preview.innerHTML)return;
   var win = window.open('','_blank');
   win.document.write('<html><head><title>Telegrama</title><style>'+
-    'body{font-family:Arial,sans-serif;font-size:12px;color:#000;margin:20px;}'+
-    '[contenteditable]{outline:none;border-bottom:1px solid #999!important;}'+
-    '@media print{[contenteditable]{border-bottom:1px solid #000!important;}}'+
+    'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#000;margin:10px;}'+
+    '[contenteditable]{outline:none;}'+
+    '@media print{body{margin:0;} button{display:none!important;}}'+
     '</style></head><body>'+preview.innerHTML+'</body></html>');
   win.document.close();
-  win.print();
+  setTimeout(function(){win.print();},300);
 }
 
 function imprimirTelegrama(){imprimirDoc();}
@@ -3002,7 +3021,38 @@ function imprimirTelegrama(){imprimirDoc();}
 function copiarDoc(){
   var cuerpo = document.getElementById('ed-cuerpo');
   if(!cuerpo)return;
-  navigator.clipboard.writeText(cuerpo.innerText).then(function(){showToast('Texto del cuerpo copiado ✓');});
+  navigator.clipboard.writeText(cuerpo.innerText).then(function(){showToast('Texto copiado ✓');});
+}
+
+function guardarTelegramaEnDrive(){
+  if(!docClienteActual){showToast('Seleccioná un cliente primero.');return;}
+  var cl=docClienteActual;
+  if(!cl.driveFolderId){showToast('El cliente no tiene carpeta Drive vinculada. Vincular primero desde Clientes.');return;}
+  if(!calConnected||!gapi.client||!gapi.client.getToken()){showToast('Conectá Google Drive primero en Agenda.');return;}
+  var preview=document.getElementById('doc-telegram-preview');
+  if(!preview||!preview.innerHTML){showToast('Generá el documento primero.');return;}
+  // Build HTML blob
+  var htmlContent='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Telegrama — '+cl.nombre+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:16px;}'+
+    '[contenteditable]{outline:none;}</style></head><body>'+preview.innerHTML+'</body></html>';
+  var blob=new Blob([htmlContent],{type:'text/html'});
+  var modelo=document.getElementById('doc-modelo').value||'telegrama';
+  var nombreArchivo='Telegrama_'+modelo+'_'+cl.nombre.replace(/ /g,'_')+'_'+fmt(today)+'.html';
+  var file=new File([blob],nombreArchivo,{type:'text/html'});
+  showToast('Guardando en Drive...');
+  subirArchivoADrive(file,cl.driveFolderId,cl.nombre,
+    function(data){
+      showToast('✓ Telegrama guardado en Drive: '+cl.nombre);
+      db.collection('documentos').add({
+        clienteId:cl.id,clienteNombre:cl.nombre,
+        nombre:nombreArchivo,driveId:data.id,driveLink:data.webViewLink,
+        tipo:'telegrama',modelo:modelo,
+        subidoPor:currentUserData?currentUserData.nombre:'',
+        fecha:fmt(today),creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    },
+    function(e){showToast('Error al guardar en Drive: '+(e.message||'verificá la conexión'));}
+  );
 }
 
 // Alias for HTML button
