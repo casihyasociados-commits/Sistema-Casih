@@ -442,8 +442,17 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
   </div>
 
+  <!-- SEGUIMIENTO OFICIO -->
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--purple)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:15px;font-weight:600;color:var(--text)">📋 Seguimiento Oficio</span>
+      <button onclick="openModal('m-oficio')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--purple);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Nuevo oficio</button>
+    </div>
+    <div id="dash-oficio-list"><div style="font-size:13px;color:var(--text3)">Sin oficios cargados.</div></div>
+  </div>
+
   <!-- SEGUIMIENTO CORREO DASHBOARD -->
-  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--blue)">
+  <div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <span style="font-size:15px;font-weight:600;color:var(--text)">📦 Seguimiento Correo</span>
       <div style="display:flex;gap:8px">
@@ -452,15 +461,6 @@ input.currency-input{letter-spacing:0.5px;}
       </div>
     </div>
     <div id="dash-correo-list"><div style="font-size:13px;color:var(--text3)">Sin envíos cargados.</div></div>
-  </div>
-
-  <!-- SEGUIMIENTO OFICIO -->
-  <div class="card" style="margin-bottom:0;border-left:3px solid var(--purple)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <span style="font-size:15px;font-weight:600;color:var(--text)">📋 Seguimiento Oficio</span>
-      <button onclick="openModal('m-oficio')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--purple);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Nuevo oficio</button>
-    </div>
-    <div id="dash-oficio-list"><div style="font-size:13px;color:var(--text3)">Sin oficios cargados.</div></div>
   </div>
 
 </div>
@@ -2527,7 +2527,7 @@ function enviarEmailRecordatorio(r){
 
 // ─── SEGUIMIENTO CORREO ───
 function renderCorreoTable(){
-  db.collection('correos').get().then(function(snap){
+  db.collection('correos').onSnapshot(function(snap){
     var list=[];
     snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
     var tbody=document.getElementById('correo-table');
@@ -2569,7 +2569,6 @@ function saveCorreo(){
     closeModal('m-correo');showToast('Seguimiento guardado ✓');
     document.getElementById('co-codigo').value='';
     document.getElementById('co-notas').value='';
-    renderCorreoTable();
   });
 }
 
