@@ -536,7 +536,11 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="section" id="sec-agenda">
   <div class="page-header">
     <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91f2f0e2f8f9e8f0e2fef2f8f0f5fee2d1f6fcf0f8fdbff2fefc">[email&#160;protected]</a></div></div>
-    <div id="cal-status" style="display:flex;align-items:center;gap:8px"><div id="cal-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div><span id="cal-label" style="font-size:12px;color:var(--text3)">Conectando calendario...</span></div>
+    <div id="cal-status" style="display:flex;align-items:center;gap:10px">
+      <div id="cal-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+      <span id="cal-label" style="font-size:12px;color:var(--text3)">Calendar desconectado</span>
+      <button onclick="conectarGoogle()" style="font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--green);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif">Conectar Google</button>
+    </div>
   </div>
   <div class="agenda-layout">
     <div class="card" style="margin-bottom:0">
@@ -1625,17 +1629,25 @@ function initCalendar(){
   });
   // Connect Google Calendar API
   gapi.load('client',function(){
-    gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
+    gapi.client.init({
+      apiKey:API_KEY,
+      discoveryDocs:[
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+      ]
+    }).then(function(){
       tokenClient=google.accounts.oauth2.initTokenClient({
-        client_id:CLIENT_ID,scope:SCOPES,
-        prompt:'',
+        client_id:CLIENT_ID,
+        scope:SCOPES,
         callback:function(resp){
           if(resp.error){setCalStatus(false);return;}
           calConnected=true;
           setCalStatus(true);
+          setTimeout(cargarModelosDesideDrive,500);
         }
       });
-      tokenClient.requestAccessToken({prompt:''});
+      // Try silent auth first
+      gapi.client.getToken() ? setCalStatus(true) : setCalStatus(false);
     }).catch(function(){setCalStatus(false);});
   });
 }
@@ -1668,6 +1680,16 @@ function setCalStatus(connected){
       }
     },2000);
   }
+}
+
+
+function conectarGoogle(){
+  if(!tokenClient){
+    showToast('Esperá un momento, inicializando...');
+    setTimeout(conectarGoogle, 1500);
+    return;
+  }
+  tokenClient.requestAccessToken({prompt:'select_account'});
 }
 
 function toggleCal(){initCalendar();}
