@@ -639,9 +639,7 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg">
         <div class="fl">Modelo *</div>
         <select class="fs" id="doc-modelo" onchange="previewDocInfo()">
-          <option value="">— Seleccionar modelo —</option>
-          <option value="1_tcl_blanqueo" data-name="TCL — Aclare más blanqueo (UOCRA)">TCL — Aclare más blanqueo</option>
-          <option value="2_liquidacion_final" data-name="Diferencia en liquidación final (UOCRA)">Diferencia en liquidación final</option>
+          <option value="">— Cargando modelos... —</option>
         </select>
       </div>
       <div class="fg">
@@ -666,15 +664,6 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
   </div>
 
-  <!-- Historial de documentos generados -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="card-title" style="margin-bottom:0">Documentos generados</div>
-    </div>
-    <div id="doc-historial-list">
-      <div style="font-size:13px;color:var(--text3)">Sin documentos generados aún.</div>
-    </div>
-  </div>
 </div>
 
 <!-- MODALES -->
@@ -881,7 +870,7 @@ function p2(n){return n<10?'0'+n:''+n;}
 function addD(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function fmtDisp(f){if(!f)return '';var d=new Date(f+'T00:00:00'),diff=Math.round((d-today)/864e5);if(diff===0)return 'Hoy';if(diff===1)return 'Mañana';if(diff<0)return 'Hace '+Math.abs(diff)+' días';return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});}
 function fmtARS(n){return '$'+Math.round(n).toLocaleString('es-AR');}
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(function(){t.className='toast';},2500);}
+function showToast(msg){var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='toast show';setTimeout(function(){t.className='toast';},2500);}
 function openModal(id){document.getElementById(id).className='modal-bg open';setTimeout(applyCurrencyInputs,50);}
 function closeModal(id){document.getElementById(id).className='modal-bg';}
 
@@ -893,11 +882,11 @@ function goTo(s){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes')renderClientes();
-  if(s==='documentos'){var el=document.getElementById('doc-editor-card');if(el)el.style.display='none';}
+  if(s==='documentos'){cargarModelosDesideDrive();var el=document.getElementById('doc-editor-card');if(el)el.style.display='none';}
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
-  if(s==='documentos'){initDocHistorial();}
+  
 }
 
 // ─── FECHA ───
@@ -1616,7 +1605,7 @@ var calConnected=false;
 var tokenClient;
 var EVENTOS_CACHE=[];
 var evColors={audiencia:'#E25454',cita:'#4A90E2',vencimiento:'#F5A623',reunion:'#9B7FE8'};
-var evLabels={audiencia:'Audiencia',cita:'Cita',vencimiento:'Vencimiento',reunion:'Reunión'};
+var evLabels={audiencia:'Audiencia',cita:'Cita',cita_cliente:'Cita',vencimiento:'Vencimiento',reunion:'Reunión',otro:'Otro'};
 var evBadges={audiencia:'b-red',cita:'b-blue',vencimiento:'b-orange',reunion:'b-purple'};
 
 function initCalendar(){
@@ -2667,11 +2656,11 @@ function updateDocClienteInfo(cl){
 
 function abrirModeloEnDrive(){
   var modeloSel = document.getElementById('doc-modelo');
-  var modelo = modeloSel ? modeloSel.value : '';
-  var modeloNombre = modeloSel && modeloSel.selectedOptions[0] ? modeloSel.selectedOptions[0].getAttribute('data-name') : modelo;
-  if(!modelo){alert('Seleccioná un modelo.');return;}
+  var modeloId = modeloSel ? modeloSel.value : '';
+  var modeloNombre = modeloSel && modeloSel.selectedOptions[0] ? modeloSel.selectedOptions[0].text : '';
+  if(!modeloId){alert('Seleccioná un modelo.');return;}
 
-  // Get client
+  // Get client from search
   var srch = document.getElementById('doc-cliente-search');
   var nombre = srch ? srch.value.trim() : '';
   if(nombre && !docClienteActual){
@@ -2686,119 +2675,68 @@ function abrirModeloEnDrive(){
     return;
   }
 
-  showToast('Buscando modelo en Drive...');
+  showToast('Copiando modelo a carpeta de ' + cl.nombre + '...');
 
-  // Search for the model file in the models folder
+  function doCopy(folderId){
+    var nombreCopia = modeloNombre + ' — ' + cl.nombre;
+    gapi.client.drive.files.copy({
+      fileId: modeloId,
+      resource: { name: nombreCopia, parents: [folderId] }
+    }).then(function(r){
+      var newId = r.result.id;
+      var mime = r.result.mimeType || '';
+      var link;
+      if(mime.includes('spreadsheet')) link = 'https://docs.google.com/spreadsheets/d/'+newId+'/edit';
+      else if(mime.includes('presentation')) link = 'https://docs.google.com/presentation/d/'+newId+'/edit';
+      else link = 'https://docs.google.com/document/d/'+newId+'/edit';
+      showToast('✓ Modelo copiado — abriendo...');
+      window.open(link, '_blank');
+    }).catch(function(e){
+      var msg = e.result && e.result.error ? e.result.error.message : JSON.stringify(e);
+      showToast('Error al copiar: ' + msg);
+    });
+  }
+
+  if(cl.driveFolderId){
+    doCopy(cl.driveFolderId);
+  } else {
+    showToast('Creando carpeta Drive para ' + cl.nombre + '...');
+    crearCarpetaCliente(cl.nombre, function(fid, fl){
+      if(fid){
+        db.collection('clientes').doc(cl.id).update({drive:fl, driveFolderId:fid});
+        cl.driveFolderId = fid;
+        doCopy(fid);
+      } else {
+        showToast('No se pudo crear la carpeta. Verificá la conexión con Google en Agenda.');
+      }
+    });
+  }
+}
+
+function cargarModelosDesideDrive(){
+  if(!calConnected || !gapi.client || !gapi.client.getToken()){
+    return; // silently fail if not connected
+  }
   gapi.client.drive.files.list({
-    q: "'"+MODELOS_DRIVE_FOLDER+"' in parents and trashed=false",
+    q: "'1Ftc967TuzSXjTOBNyZP30op_lvekXPx0' in parents and trashed=false",
     fields: 'files(id,name,mimeType)',
-    orderBy: 'name'
+    orderBy: 'name',
+    pageSize: 50
   }).then(function(resp){
     var files = resp.result.files || [];
-    if(files.length === 0){
-      showToast('No se encontraron modelos en Drive. Verificá la carpeta.');
-      return;
-    }
-
-    // Populate MODELO_IDS with what's in Drive
-    MODELO_IDS = {};
-    files.forEach(function(f){ MODELO_IDS[f.name] = f.id; });
-
-    // Find matching file - search by keyword
-    var keywords = {
-      '1_tcl_blanqueo': ['tcl','blanqueo','aclare'],
-      '2_liquidacion_final': ['liquidacion','liquidación','final','diferencia']
-    };
-    var kws = keywords[modelo] || [];
-    var match = files.find(function(f){
-      var n = f.name.toLowerCase();
-      return kws.some(function(k){ return n.includes(k); });
+    if(files.length === 0) return;
+    var sel = document.getElementById('doc-modelo');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">— Seleccionar modelo —</option>';
+    files.forEach(function(f){
+      var opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.name;
+      sel.appendChild(opt);
     });
-
-    if(!match){
-      // Show all available models for user to know
-      var nombres = files.map(function(f){return f.name;}).join(', ');
-      showToast('No se encontró el modelo. Archivos disponibles: '+nombres);
-      return;
-    }
-
-    // Ensure client has a Drive folder
-    function doCopy(folderId){
-      var nombreArchivo = modeloNombre + ' — ' + cl.nombre + ' (' + fmt(today) + ')';
-      // Copy the model file to client folder
-      gapi.client.drive.files.copy({
-        fileId: match.id,
-        resource: { name: nombreArchivo, parents: [folderId] }
-      }).then(function(r){
-        var newFileId = r.result.id;
-        var fileLink = 'https://docs.google.com/document/d/'+newFileId+'/edit';
-        if(r.result.mimeType && r.result.mimeType.includes('spreadsheet'))
-          fileLink = 'https://docs.google.com/spreadsheets/d/'+newFileId+'/edit';
-        else if(r.result.mimeType && r.result.mimeType.includes('presentation'))
-          fileLink = 'https://docs.google.com/presentation/d/'+newFileId+'/edit';
-        else if(!r.result.mimeType || r.result.mimeType.includes('document'))
-          fileLink = 'https://docs.google.com/document/d/'+newFileId+'/edit';
-
-        // Save to documentos collection
-        db.collection('documentos').add({
-          clienteId:cl.id, clienteNombre:cl.nombre,
-          nombre:nombreArchivo, driveId:newFileId, driveLink:fileLink,
-          modelo:modeloNombre, tipo:'modelo',
-          subidoPor:currentUserData?currentUserData.nombre:'',
-          fecha:fmt(today), creadoEn:firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        showToast('✓ Modelo copiado a carpeta de '+cl.nombre);
-        // Open in new tab
-        window.open(fileLink, '_blank');
-        // Refresh historial
-        initDocHistorial();
-      }).catch(function(e){
-        showToast('Error al copiar modelo: '+(e.result&&e.result.error?e.result.error.message:e));
-      });
-    }
-
-    if(cl.driveFolderId){
-      doCopy(cl.driveFolderId);
-    } else {
-      showToast('Creando carpeta Drive para '+cl.nombre+'...');
-      crearCarpetaCliente(cl.nombre, function(fid, fl){
-        if(fid){
-          db.collection('clientes').doc(cl.id).update({drive:fl, driveFolderId:fid});
-          cl.driveFolderId = fid;
-          doCopy(fid);
-        } else {
-          showToast('No se pudo crear la carpeta. Verificá la conexión con Google.');
-        }
-      });
-    }
-  }).catch(function(e){
-    showToast('Error al acceder a Drive: '+(e.result&&e.result.error?e.result.error.message:'verificá la conexión'));
-  });
+  }).catch(function(){});
 }
 
-function initDocHistorial(){
-  db.collection('documentos').orderBy('creadoEn','desc').limit(20).get().then(function(snap){
-    var list=[];
-    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
-    var el=document.getElementById('doc-historial-list');
-    if(!el)return;
-    if(list.length===0){el.innerHTML='<div style="font-size:13px;color:var(--text3)">Sin documentos generados aún.</div>';return;}
-    el.innerHTML='<table><tr><th>Cliente</th><th>Documento</th><th>Fecha</th><th>Abrir</th><th></th></tr>'+
-      list.map(function(d){
-        return '<tr>'+
-          '<td>'+d.clienteNombre+'</td>'+
-          '<td style="color:var(--text3)">'+d.nombre+'</td>'+
-          '<td style="color:var(--text3)">'+d.fecha+'</td>'+
-          '<td><a href="'+d.driveLink+'" target="_blank" style="color:var(--blue);font-size:12px">Abrir ↗</a></td>'+
-          '<td><button data-did="'+d.id+'" data-daction="del" class="btn-danger">✕</button></td>'+
-        '</tr>';
-      }).join('')+'</table>';
-    el.querySelectorAll('[data-daction="del"]').forEach(function(btn){
-      btn.addEventListener('click',function(){var id=this.getAttribute('data-did');if(confirm('¿Eliminar?'))db.collection('documentos').doc(id).delete().then(function(){initDocHistorial();});});
-    });
-  });
-}
 
 // ─── ANÁLISIS CON GRÁFICOS ───
 var chartMensual=null, chartCat=null;
