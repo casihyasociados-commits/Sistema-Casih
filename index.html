@@ -1627,7 +1627,7 @@ function initCalendar(){
     var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
-  // Connect Google Calendar API - auto connect
+  // Connect Google Calendar API - auto connect with account picker
   gapi.load('client',function(){
     gapi.client.init({
       apiKey:API_KEY,
@@ -1646,8 +1646,7 @@ function initCalendar(){
           setTimeout(cargarModelosDesideDrive,500);
         }
       });
-      // Auto-request token (uses cached session if available)
-      tokenClient.requestAccessToken({prompt:''});
+      tokenClient.requestAccessToken({prompt:'select_account'});
     }).catch(function(){setCalStatus(false);});
   });
 }
@@ -1685,7 +1684,7 @@ function setCalStatus(connected){
 
 function conectarGoogle(){
   if(!tokenClient){
-    showToast('Esperá un momento, inicializando...');
+    showToast('Esperá un momento...');
     setTimeout(conectarGoogle, 1500);
     return;
   }
