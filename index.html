@@ -858,6 +858,28 @@ function doLogin() {
   var pass = document.getElementById('login-pass').value;
   document.getElementById('login-error').textContent = '';
   if (!email || !pass) { document.getElementById('login-error').textContent = 'Completá email y contraseña.'; return; }
+  // Pre-load Google API so it's ready when user logs in
+  gapi.load('client',function(){
+    gapi.client.init({
+      apiKey:API_KEY,
+      discoveryDocs:[
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+      ]
+    }).then(function(){
+      tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:CLIENT_ID,scope:SCOPES,
+        callback:function(resp){
+          if(resp.error){setCalStatus(false);return;}
+          calConnected=true;
+          setCalStatus(true);
+          setTimeout(cargarModelosDesideDrive,500);
+        }
+      });
+      // Request token NOW while still in user gesture context
+      tokenClient.requestAccessToken({prompt:''});
+    });
+  });
   auth.signInWithEmailAndPassword(email, pass).catch(function(e) {
     document.getElementById('login-error').textContent = 'Email o contraseña incorrectos.';
   });
@@ -1627,28 +1649,9 @@ function initCalendar(){
     var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
-  // Connect Google Calendar API - auto connect with account picker
-  gapi.load('client',function(){
-    gapi.client.init({
-      apiKey:API_KEY,
-      discoveryDocs:[
-        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
-        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-      ]
-    }).then(function(){
-      tokenClient=google.accounts.oauth2.initTokenClient({
-        client_id:CLIENT_ID,
-        scope:SCOPES,
-        callback:function(resp){
-          if(resp.error){setCalStatus(false);return;}
-          calConnected=true;
-          setCalStatus(true);
-          setTimeout(cargarModelosDesideDrive,500);
-        }
-      });
-      tokenClient.requestAccessToken({prompt:'select_account'});
-    }).catch(function(){setCalStatus(false);});
-  });
+  // Google auth is handled in doLogin (user gesture)
+  // Just check if already connected
+  if(calConnected) setCalStatus(true);
 }
 
 function setCalStatus(connected){
@@ -1683,12 +1686,29 @@ function setCalStatus(connected){
 
 
 function conectarGoogle(){
-  if(!tokenClient){
-    showToast('Esperá un momento...');
-    setTimeout(conectarGoogle, 1500);
-    return;
-  }
-  tokenClient.requestAccessToken({prompt:'select_account'});
+  // Fallback button - re-init and connect
+  gapi.load('client',function(){
+    gapi.client.init({
+      apiKey:API_KEY,
+      discoveryDocs:[
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+      ]
+    }).then(function(){
+      if(!tokenClient){
+        tokenClient=google.accounts.oauth2.initTokenClient({
+          client_id:CLIENT_ID,scope:SCOPES,
+          callback:function(resp){
+            if(resp.error){setCalStatus(false);return;}
+            calConnected=true;
+            setCalStatus(true);
+            setTimeout(cargarModelosDesideDrive,500);
+          }
+        });
+      }
+      tokenClient.requestAccessToken({prompt:'select_account'});
+    });
+  });
 }
 
 function toggleCal(){initCalendar();}
