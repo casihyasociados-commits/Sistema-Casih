@@ -1105,7 +1105,7 @@ function renderClientes(){
   var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
   if(list.length===0){gr.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
-  gr.innerHTML=list.map(function(cl){
+  gr.innerHTML=list.map(function(cl){var c=cl;
     var c=cl;var avCls=cl.tipo==='estudio'?'av-purple':cl.tipo==='publicidad'?'av-blue':cl.tipo==='uocra'?'av-green':'av-orange';
     var refTag=c.ref==='si'?'<span class="badge b-green" style="font-size:9px;margin-right:3px">Referido</span>':'';
     var cvBtns=(c.tipo==='posible'||c.tipo==='uocra')?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button><button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button><button class="btn-sm" onclick="agendarCita(\''+c.id+'\',\''+c.nombre+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📅 Cita</button>':'';
@@ -1609,7 +1609,7 @@ var calConnected=false;
 var tokenClient;
 var EVENTOS_CACHE=[];
 var evColors={audiencia:'#E25454',cita:'#4A90E2',vencimiento:'#F5A623',reunion:'#9B7FE8'};
-var evLabels={audiencia:'Audiencia',cita:'Cita',cita_cliente:'Cita',vencimiento:'Vencimiento',reunion:'Reunión',otro:'Otro'};
+var evLabels={audiencia:'Audiencia',cita:'Cita',cita_cliente:'Cita cliente',vencimiento:'Vencimiento',reunion:'Reunión',reunion_interna:'Reunión',otro:'Otro'};
 var evBadges={audiencia:'b-red',cita:'b-blue',vencimiento:'b-orange',reunion:'b-purple'};
 
 function initCalendar(){
@@ -1627,7 +1627,7 @@ function initCalendar(){
     var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
-  // Connect Google Calendar API
+  // Connect Google Calendar API - auto connect
   gapi.load('client',function(){
     gapi.client.init({
       apiKey:API_KEY,
@@ -1646,8 +1646,8 @@ function initCalendar(){
           setTimeout(cargarModelosDesideDrive,500);
         }
       });
-      // Try silent auth first
-      gapi.client.getToken() ? setCalStatus(true) : setCalStatus(false);
+      // Auto-request token (uses cached session if available)
+      tokenClient.requestAccessToken({prompt:''});
     }).catch(function(){setCalStatus(false);});
   });
 }
