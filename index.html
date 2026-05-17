@@ -536,11 +536,7 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="section" id="sec-agenda">
   <div class="page-header">
     <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91f2f0e2f8f9e8f0e2fef2f8f0f5fee2d1f6fcf0f8fdbff2fefc">[email&#160;protected]</a></div></div>
-    <div id="cal-status" style="display:flex;align-items:center;gap:10px">
-      <div id="cal-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
-      <span id="cal-label" style="font-size:12px;color:var(--text3)">Calendar desconectado</span>
-      <button onclick="conectarGoogle()" style="font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--green);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif">Conectar Google</button>
-    </div>
+    <button class="btn-cal" id="cal-btn" onclick="toggleCal()">Conectar Google Calendar</button>
   </div>
   <div class="agenda-layout">
     <div class="card" style="margin-bottom:0">
@@ -858,28 +854,7 @@ function doLogin() {
   var pass = document.getElementById('login-pass').value;
   document.getElementById('login-error').textContent = '';
   if (!email || !pass) { document.getElementById('login-error').textContent = 'Completá email y contraseña.'; return; }
-  // Pre-load Google API so it's ready when user logs in
-  gapi.load('client',function(){
-    gapi.client.init({
-      apiKey:API_KEY,
-      discoveryDocs:[
-        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
-        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-      ]
-    }).then(function(){
-      tokenClient=google.accounts.oauth2.initTokenClient({
-        client_id:CLIENT_ID,scope:SCOPES,
-        callback:function(resp){
-          if(resp.error){setCalStatus(false);return;}
-          calConnected=true;
-          setCalStatus(true);
-          setTimeout(cargarModelosDesideDrive,500);
-        }
-      });
-      // Request token NOW while still in user gesture context
-      tokenClient.requestAccessToken({prompt:''});
-    });
-  });
+
   auth.signInWithEmailAndPassword(email, pass).catch(function(e) {
     document.getElementById('login-error').textContent = 'Email o contraseña incorrectos.';
   });
@@ -1649,44 +1624,7 @@ function initCalendar(){
     var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
-  // Google auth is handled in doLogin (user gesture)
-  // Just check if already connected
-  if(calConnected) setCalStatus(true);
-}
-
-function setCalStatus(connected){
-  ['cal-dot','cal-dot2'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.background=connected?'var(--green)':'var(--orange)';});
-  ['cal-label','cal-label2'].forEach(function(id){
-    var el=document.getElementById(id);if(!el)return;
-    el.style.color=connected?'var(--green)':'var(--orange)';
-    el.textContent=connected?'Google Calendar conectado':'Calendar desconectado';
-  });
-  if(connected){
-    // Auto-create Drive folders for clients that don't have one (silently)
-    setTimeout(function(){
-      if(CLIENTES_CACHE&&CLIENTES_CACHE.length>0){
-        var sinCarpeta=CLIENTES_CACHE.filter(function(cl){return !cl.driveFolderId;});
-        if(sinCarpeta.length>0){
-          console.log('Auto-creating '+sinCarpeta.length+' Drive folders...');
-          var i=0;
-          function next(){
-            if(i>=sinCarpeta.length)return;
-            var cl=sinCarpeta[i++];
-            _doCrearCarpeta(cl.nombre,function(folderId,folderLink){
-              if(folderId)db.collection('clientes').doc(cl.id).update({drive:folderLink,driveFolderId:folderId});
-              setTimeout(next,600);
-            });
-          }
-          next();
-        }
-      }
-    },2000);
-  }
-}
-
-
-function conectarGoogle(){
-  // Fallback button - re-init and connect
+  // Connect Google Calendar and Drive
   gapi.load('client',function(){
     gapi.client.init({
       apiKey:API_KEY,
@@ -1695,23 +1633,46 @@ function conectarGoogle(){
         'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
       ]
     }).then(function(){
-      if(!tokenClient){
-        tokenClient=google.accounts.oauth2.initTokenClient({
-          client_id:CLIENT_ID,scope:SCOPES,
-          callback:function(resp){
-            if(resp.error){setCalStatus(false);return;}
-            calConnected=true;
-            setCalStatus(true);
-            setTimeout(cargarModelosDesideDrive,500);
+      tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:CLIENT_ID,
+        scope:SCOPES,
+        callback:function(resp){
+          if(resp.error){
+            document.getElementById('cal-btn').textContent='Conectar Google Calendar';
+            return;
           }
-        });
-      }
+          calConnected=true;
+          document.getElementById('cal-btn').textContent='Google conectado ✓';
+          document.getElementById('cal-btn').style.borderColor='var(--green)';
+          document.getElementById('cal-btn').style.color='var(--green)';
+          loadCalendarEvents();
+          setTimeout(cargarModelosDesideDrive,500);
+        }
+      });
       tokenClient.requestAccessToken({prompt:'select_account'});
-    });
+    }).catch(function(e){console.warn('Google init error:',e);});
   });
 }
 
-function toggleCal(){initCalendar();}
+
+
+
+// conectarGoogle removed - using toggleCal instead
+
+function toggleCal(){
+  if(!calConnected){
+    initCalendar();
+  } else {
+    if(gapi.client.getToken()){
+      google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
+      gapi.client.setToken('');
+    }
+    calConnected=false;
+    document.getElementById('cal-btn').textContent='Conectar Google Calendar';
+    document.getElementById('cal-btn').style.borderColor='#1E3A25';
+    document.getElementById('cal-btn').style.color='var(--green)';
+  }
+}
 
 // loadCalendarEvents replaced by Firestore listener in initCalendar
 
@@ -2999,7 +2960,6 @@ function initApp(){
   initClientes();
   initTareas();
   renderDashEventos();
-  setTimeout(initCalendar, 1000);
   // Delay slightly to ensure DOM elements exist
   setTimeout(function(){
     initLinksRapidos();
