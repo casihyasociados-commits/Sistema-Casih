@@ -1610,7 +1610,7 @@ var evLabels={audiencia:'Audiencia',cita:'Cita',cita_cliente:'Cita cliente',venc
 var evBadges={audiencia:'b-red',cita:'b-blue',vencimiento:'b-orange',reunion:'b-purple'};
 
 function initCalendar(){
-  // Init Firestore listener for eventos
+  // Firestore listener for eventos
   db.collection('eventos').orderBy('fecha').onSnapshot(function(snap){
     EVENTOS_CACHE=[];
     snap.forEach(function(d){var x=d.data();x.id=d.id;EVENTOS_CACHE.push(x);});
@@ -1620,11 +1620,14 @@ function initCalendar(){
       var ts=fmt(today),weekEnd=fmt(addD(today,7));
       return e.fecha>=ts&&e.fecha<=weekEnd;
     }).length;
-    // Populate cliente selects in evento modals
-    var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
+    var opts='<option value="">\u2014 Sin cliente \u2014</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
-  // Connect Google Calendar and Drive
+  // Pre-init Google silently (no popup) so button click works immediately
+  preInitGoogle();
+}
+
+function preInitGoogle(){
   gapi.load('client',function(){
     gapi.client.init({
       apiKey:API_KEY,
@@ -1633,44 +1636,44 @@ function initCalendar(){
         'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
       ]
     }).then(function(){
+      // Create tokenClient WITHOUT requesting token
       tokenClient=google.accounts.oauth2.initTokenClient({
         client_id:CLIENT_ID,
         scope:SCOPES,
         callback:function(resp){
           if(resp.error){
-            document.getElementById('cal-btn').textContent='Conectar Google Calendar';
+            var btn=document.getElementById('cal-btn');
+            if(btn){btn.textContent='Conectar Google Calendar';btn.style.borderColor='#1E3A25';btn.style.color='var(--green)';}
             return;
           }
           calConnected=true;
-          document.getElementById('cal-btn').textContent='Google conectado ✓';
-          document.getElementById('cal-btn').style.borderColor='var(--green)';
-          document.getElementById('cal-btn').style.color='var(--green)';
+          var btn=document.getElementById('cal-btn');
+          if(btn){btn.textContent='Google conectado \u2713';btn.style.borderColor='var(--green)';btn.style.color='var(--green)';}
           loadCalendarEvents();
           setTimeout(cargarModelosDesideDrive,500);
         }
       });
-      tokenClient.requestAccessToken({prompt:'select_account'});
     }).catch(function(e){console.warn('Google init error:',e);});
   });
 }
 
-
-
-
-// conectarGoogle removed - using toggleCal instead
-
 function toggleCal(){
+  // Called DIRECTLY from button onclick = user gesture = popup allowed by Chrome
   if(!calConnected){
-    initCalendar();
+    if(!tokenClient){
+      showToast('Iniciando Google, intentá de nuevo...');
+      preInitGoogle();
+      return;
+    }
+    tokenClient.requestAccessToken({prompt:'select_account'});
   } else {
-    if(gapi.client.getToken()){
+    if(gapi.client&&gapi.client.getToken()){
       google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
       gapi.client.setToken('');
     }
     calConnected=false;
-    document.getElementById('cal-btn').textContent='Conectar Google Calendar';
-    document.getElementById('cal-btn').style.borderColor='#1E3A25';
-    document.getElementById('cal-btn').style.color='var(--green)';
+    var btn=document.getElementById('cal-btn');
+    if(btn){btn.textContent='Conectar Google Calendar';btn.style.borderColor='#1E3A25';btn.style.color='var(--green)';}
   }
 }
 
