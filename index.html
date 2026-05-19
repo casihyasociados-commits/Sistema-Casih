@@ -803,6 +803,93 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-honorario')">Cancelar</button><button class="btn-primary" onclick="saveHonorario()">Guardar</button></div>
   </div>
 </div>
+<!-- MODAL: Evento rápido -->
+<div class="modal-bg" id="m-evento-rapido" onclick="if(event.target===this)closeModal('m-evento-rapido')">
+  <div class="modal"><h3>Nuevo evento</h3>
+    <div class="fg"><div class="fl">Tipo</div><select class="fs" id="er-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
+    <div class="fg"><div class="fl">Título *</div><input class="fi" id="er-titulo" placeholder="Ej: Audiencia García c/ Empresa SA"></div>
+    <div class="fg"><div class="fl">Cliente</div><input class="fi" id="er-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'er-cliente')"><select class="fs" id="er-cliente" style="margin-top:4px"><option value="">— Sin cliente —</option></select></div>
+    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="er-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="er-hora" type="time"></div></div>
+    <div class="fg"><div class="fl">Lugar</div><input class="fi" id="er-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="er-notas" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-evento-rapido')">Cancelar</button><button class="btn-primary" onclick="saveEventoRapido()">Guardar evento</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Link rápido -->
+<div class="modal-bg" id="m-link-rapido" onclick="if(event.target===this)closeModal('m-link-rapido')">
+  <div class="modal"><h3>Nuevo acceso rápido</h3>
+    <div class="fg"><div class="fl">Nombre *</div><input class="fi" id="lr-nombre" placeholder="Ej: AFIP"></div>
+    <div class="fg"><div class="fl">URL *</div><input class="fi" id="lr-url" placeholder="https://..."></div>
+    <div class="fg"><div class="fl">Ícono (emoji)</div><input class="fi" id="lr-icon" placeholder="🔗"></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-link-rapido')">Cancelar</button><button class="btn-primary" onclick="saveLinkRapido()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Honorario dashboard -->
+<div class="modal-bg" id="m-honorario-dash" onclick="if(event.target===this)closeModal('m-honorario-dash')">
+  <div class="modal"><h3>Registrar honorario</h3>
+    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="hd-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'hd-cliente')"><select class="fs" id="hd-cliente" style="margin-top:4px"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Causa</div><input class="fi" id="hd-causa" placeholder="Ej: c/ Empresa SA — Despido"></div>
+    <div class="fg"><div class="fl">Concepto</div><select class="fs" id="hd-concepto"><option value="honorarios">Honorarios</option><option value="anticipo">Anticipo</option><option value="cuota">Cuota</option></select></div>
+    <div class="g2"><div class="fg"><div class="fl">Monto por cuota *</div><input class="fi currency-input" id="hd-monto-cuota" type="text" placeholder="$0"></div><div class="fg"><div class="fl">Cantidad cuotas</div><input class="fi" id="hd-cuotas" type="number" min="1" value="1"></div></div>
+    <div class="g2"><div class="fg"><div class="fl">Día de cobro (del mes)</div><input class="fi" id="hd-dia-cobro" type="number" min="1" max="31" placeholder="Ej: 15"></div><div class="fg"><div class="fl">Fecha vencimiento</div><input class="fi" id="hd-vence" type="date"></div></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-honorario-dash')">Cancelar</button><button class="btn-primary" onclick="saveHonorarioDash()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Recordatorio -->
+<div class="modal-bg" id="m-recordatorio" onclick="if(event.target===this)closeModal('m-recordatorio')">
+  <div class="modal"><h3>Nuevo recordatorio</h3>
+    <div class="fg"><div class="fl">Título *</div><input class="fi" id="rec-titulo" placeholder="Ej: Llamar a cliente sobre turno médico"></div>
+    <div class="fg"><div class="fl">Descripción</div><textarea class="fta" id="rec-desc" placeholder="Detalles del recordatorio..."></textarea></div>
+    <div class="fg"><div class="fl">Fecha *</div><input class="fi" id="rec-fecha" type="date"></div>
+    <div class="fg"><div class="fl">Cliente vinculado</div><input class="fi" id="rec-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'rec-cliente')"><select class="fs" id="rec-cliente" style="margin-top:4px"><option value="">— Sin cliente —</option></select></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-recordatorio')">Cancelar</button><button class="btn-primary" onclick="saveRecordatorio()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Oficio -->
+<div class="modal-bg" id="m-oficio" onclick="if(event.target===this)closeModal('m-oficio')">
+  <div class="modal"><h3>Nuevo oficio / notificación</h3>
+    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="oficio-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'oficio-cliente')"><select class="fs" id="oficio-cliente" style="margin-top:4px"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Descripción *</div><input class="fi" id="oficio-desc" placeholder="Ej: Notificación de audiencia"></div>
+    <div class="fg"><div class="fl">N° de oficio</div><input class="fi" id="oficio-numero" placeholder="Ej: 4521/2026"></div>
+    <div class="g2"><div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="oficio-fecha-envio" type="date"></div><div class="fg"><div class="fl">Fecha de recepción *</div><input class="fi" id="oficio-fecha-rec" type="date"></div></div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="oficio-notas" placeholder="Observaciones..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-oficio')">Cancelar</button><button class="btn-primary" onclick="saveOficio()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Seguimiento correo -->
+<div class="modal-bg" id="m-correo" onclick="if(event.target===this)closeModal('m-correo')">
+  <div class="modal"><h3>Seguimiento de correo</h3>
+    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="co-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'co-cliente')"><select class="fs" id="co-cliente" style="margin-top:4px"><option value="">— Seleccionar cliente —</option></select></div>
+    <div class="fg"><div class="fl">Código / referencia</div><input class="fi" id="co-codigo" placeholder="Ej: Expt. 12345/26"></div>
+    <div class="fg"><div class="fl">Fecha</div><input class="fi" id="co-fecha" type="date"></div>
+    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="co-notas" placeholder="Descripción del seguimiento..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-correo')">Cancelar</button><button class="btn-primary" onclick="saveCorreo()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Subir documento a Drive -->
+<div class="modal-bg" id="m-subir-doc" onclick="if(event.target===this)closeModal('m-subir-doc')">
+  <div class="modal"><h3>Subir documento a Drive</h3>
+    <div class="fg"><div id="subir-doc-info" style="font-size:13px;color:var(--text2);margin-bottom:8px">Seleccioná el cliente primero.</div></div>
+    <div class="fg"><div class="fl">Archivo(s)</div><input class="fi" id="doc-file" type="file" multiple style="padding:6px"></div>
+    <div id="upload-progress" style="display:none;margin-top:8px"><div id="upload-status" style="font-size:13px;color:var(--text2)">Subiendo...</div></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-subir-doc')">Cancelar</button><button class="btn-primary" onclick="confirmarSubida()">Subir a Drive</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Exportar tareas del día -->
+<div class="modal-bg" id="m-export-tareas" onclick="if(event.target===this)closeModal('m-export-tareas')">
+  <div class="modal"><h3>Reporte del día</h3>
+    <div class="fg"><textarea class="fta" id="export-preview" style="min-height:200px;font-family:monospace;font-size:12px" readonly></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-export-tareas')">Cerrar</button><button class="btn-primary" onclick="if(navigator.clipboard)navigator.clipboard.writeText(document.getElementById('export-preview').value).then(function(){showToast('Copiado ✓')})">Copiar</button></div>
+  </div>
+</div>
+
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ─── FIREBASE CONFIG ───
@@ -1122,9 +1209,7 @@ function renderClientes(){
 
 
 // ─── GOOGLE DRIVE ───
-var finBtn=c.tipo!=='finalizado'?
-  '<button data-fid="'+c.id+'" data-faction="finalizar" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid #1E3A25;background:transparent;color:var(--green);cursor:pointer">✓ Finalizar</button>':
-  '<button data-fid="'+c.id+'" data-faction="reabrir" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">↩ Reabrir</button>';
+
 var DRIVE_CLIENTES_FOLDER_ID = null; // ID of main "Clientes" folder
 
 function getDriveClientesFolder(callback){
@@ -1623,61 +1708,58 @@ function initCalendar(){
     var opts='<option value="">\u2014 Sin cliente \u2014</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
-  // Pre-init Google silently (no popup) so button click works immediately
-  preInitGoogle();
-}
-
-function preInitGoogle(){
-  gapi.load('client',function(){
-    gapi.client.init({
-      apiKey:API_KEY,
-      discoveryDocs:[
-        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
-        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-      ]
-    }).then(function(){
-      // Create tokenClient WITHOUT requesting token
-      tokenClient=google.accounts.oauth2.initTokenClient({
-        client_id:CLIENT_ID,
-        scope:SCOPES,
-        callback:function(resp){
-          if(resp.error){
-            var btn=document.getElementById('cal-btn');
-            if(btn){btn.textContent='Conectar Google Calendar';btn.style.borderColor='#1E3A25';btn.style.color='var(--green)';}
-            return;
-          }
-          calConnected=true;
-          var btn=document.getElementById('cal-btn');
-          if(btn){btn.textContent='Google conectado \u2713';btn.style.borderColor='var(--green)';btn.style.color='var(--green)';}
-          loadCalendarEvents();
-          setTimeout(cargarModelosDesideDrive,500);
-        }
-      });
-    }).catch(function(e){console.warn('Google init error:',e);});
-  });
 }
 
 function toggleCal(){
-  // Called DIRECTLY from button onclick = user gesture = popup allowed by Chrome
   if(!calConnected){
-    if(!tokenClient){
-      showToast('Iniciando Google, intentá de nuevo...');
-      preInitGoogle();
-      return;
-    }
-    tokenClient.requestAccessToken({prompt:'select_account'});
+    gapi.load('client',function(){
+      gapi.client.init({apiKey:API_KEY,discoveryDocs:[
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+      ]}).then(function(){
+        tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:function(resp){
+          if(resp.error)return;
+          calConnected=true;
+          setCalStatus(true);
+          loadCalendarEvents();
+          setTimeout(cargarModelosDesideDrive,500);
+        }});
+        tokenClient.requestAccessToken();
+      });
+    });
   } else {
-    if(gapi.client&&gapi.client.getToken()){
-      google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
-      gapi.client.setToken('');
-    }
-    calConnected=false;
-    var btn=document.getElementById('cal-btn');
-    if(btn){btn.textContent='Conectar Google Calendar';btn.style.borderColor='#1E3A25';btn.style.color='var(--green)';}
+    google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
+    gapi.client.setToken('');calConnected=false;
+    document.getElementById('cal-btn').textContent='Conectar Google Calendar';
+    document.getElementById('cal-btn').style.borderColor='#1E3A25';
+    document.getElementById('cal-btn').style.color='var(--green)';
   }
 }
 
-// loadCalendarEvents replaced by Firestore listener in initCalendar
+function setCalStatus(connected){
+  // Update dashboard status indicator
+  var dot2=document.getElementById('cal-dot2');
+  var lbl2=document.getElementById('cal-label2');
+  if(dot2)dot2.style.background=connected?'var(--green)':'var(--orange)';
+  if(lbl2){lbl2.style.color=connected?'var(--green)':'var(--orange)';lbl2.textContent=connected?'Google conectado':'Conectar Google';}
+  // Update agenda button
+  var btn=document.getElementById('cal-btn');
+  if(btn&&connected){btn.textContent='Desconectar Calendar';btn.style.borderColor='var(--red-bg)';btn.style.color='var(--red)';}
+}
+
+function loadCalendarEvents(){
+  if(!gapi.client||!gapi.client.calendar){return;}
+  gapi.client.calendar.events.list({
+    calendarId:CALENDAR_ID,
+    timeMin:new Date().toISOString(),
+    timeMax:new Date(Date.now()+90*864e5).toISOString(),
+    singleEvents:true,orderBy:'startTime',maxResults:50
+  }).then(function(resp){
+    var items=resp.result.items||[];
+    // Merge with Firestore events for display
+    document.getElementById('dm-eventos').textContent=items.length;
+  }).catch(function(e){console.warn('Calendar load error:',e);});
+}
 
 function guardarEvento(tipo,titulo,cliente,fecha,hora,lugar,notas,callback){
   if(!titulo){alert('El título es obligatorio.');return;}
