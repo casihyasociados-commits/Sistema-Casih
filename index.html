@@ -305,6 +305,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
     <button class="nav-btn" onclick="goTo('documentos')">Modelos</button>
+    <button class="nav-btn" onclick="goTo('capacitacion')">Capacitación</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -666,6 +667,171 @@ input.currency-input{letter-spacing:0.5px;}
 
 </div>
 
+<!-- ========== CAPACITACIÓN ========== -->
+<div class="section" id="sec-capacitacion">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Capacitación interna</div>
+      <div class="page-sub">Defensa del consumidor · Material de uso interno del equipo · Mayo 2026</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="fs" id="cap-sector" onchange="capMostrarSector()" style="font-size:12px;padding:6px 12px;width:auto">
+        <option value="intro">Marco general</option>
+        <option value="s1">Sector 1 — Telecomunicaciones</option>
+        <option value="s2">Sector 2 — Planes de ahorro</option>
+        <option value="s3">Sector 3 — Medicina prepaga</option>
+        <option value="s4">Sector 4 — Bancos y tarjetas</option>
+        <option value="s5">Sector 5 — E-commerce</option>
+        <option value="checklists">Checklists universales</option>
+        <option value="tabla">Tabla comparativa</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ALERTA GENERAL -->
+  <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
+    ⚠️ <strong>Uso interno.</strong> Los montos, tiempos y estimaciones son orientativos. Verificar siempre con jurisprudencia local actualizada antes de cuantificar en cualquier demanda.
+  </div>
+
+  <!-- MARCO GENERAL -->
+  <div id="cap-intro">
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Normativa base</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row-item"><div class="avatar av-blue" style="width:36px;height:36px;font-size:10px;border-radius:8px">LDC</div><div class="row-info"><div class="row-name">Ley 24.240 — Defensa del Consumidor</div><div class="row-sub">Norma nacional · Define derechos del consumidor y régimen de sanciones</div></div></div>
+          <div class="row-item"><div class="avatar av-purple" style="width:36px;height:36px;font-size:10px;border-radius:8px">Prov</div><div class="row-info"><div class="row-name">Ley Provincial 10.247 (Córdoba)</div><div class="row-sub">Procedimiento administrativo ante autoridad de aplicación provincial</div></div></div>
+          <div class="row-item"><div class="avatar av-green" style="width:36px;height:36px;font-size:10px;border-radius:8px">CCN</div><div class="row-info"><div class="row-name">CCCN arts. 1092–1122 + art. 1741</div><div class="row-sub">Contrato de consumo · Daño extrapatrimonial (daño moral)</div></div></div>
+          <div class="row-item"><div class="avatar av-orange" style="width:36px;height:36px;font-size:10px;border-radius:8px">Med</div><div class="row-info"><div class="row-name">Ley 8858 (Córdoba)</div><div class="row-sub">Mediación prejudicial obligatoria para demandas civiles</div></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Las tres vías y cómo se encadenan</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:4px">VÍA 1 — ADMINISTRATIVA</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.4">Gratuita · Sin abogado obligatorio · Denuncia → Audiencia → Acuerdo o sumario → Multa al Estado</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:4px">VÍA 2 — RECURSO JUDICIAL</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.4">Apelación de resolución administrativa → Cámara Civil y Comercial de turno</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:600;color:var(--purple);margin-bottom:4px">VÍA 3 — DEMANDA CIVIL DIRECTA ⭐</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.4">Independiente de la administrativa · Daño emergente + intereses + daño moral (art. 1741) + daño punitivo (art. 52 bis) · <strong>Las vías 1 y 3 corren en paralelo</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:12px">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Daño punitivo — art. 52 bis LDC ⭐ El rubro clave</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Multa civil a favor del consumidor cuando el proveedor no cumple sus obligaciones legales o contractuales.</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase">Requisitos para que proceda</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-size:14px;margin-top:-1px">✓</span><span style="font-size:12px;color:var(--text2)">Dolo o culpa grave del proveedor</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-size:14px;margin-top:-1px">✓</span><span style="font-size:12px;color:var(--text2)">Conducta lucrativa (cobro masivo a muchos usuarios)</span></div>
+          <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-size:14px;margin-top:-1px">✓</span><span style="font-size:12px;color:var(--text2)">Desprecio sistemático hacia los derechos del consumidor</span></div>
+        </div>
+        <div style="background:var(--green-bg);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--green)">Monto: 2 a 10 veces el daño real según las Cámaras de Córdoba. Verificar criterio actualizado.</div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Prescripción — art. 50 LDC ⚠️ Primer filtro siempre</div>
+        <div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--red);margin-bottom:4px">3 años desde cada acto dañoso</div>
+          <div style="font-size:12px;color:var(--text2)">En cobros indebidos: el plazo corre desde <strong>cada cobro individual</strong>, no desde el primero. Parte de los cobros puede estar prescripta aunque otros no.</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase">Modelo de honorarios</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">Igual que laboral: <strong>honorario sobre resultado, sin cobro anticipado.</strong><br>Vía civil: <strong>20 a 25% del total cobrado</strong> (emergente + intereses + moral + punitivo).<br>El punitivo puede multiplicar el resultado 5 a 10 veces.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Autoridades de aplicación en Córdoba Capital</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:var(--bg3);border-radius:8px;padding:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">Dirección Provincial</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.6">Tucumán 176, Córdoba Capital<br>Lun-Vie 8 a 20 hs · También online<br>Ley 24.240 + Ley Provincial 10.247<br>Gratuito · Sin patrocinio obligatorio</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">Dirección Municipal</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.6">Municipalidad de Córdoba<br>Presencial y virtual<br>Bancos · Telefonía · Internet · Cable<br>Planes de ahorro · Medicina prepaga</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTORES 1-5 -->
+  <div id="cap-sector-content" style="display:none">
+    <div id="cap-sector-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem"></div>
+    <div id="cap-sector-body"></div>
+  </div>
+
+  <!-- CHECKLISTS -->
+  <div id="cap-checklists" style="display:none">
+    <div class="grid2">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">✅ Checklist — Primera consulta (cualquier sector)</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="checklist-consulta">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Hay relación de consumo? (arts. 1 y 2 LDC — consumidor + proveedor)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿La prescripción de 3 años (art. 50 LDC) está vigente?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿El cliente tiene documentación mínima para sostener el reclamo?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Cuál es el daño emergente calculable con la documentación disponible?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Hay conducta reiterada o masiva del proveedor? (habilita punitivo)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Hay urgencia que requiera medida cautelar? (aplica en salud principalmente)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Qué vía conviene: administrativa, civil, o ambas en paralelo?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿El monto total estimado (con punitivo) justifica la vía civil?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Se firmó el acuerdo de honorarios antes de iniciar cualquier gestión?</span></label>
+        </div>
+        <button class="btn-sm" style="margin-top:12px" onclick="resetChecklist('checklist-consulta')">Resetear</button>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">✅ Checklist — Demanda civil (cualquier sector)</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="checklist-demanda">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Mediación prejudicial completada o exceptuada (Ley 8858 Córdoba)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Factor de atribución identificado y norma citada</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Prescripción verificada y no corrida</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Daño emergente cuantificado con documentación concreta</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Intereses desde cada incumplimiento (verificar tasa vigente del fuero)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Daño moral: ¿acreditable con hechos concretos?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Daño punitivo: ¿hay dolo o culpa grave? ¿conducta lucrativa?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Prueba documental completa y ordenada como anexos</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Prueba informativa identificada (a quién, qué se pide)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Se necesita pericia? ¿de qué tipo?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Competencia del fuero cordobés fundada (art. 2654 CCCN si es plataforma extranjera)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Tasa de interés: verificar acta o acordada vigente del fuero</span></label>
+        </div>
+        <button class="btn-sm" style="margin-top:12px" onclick="resetChecklist('checklist-demanda')">Resetear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA COMPARATIVA -->
+  <div id="cap-tabla" style="display:none">
+    <div class="card">
+      <div class="card-title">Tabla comparativa — Los cinco sectores</div>
+      <div style="overflow-x:auto">
+        <table>
+          <tr><th>Sector</th><th>Volumen</th><th>Monto base</th><th>Con punitivo</th><th>Estandarizable</th><th>Urgencia</th></tr>
+          <tr><td style="font-weight:500">📱 Telecomunicaciones</td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-red">Bajo</span></td><td><span class="badge b-orange">Medio-alto</span></td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-gray">Baja</span></td></tr>
+          <tr><td style="font-weight:500">🚗 Planes de ahorro</td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-orange">Media</span></td></tr>
+          <tr><td style="font-weight:500">🏥 Medicina prepaga</td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-green">Medio-alto</span></td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-red">Bajo</span></td><td><span class="badge b-red">Alta</span></td></tr>
+          <tr><td style="font-weight:500">🏦 Bancos y tarjetas</td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-green">Medio-alto</span></td><td><span class="badge b-gray">Baja-media</span></td></tr>
+          <tr><td style="font-weight:500">🛒 E-commerce</td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-orange">Bajo-medio</span></td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-gray">Baja</span></td></tr>
+        </table>
+      </div>
+      <div style="margin-top:1rem;background:var(--bg3);border-radius:8px;padding:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Estrategia sugerida de incorporación</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-blue">1°</span><span style="font-size:12px;color:var(--text2)"><strong>Telecomunicaciones + E-commerce</strong> — Ganar experiencia, estandarizar procesos. Volumen alto, complejidad baja.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-purple">2°</span><span style="font-size:12px;color:var(--text2)"><strong>Bancos y Tarjetas</strong> — Montos más altos, modelo conocido.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-orange">3°</span><span style="font-size:12px;color:var(--text2)"><strong>Planes de Ahorro</strong> — Montos altos, más trabajo por caso.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-green">4°</span><span style="font-size:12px;color:var(--text2)"><strong>Medicina Prepaga</strong> — Mayor complejidad, mayor reputación y honorario.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODALES -->
 <div class="modal-bg" id="m-cliente" onclick="if(event.target===this)closeModal('m-cliente')">
   <div class="modal" style="width:560px"><h3 id="m-cliente-titulo">Nuevo cliente</h3>
@@ -966,7 +1132,7 @@ function closeModal(id){document.getElementById(id).className='modal-bg';}
 function goTo(s){
   document.querySelectorAll('.section').forEach(function(x){x.className='section';});
   document.getElementById('sec-'+s).className='section active';
-  ['dashboard','clientes','tareas','agenda','admin'].forEach(function(n,i){
+  ['dashboard','clientes','tareas','agenda','admin','documentos','capacitacion'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes')renderClientes();
@@ -1214,7 +1380,7 @@ var DRIVE_CLIENTES_FOLDER_ID = null; // ID of main "Clientes" folder
 
 function getDriveClientesFolder(callback){
   // Use the specific shared folder provided
-  DRIVE_CLIENTES_FOLDER_ID = '1iq0JtjmUCaztwvKhzrS_BVIce2JYqFHZ';
+  DRIVE_CLIENTES_FOLDER_ID = '1G4j7jdV-rzhrSJkpML_5cQ5xKAgyaUZL';
   callback(DRIVE_CLIENTES_FOLDER_ID);
 }
 
@@ -3034,6 +3200,210 @@ function enviarEmailOficio(o){
 }
 
 function initEventos(){}
+
+
+// ─── CAPACITACIÓN ───
+var CAP_SECTORES = {
+  s1: {
+    nombre: 'Sector 1 — Telecomunicaciones',
+    empresas: 'Claro · Movistar · Personal · Fibertel · Telecentro',
+    intro: 'Es el sector más estandarizable. Una vez armado el primer escrito, el segundo sale en una fracción del tiempo. Equivalente laboral al despido sin causa sin agravantes.',
+    casos: [
+      'Cobro de servicio no contratado (seguros adheridos, contenidos premium)',
+      'Aumento unilateral de precio sin notificación (art. 37 inc. a LDC)',
+      'Baja hostil: dificultan la cancelación del servicio (art. 10 ter LDC)',
+      'Servicio diferente al publicado o contratado (art. 8 LDC)'
+    ],
+    normas: ['Art. 1 y 2 LDC: consumidor y proveedor','Art. 4 LDC: deber de información','Art. 8 LDC: publicidad integra el contrato','Art. 10 ter LDC: rescisión por el mismo medio','Art. 37 LDC: cláusulas abusivas','Art. 50 LDC: prescripción 3 años','Art. 52 bis LDC: daño punitivo — casi siempre aplicable en telecos','Art. 53 LDC: carga de prueba invertida (la empresa debe probar)','Art. 1741 CCCN: daño moral','Ley Provincial 10.247 + Ley 8858 Córdoba'],
+    pasos: {
+      consulta: ['Escuchar y traducir el reclamo a términos jurídicos (arts. 1 y 2 LDC)','Verificar prescripción (art. 50 LDC — 3 años desde cada cobro)','Reunir documentación: 12 facturas, contrato original, historial de reclamos','Decidir la vía: monto < $200k → administrativa; monto alto + conducta reiterada → civil; ambas en paralelo'],
+      adm: ['Redactar el relato con anexos numerados (datos del contrato, cobro indebido, reclamos previos)','Presentar en Dirección Provincial (Tucumán 176) o Municipal · Plazo: 20-45 días hábiles','Preparar al cliente: pedir reintegro en dinero; no aceptar < 80% sin consultar; no firmar nada sin leer','Acuerdo homologado (título ejecutivo) o acta de fracaso (refuerza punitivo en civil)'],
+      civil: ['Mediación prejudicial (Ley 8858 Córdoba) — suspende prescripción · 30-60 días','Demanda: daño emergente + intereses + daño moral (art. 1741) + daño punitivo (art. 52 bis)','Prueba: documental del cliente + informativa a empresa + informativa a ENACOM (refuerza punitivo)','Las telecos suelen proponer acuerdo cuando el punitivo está en juego']
+    },
+    ejemplos: [
+      {titulo:'Caso A — Seguro no contratado (civil, acuerdo)',desc:'Personal cobró $9.500/mes × 14 meses. Normas: arts. 37, 52 bis LDC + art. 1741 CCCN + art. 53 LDC.',resultado:'Acuerdo en mediación: $133.000 reintegro + $420.000 daño moral y punitivo = $553.000. Hon. 20%: $110.600'},
+      {titulo:'Caso B — Aumento unilateral (administrativo)',desc:'Empresa de internet aumentó cuota de $4.200 a $7.800 sin notificación con plan fijo × 12 meses.',resultado:'Vía administrativa. Conciliación 35 días: reintegró diferencia de 8 meses ($28.800) y respetó precio original'},
+      {titulo:'Caso C — Baja hostil (civil, sentencia)',desc:'4 meses intentando cancelar. Prueba: capturas de chats, 6 facturas post-pedido de baja, denuncia ENACOM.',resultado:'Sentencia: reintegro $48.000 + daño moral $280.000 + punitivo $600.000 = $928.000. Hon. 22%: $204.160'}
+    ],
+    honorarios: {adm:'Opción A: consulta fija baja · Opción B: gestión completa fija · Opción C: sin cargo para captar caso civil', civil:'20-25% del total cobrado', ejemplo:'Seguro $12.000/mes × 9 meses → Emergente $108.000 + Intereses $40.000 + Moral $300.000 + Punitivo $500.000 = $948.000 → Hon. 20%: $189.600 / 25%: $237.000'}
+  },
+  s2: {
+    nombre: 'Sector 2 — Planes de ahorro automotor',
+    empresas: 'Plan Rombo (Renault) · Plan Óvalo (Ford) · Plan Chevrolet · VW Ahorro',
+    intro: 'Córdoba tiene una de las bases de suscriptores más altas del país. Alta conflictividad desde 2018. Montos altos y cliente más motivado porque es una compra de vida.',
+    casos: [
+      'Cuotas que se disparan por actualización al precio del 0km',
+      'Demora o negativa de entrega del vehículo adjudicado',
+      'Rescisión abusiva por parte de la administradora',
+      'Dificultades para ejercer el derecho de rescisión del adherente',
+      'Cobro de cargos administrativos no informados al contratar',
+      'Publicidad engañosa sobre el valor final de la cuota'
+    ],
+    normas: ['Arts. 1, 2, 4, 8, 37, 50, 52 bis LDC','Art. 1741 CCCN: daño moral — más alto que telecos (proyecto de vida)','Res. IGJ / CNV según la administradora','Res. BCRA si hay financiación bancaria vinculada'],
+    pasos: {
+      consulta: ['Identificar el tipo de problema (cuotas / entrega / rescisión / cargos no informados)','Verificar prescripción: cuotas → desde cada cobro; entrega → desde fecha comprometida incumplida; rescisión → desde notificación','Documentación: contrato completo + 12 comprobantes de pago + comunicaciones + publicidad al contratar + acta de adjudicación si aplica','Detectar cláusulas abusivas (art. 37 LDC): actualización sin tope, penalidad > 20% de cuotas pagadas, prórroga automática, renuncia al fuero local (nula)'],
+      adm: ['Relato con cuota original vs. actual, cálculo del exceso acumulado, cláusulas abusivas transcriptas y señaladas','Presentar en Dirección Provincial o Municipal · También ante IGJ o CNV según la administradora','Las administradoras negocian más que telecos cuando el reclamo está bien documentado','Si fracasa: acta + cláusulas abusivas = expediente sólido para civil'],
+      civil: ['Mediación prejudicial (Ley 8858) · 30-60 días','Rubros: nulidad cláusulas abusivas (art. 37) + emergente + gastos por demora en entrega + moral + punitivo','Prueba: documental + pericial contable (frecuente en planes de ahorro) + informativa a administradora','Las administradoras tienden a acordar antes de sentencia cuando la nulidad de cláusulas está en juego — mayor poder de negociación']
+    },
+    ejemplos: [
+      {titulo:'Caso A — Cuotas disparadas sin tope (civil, acuerdo)',desc:'Cuota inicial $28.000 → $145.000 en 3 años. Contrato sin tope ni mecanismo claro. Normas: arts. 37, 4, 8, 52 bis LDC.',resultado:'Acuerdo: reintegro $680.000 + compensación $400.000 = $1.080.000. Hon. 20%: $216.000'},
+      {titulo:'Caso B — Adjudicado sin entrega (civil, sentencia)',desc:'Plan Rombo: adjudicación enero 2023, entrega octubre 2023 (8 meses de demora). Cliente alquilaba durante la demora.',resultado:'Sentencia: $320.000 gastos + $450.000 moral + $700.000 punitivo = $1.470.000. Hon. 22%: $323.400'},
+      {titulo:'Caso C — Penalidad abusiva por rescisión (administrativo)',desc:'Administradora pretendía 35% de las cuotas pagadas + multa adicional. Normas: arts. 37, 1 LDC.',resultado:'Vía administrativa. Se anuló la penalidad y se reintegró el 80% de lo pagado: $380.000'}
+    ],
+    honorarios: {adm:'Honorario fijo por gestión completa. No recomendable la opción sin cargo (montos más altos que telecos)', civil:'20-25% del total cobrado', ejemplo:'Demora 8 meses + cuotas en exceso → Emergente $834.000 + Intereses $200.000 + Moral $500.000 + Punitivo $800.000 = $2.334.000 → Hon. 20%: $466.800 / 25%: $583.500'}
+  },
+  s3: {
+    nombre: 'Sector 3 — Medicina prepaga y obras sociales',
+    empresas: 'OSDE · Swiss Medical · Galeno · Medifé · Luis Pasteur · APOC',
+    intro: 'Conflictividad alta, montos significativos. El cliente viene motivado, con urgencia y con documentación (ya tuvo un rechazo por escrito). El daño moral suele ser elevado porque está en juego la salud.',
+    casos: [
+      'Aumentos de cuota superiores a los autorizados (Ley 26.682)',
+      'Negativa de cobertura de prestaciones (estudios, cirugías, medicamentos)',
+      'Demora excesiva en autorización de prácticas',
+      'Exclusión de preexistencias diagnosticadas después de contratar',
+      'Desafiliación intempestiva: empresa rescinde unilateralmente',
+      'Cobertura parcial: autoriza pero cubre menos de lo estipulado'
+    ],
+    normas: ['Ley 24.240 LDC: arts. 1, 2, 4, 37, 50, 52 bis','Ley 26.682 (Medicina Prepaga): aumentos requieren autorización SSS; prohíbe rescisión unilateral','Ley 24.754: prepagas deben cubrir prestaciones mínimas de obras sociales del sistema nacional','PMO (Programa Médico Obligatorio): verificar versión vigente','Art. 1741 CCCN: daño moral — más alto en salud','Art. 52 bis LDC: punitivo cuando la negativa es deliberada o lucrativa'],
+    pasos: {
+      consulta: ['Identificar el tipo de reclamo (rechazo de cobertura / demora / aumento / preexistencia / rescisión)','Verificar prescripción (art. 50 LDC): negativa → desde la negativa; aumento → desde cada cobro en exceso; rescisión → desde notificación','Documentación: contrato/credencial + negativa POR ESCRITO (fundamental) + prescripción médica + historia clínica + comprobantes de cuota + comunicaciones de aumento','⚠️ URGENCIA MÉDICA: evaluar medida cautelar de cobertura urgente — cambia completamente la estrategia y no puede esperar la mediación'],
+      adm: ['Superintendencia de Servicios de Salud (www.sssalud.gob.ar) — reclamos online · Más efectiva que la Dirección de Consumidor para negativas de cobertura','Dirección de Consumidor (Córdoba) para cobros indebidos y aumentos no autorizados','Relato: identificar la prestación rechazada + citar PMO o Ley 26.682 que obliga a cubrirla + prescripción médica + negativa escrita + gasto de bolsillo con facturas'],
+      civil: ['Mediación prejudicial (Ley 8858) — evaluar si puede acortarse en urgencias médicas extremas','Rubros: reintegro gastos pagados de bolsillo + cobertura futura + daño moral (más alto en salud) + punitivo (negativa dolosa = reducción de costos sabiendo que es obligatoria)','Prueba: prescripción médico tratante + historia clínica + pericial médica + informativa a la Superintendencia (antecedentes del demandado)','Cautelar innovativa: juez puede ordenar cobertura inmediata el mismo día en urgencias (art. 232 CPC Córdoba + art. 1711 CCCN)']
+    },
+    ejemplos: [
+      {titulo:'Caso A — Negativa cobertura oncológica (cautelar + civil)',desc:'OSDE rechazó medicamento oncológico incluido en PMO. $180.000/mes. Demanda urgente con cautelar. Normas: Ley 26.682 + PMO + art. 52 bis LDC.',resultado:'Cautelar otorgada al día siguiente. Acuerdo: cobertura permanente + $800.000 moral + $1.200.000 punitivo = $2.000.000. Hon. 22%: $440.000'},
+      {titulo:'Caso B — Aumento no autorizado (administrativo)',desc:'Swiss Medical aumentó cuota 85% en un semestre sin autorización de la Superintendencia. 8 meses de exceso. Normas: Ley 26.682 + arts. 37, 4 LDC.',resultado:'Reclamo SSS + Dirección de Consumidor. Reintegro de $240.000 en diferencias de cuota en 40 días'},
+      {titulo:'Caso C — Exclusión de preexistencia (civil, sentencia)',desc:'Rechazaron cobertura de diabetes diagnosticada DESPUÉS de contratar. Historia clínica acreditó diagnóstico posterior.',resultado:'Sentencia: cobertura ordenada + $300.000 gastos + $500.000 moral + $700.000 punitivo = $1.500.000. Hon. 20%: $300.000'}
+    ],
+    honorarios: {adm:'Honorario fijo por gestión. Mayor urgencia = mayor disposición a pagar una gestión rápida', civil:'20-25% del total cobrado', ejemplo:'Cirugía rechazada pagada de bolsillo → Emergente $970.000 + Intereses $200.000 + Moral $600.000 + Punitivo $900.000 = $2.670.000 → Hon. 20%: $534.000 / 25%: $667.500'}
+  },
+  s4: {
+    nombre: 'Sector 4 — Bancos y tarjetas de crédito',
+    empresas: 'Santander · BBVA · Galicia · Macro · Nación · Naranja X · Visa · Mastercard',
+    intro: 'Los bancos son los demandados más solventes: cuando hay condena con punitivo, el cobro es seguro. Las conductas son masivas y sistemáticas — el art. 52 bis LDC es casi siempre aplicable.',
+    casos: [
+      'Seguros adheridos al resumen sin consentimiento del titular (el más común)',
+      'Comisiones y cargos no informados al contratar la cuenta o tarjeta',
+      'Tasas de interés abusivas en préstamos o saldos financiados',
+      'Débitos automáticos no autorizados',
+      'Bloqueo de cuenta sin notificación',
+      'Préstamos UVA: cuotas impagables por la evolución del índice',
+      'Incumplimiento de promociones o beneficios publicados'
+    ],
+    normas: ['Ley 24.240 LDC: arts. 1, 2, 4, 37, 50, 52 bis','Ley 25.065 (Tarjetas): intereses compensatorios ≤ 25% de la tasa al comercio adherido; punitorios ≤ 150% de los compensatorios','CCCN arts. 1378–1420: contratos bancarios — información y transparencia','Circulares BCRA: verificar circular aplicable al tipo de producto','Art. 771 CCCN: usura — reducción judicial de intereses abusivos'],
+    pasos: {
+      consulta: ['Identificar el tipo de reclamo (seguro no contratado / comisión / tasa abusiva / débito no autorizado)','Verificar prescripción (art. 50 LDC — 3 años desde cada cobro indebido)','Documentación: resúmenes 12 meses + contrato de apertura o tarjeta + comunicaciones del banco + contrato de préstamo con TNA y TEA si aplica','Calcular el daño con precisión desde los resúmenes — ventaja del sector: el daño es exacto y documentado'],
+      adm: ['DOBLE VÍA: BCRA (www.bcra.gob.ar — Usuarios Financieros) + Dirección de Consumidor en paralelo — genera doble presión para acordar rápido','BCRA especialmente efectivo para bloqueos, débitos no autorizados y tasas — el banco debe responder en plazos estrictos ante el regulador','Los bancos quieren evitar sanciones del BCRA y de Consumidor al mismo tiempo'],
+      civil: ['Mediación prejudicial (Ley 8858) · Los bancos sí envían representantes con facultades de acordar — aprovecharla bien','Rubros: emergente exacto desde resúmenes + intereses + moral (historial de reclamos frustrados, bloqueo de cuenta) + punitivo (conducta masiva y lucrativa)','Prueba: resúmenes + contrato + comunicaciones + informativa al banco + informativa al BCRA (antecedentes de sanciones — refuerza punitivo significativamente) + pericial contable en tasas abusivas','Tasas: verificar Ley 25.065 arts. 16 y 18 si es tarjeta o préstamo']
+    },
+    ejemplos: [
+      {titulo:'Caso A — Seguros en resumen de tarjeta (civil, acuerdo)',desc:'Banco Galicia cobró 3 seguros ($9.200/mes) durante 22 meses. Normas: art. 37 LDC + art. 52 bis + Ley 25.065 art. 5.',resultado:'Acuerdo en mediación: $202.400 reintegro + $600.000 compensación = $802.400. Hon. 20%: $160.480'},
+      {titulo:'Caso B — Tasa abusiva en préstamo personal (civil, sentencia)',desc:'TEA 280% en préstamo personal. Pericia contable calculó intereses en exceso. Normas: Ley 25.065 arts. 16 y 18 + art. 37 LDC + art. 771 CCCN.',resultado:'Sentencia: redujo la tasa + reintegro $380.000 intereses en exceso + $200.000 moral = $580.000. Hon. 20%: $116.000'},
+      {titulo:'Caso C — Débito no autorizado (BCRA + administrativo)',desc:'8 débitos a empresa de streaming no contratada ($4.500/mes). Normas: CCCN art. 1399 + art. 37 LDC + art. 4 LDC.',resultado:'BCRA notificó al banco. En 15 días: reintegro $36.000 + reversión de todos los débitos futuros'}
+    ],
+    honorarios: {adm:'Honorario fijo por gestión. Los bancos resuelven rápido ante BCRA cuando el reclamo está bien fundado', civil:'20-25% del total cobrado', ejemplo:'3 seguros $8.500/mes × 24 meses → Emergente $204.000 + Intereses $70.000 + Moral $250.000 + Punitivo $700.000 = $1.224.000 → Hon. 20%: $244.800 / 25%: $306.000'}
+  },
+  s5: {
+    nombre: 'Sector 5 — E-commerce y plataformas digitales',
+    empresas: 'MercadoLibre · Amazon · Tiendanube · Apps de delivery · Netflix · Spotify',
+    intro: 'Volumen alto de consultas, montos individuales bajos a medios, casos estandarizables. El cliente tiene el problema documentado y puede completar el formulario de precalificación sin ayuda.',
+    casos: [
+      'Incumplimiento del plazo de entrega (el más común)',
+      'Producto recibido diferente al publicado o con defectos',
+      'Derecho de arrepentimiento no respetado (art. 34 LDC — 10 días, sin cargo)',
+      'Cancelación de compra por el vendedor sin reintegro rápido',
+      'Cobro de suscripción después de solicitar la cancelación',
+      'Cláusulas de prórroga de jurisdicción al extranjero (nulas — art. 2654 CCCN)',
+      'Publicidad engañosa sobre precio final'
+    ],
+    normas: ['Ley 24.240 LDC: arts. 1, 2, 4, 8, 34, 37, 50, 52 bis','Art. 34 LDC: arrepentimiento — 10 días corridos desde entrega, sin responsabilidad alguna, sin cargo para el consumidor','Art. 8 LDC: precio publicado es precio final — no se pueden agregar costos después','Art. 11 LDC: garantía legal — 6 meses cosas usadas / 1 año cosas nuevas desde entrega','Art. 2654 CCCN: jurisdicción extranjera en contratos de consumo = NULA. El consumidor siempre puede demandar en Córdoba'],
+    pasos: {
+      consulta: ['Identificar tipo de reclamo (entrega incumplida / producto diferente / arrepentimiento / suscripción post-cancelación)','Verificar prescripción (art. 50 LDC): entrega → desde fecha prometida incumplida; defecto → desde que se detectó; arrepentimiento → desde el rechazo','Documentación: captura de la publicación + confirmación de compra + historial del pedido + comunicaciones + fotos del producto recibido + solicitud de arrepentimiento y respuesta del proveedor','⚠️ Evaluar el umbral de rentabilidad: para vía civil necesita monto > $300.000 O conducta reiterada O daño moral acreditable O punitivo procedente'],
+      adm: ['Primer paso: reclamo en la plataforma (MercadoLibre tiene sistema de mediación propio — resuelve en días). Si no resuelve en 7-10 días: pasa a Consumidor con ese antecedente','Dirección de Consumidor: daño documentable → conciliación rápida','En plataformas extranjeras con jurisdicción en el extranjero: citar art. 2654 CCCN para fundar competencia en Córdoba'],
+      civil: ['Mediación prejudicial (Ley 8858)','Rubros: emergente (precio o lucro cesante si era insumo laboral) + intereses + moral (si era regalo o insumo crítico) + punitivo (conducta sistemática del vendedor/plataforma) + en arrepentimiento rechazado: punitivo por ignorar derecho del art. 34 LDC','Prueba: publicación + confirmación de compra + comunicaciones + capturas de reviews similares de otros consumidores (acredita carácter sistemático) + informativa a la plataforma sobre historial de reclamos del vendedor','⚠️ En plataformas extranjeras: citar SIEMPRE art. 2654 CCCN en la demanda — es el primer argumento que cuestionarán']
+    },
+    ejemplos: [
+      {titulo:'Caso A — Arrepentimiento rechazado (administrativo, acuerdo rápido)',desc:'Ropa online $85.000, talla incorrecta. La tienda rechazó devolución con "política de no devoluciones en ropa a medida" cuando no era a medida. Normas: art. 34 LDC + art. 37 LDC.',resultado:'Denuncia en Dirección de Consumidor. Acuerdo en 20 días: reintegro completo de $85.000'},
+      {titulo:'Caso B — Producto diferente al publicado (civil, acuerdo)',desc:'TV 4K 65" → recibió TV 32" HD. Vendedor y plataforma no resolvieron. Normas: arts. 8, 18, 52 bis LDC.',resultado:'Acuerdo en mediación: reintegro $380.000 + compensación $350.000 = $730.000. Hon. 20%: $146.000'},
+      {titulo:'Caso C — Suscripción post-cancelación con jurisdicción extranjera (civil)',desc:'Software cobró $12.500/mes × 11 meses post-cancelación. Cláusula de jurisdicción en Delaware (EE.UU.). Normas: art. 34 LDC + art. 2654 CCCN + art. 52 bis LDC.',resultado:'Adm: reintegro $137.500. Demanda civil adicional: acuerdo $600.000. Total: $737.500'}
+    ],
+    honorarios: {adm:'Honorario fijo bajo o sin cargo (montos base bajos en e-commerce — el cliente puede gestionar con un instructivo)', civil:'20-25% del total cobrado · Evaluar bien el umbral de rentabilidad antes de tomar el caso para vía civil', ejemplo:'Equipamiento laboral $650.000 no entregado → Emergente $650.000 + Lucro cesante $300.000 + Moral $200.000 + Punitivo $400.000 = $1.550.000 → Hon. 20%: $310.000 / 25%: $387.500'}
+  }
+};
+
+function capMostrarSector(){
+  var v=document.getElementById('cap-sector').value;
+  document.getElementById('cap-intro').style.display=v==='intro'?'block':'none';
+  document.getElementById('cap-sector-content').style.display=['s1','s2','s3','s4','s5'].includes(v)?'block':'none';
+  document.getElementById('cap-checklists').style.display=v==='checklists'?'block':'none';
+  document.getElementById('cap-tabla').style.display=v==='tabla'?'block':'none';
+  if(['s1','s2','s3','s4','s5'].includes(v)) renderCapSector(v);
+}
+
+function renderCapSector(key){
+  var s=CAP_SECTORES[key];
+  var tabs=['consulta','adm','civil','ejemplos','honorarios'];
+  var tabLabels={consulta:'1. Consulta inicial',adm:'2. Vía administrativa',civil:'3. Vía civil',ejemplos:'4. Ejemplos prácticos',honorarios:'5. Honorarios'};
+  document.getElementById('cap-sector-tabs').innerHTML=tabs.map(function(t){
+    return '<button class="tab'+(t==='consulta'?' active':'')+'" onclick="capTab(\''+t+'\',\''+key+'\')" id="captab-'+t+'">'+tabLabels[t]+'</button>';
+  }).join('');
+  capRenderTab('consulta',s);
+}
+
+function capTab(t,key){
+  document.querySelectorAll('#cap-sector-tabs .tab').forEach(function(b){b.className='tab';});
+  document.getElementById('captab-'+t).className='tab active';
+  capRenderTab(t,CAP_SECTORES[key]);
+}
+
+function capRenderTab(t,s){
+  var html='';
+  if(t==='consulta'||t==='adm'||t==='civil'){
+    var steps=s.pasos[t==='adm'?'adm':t==='civil'?'civil':'consulta']||[];
+    html='<div class="grid2" style="margin-bottom:12px">';
+    html+='<div class="card" style="margin-bottom:0"><div class="card-title">'+s.nombre+'</div>';
+    html+='<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">'+s.intro+'</div>';
+    html+='<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Casos frecuentes</div>';
+    html+=s.casos.map(function(c){return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="color:var(--blue);flex-shrink:0">›</span><span style="font-size:12px;color:var(--text2)">'+c+'</span></div>';}).join('');
+    html+='</div>';
+    html+='<div class="card" style="margin-bottom:0"><div class="card-title">Pasos — '+(t==='consulta'?'Consulta inicial':t==='adm'?'Vía administrativa':'Vía civil directa')+'</div>';
+    steps.forEach(function(step,i){
+      var isAlert=step.startsWith('⚠️');
+      html+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)'+(i===steps.length-1?';border-bottom:none':'')+'">'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:'+(isAlert?'var(--orange-bg)':'var(--blue-bg)')+';color:'+(isAlert?'var(--orange)':'var(--blue)')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(isAlert?'!':i+1)+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);line-height:1.5">'+step+'</div>'+
+      '</div>';
+    });
+    html+='</div></div>';
+    if(t==='consulta'){
+      html+='<div class="card"><div class="card-title">Normativa aplicable</div><div style="display:flex;flex-wrap:wrap;gap:6px">';
+      html+=s.normas.map(function(n){return '<span class="badge b-blue" style="font-size:10px;padding:4px 8px;text-transform:none;letter-spacing:0;font-weight:400">'+n+'</span>';}).join('');
+      html+='</div></div>';
+    }
+  } else if(t==='ejemplos'){
+    html='<div style="display:flex;flex-direction:column;gap:10px">';
+    s.ejemplos.forEach(function(e){
+      html+='<div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">'+e.titulo+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">'+e.desc+'</div>'+
+        '<div style="background:var(--green-bg);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--green)">✓ '+e.resultado+'</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  } else if(t==='honorarios'){
+    html='<div class="grid2" style="margin-bottom:12px">'+
+      '<div class="card" style="margin-bottom:0"><div class="card-title">Vía administrativa</div><div style="font-size:12px;color:var(--text2);line-height:1.6">'+s.honorarios.adm+'</div></div>'+
+      '<div class="card" style="margin-bottom:0"><div class="card-title">Vía civil directa</div><div style="font-size:14px;font-weight:600;color:var(--green);margin-bottom:8px">'+s.honorarios.civil+'</div></div>'+
+    '</div>'+
+    '<div class="card"><div class="card-title">Ejemplo de liquidación</div><div style="font-size:12px;color:var(--text2);line-height:1.8;font-family:monospace;white-space:pre-wrap">'+s.honorarios.ejemplo+'</div></div>';
+  }
+  document.getElementById('cap-sector-body').innerHTML=html;
+}
+
+function resetChecklist(id){
+  document.getElementById(id).querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
+}
+
 
 // ─── INIT ───
 function initApp(){
