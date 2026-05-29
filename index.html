@@ -305,7 +305,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
     <button class="nav-btn" onclick="goTo('documentos')">Modelos</button>
-    <button class="nav-btn" onclick="goTo('capacitacion')">Capacitación</button>
+    <button class="nav-btn" onclick="goTo('capacitacion')">Derecho del Consumidor</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -671,25 +671,22 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="section" id="sec-capacitacion">
   <div class="page-header">
     <div>
-      <div class="page-title">Capacitación interna</div>
-      <div class="page-sub">Defensa del consumidor · Material de uso interno del equipo · Mayo 2026</div>
+      <div class="page-title">Derecho del Consumidor</div>
+      <div class="page-sub">Material de uso interno del equipo · Parte I: Marco General · Parte II: Los Cinco Sectores · Parte III: Herramientas · Mayo 2026</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <select class="fs" id="cap-sector" onchange="capMostrarSector()" style="font-size:12px;padding:6px 12px;width:auto">
         <optgroup label="Parte I — Marco General">
           <option value="intro">Marco general completo</option>
         </optgroup>
-        <optgroup label="Parte II — Modelo de Volumen">
-          <option value="volumen">Modelo de volumen</option>
-        </optgroup>
-        <optgroup label="Parte III — Los Cinco Sectores">
+        <optgroup label="Parte II — Los Cinco Sectores">
           <option value="s1">Sector 1 — Telecomunicaciones</option>
           <option value="s2">Sector 2 — Planes de ahorro</option>
           <option value="s3">Sector 3 — Medicina prepaga</option>
           <option value="s4">Sector 4 — Bancos y tarjetas</option>
           <option value="s5">Sector 5 — E-commerce</option>
         </optgroup>
-        <optgroup label="Parte IV — Herramientas">
+        <optgroup label="Parte III — Herramientas">
           <option value="checklists">Checklists universales</option>
           <option value="tabla">Tabla comparativa</option>
           <option value="normativa">Índice de normativa</option>
@@ -705,69 +702,20 @@ input.currency-input{letter-spacing:0.5px;}
 
   <!-- MARCO GENERAL -->
   <div id="cap-intro">
-    <div class="grid2" style="margin-bottom:12px">
-      <div class="card" style="margin-bottom:0">
-        <div class="card-title">Normativa base</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="row-item"><div class="avatar av-blue" style="width:36px;height:36px;font-size:10px;border-radius:8px">LDC</div><div class="row-info"><div class="row-name">Ley 24.240 — Defensa del Consumidor</div><div class="row-sub">Norma nacional · Define derechos del consumidor y régimen de sanciones</div></div></div>
-          <div class="row-item"><div class="avatar av-purple" style="width:36px;height:36px;font-size:10px;border-radius:8px">Prov</div><div class="row-info"><div class="row-name">Ley Provincial 10.247 (Córdoba)</div><div class="row-sub">Procedimiento administrativo ante autoridad de aplicación provincial</div></div></div>
-          <div class="row-item"><div class="avatar av-green" style="width:36px;height:36px;font-size:10px;border-radius:8px">CCN</div><div class="row-info"><div class="row-name">CCCN arts. 1092–1122 + art. 1741</div><div class="row-sub">Contrato de consumo · Daño extrapatrimonial (daño moral)</div></div></div>
-          <div class="row-item"><div class="avatar av-orange" style="width:36px;height:36px;font-size:10px;border-radius:8px">Med</div><div class="row-info"><div class="row-name">Ley 8858 (Córdoba)</div><div class="row-sub">Mediación prejudicial obligatoria para demandas civiles</div></div></div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div class="card-title">Las tres vías y cómo se encadenan</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
-            <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:4px">VÍA 1 — ADMINISTRATIVA</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.4">Gratuita · Sin abogado obligatorio · Denuncia → Audiencia → Acuerdo o sumario → Multa al Estado</div>
-          </div>
-          <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
-            <div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:4px">VÍA 2 — RECURSO JUDICIAL</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.4">Apelación de resolución administrativa → Cámara Civil y Comercial de turno</div>
-          </div>
-          <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
-            <div style="font-size:11px;font-weight:600;color:var(--purple);margin-bottom:4px">VÍA 3 — DEMANDA CIVIL DIRECTA ⭐</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.4">Independiente de la administrativa · Daño emergente + intereses + daño moral (art. 1741) + daño punitivo (art. 52 bis) · <strong>Las vías 1 y 3 corren en paralelo</strong></div>
-          </div>
-        </div>
-      </div>
+    <!-- ALERT -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1.25rem;font-size:12px;color:var(--text2);line-height:1.5">
+      <strong>Marco general</strong> — Todo lo que el equipo necesita entender antes de tomar el primer caso. Leelo de principio a fin la primera vez; después usá cada sección para consultar rápido.
     </div>
-    <div class="grid2" style="margin-bottom:12px">
-      <div class="card" style="margin-bottom:0">
-        <div class="card-title">Daño punitivo — art. 52 bis LDC ⭐ El rubro clave</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Multa civil a favor del consumidor cuando el proveedor no cumple sus obligaciones legales o contractuales.</div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase">Requisitos para que proceda</div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-size:14px;margin-top:-1px">✓</span><span style="font-size:12px;color:var(--text2)">Dolo o culpa grave del proveedor</span></div>
-          <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-size:14px;margin-top:-1px">✓</span><span style="font-size:12px;color:var(--text2)">Conducta lucrativa (cobro masivo a muchos usuarios)</span></div>
-          <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-size:14px;margin-top:-1px">✓</span><span style="font-size:12px;color:var(--text2)">Desprecio sistemático hacia los derechos del consumidor</span></div>
-        </div>
-        <div style="background:var(--green-bg);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--green)">Monto: 2 a 10 veces el daño real según las Cámaras de Córdoba. Verificar criterio actualizado.</div>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div class="card-title">Prescripción — art. 50 LDC ⚠️ Primer filtro siempre</div>
-        <div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:10px 12px;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:600;color:var(--red);margin-bottom:4px">3 años desde cada acto dañoso</div>
-          <div style="font-size:12px;color:var(--text2)">En cobros indebidos: el plazo corre desde <strong>cada cobro individual</strong>, no desde el primero. Parte de los cobros puede estar prescripta aunque otros no.</div>
-        </div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase">Modelo de honorarios</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6">Igual que laboral: <strong>honorario sobre resultado, sin cobro anticipado.</strong><br>Vía civil: <strong>20 a 25% del total cobrado</strong> (emergente + intereses + moral + punitivo).<br>El punitivo puede multiplicar el resultado 5 a 10 veces.</div>
-      </div>
+
+    <!-- SUBSECTION TABS -->
+    <div class="tabs" id="intro-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
+      <button class="tab active" onclick="introTab('sistema')">1. El sistema legal</button>
+      <button class="tab" onclick="introTab('vias')">2. Las tres vías</button>
+      <button class="tab" onclick="introTab('punitivo')">3. Daño punitivo</button>
+      <button class="tab" onclick="introTab('prescripcion')">4. Prescripción</button>
+      <button class="tab" onclick="introTab('autoridades')">5. Autoridades</button>
     </div>
-    <div class="card">
-      <div class="card-title">Autoridades de aplicación en Córdoba Capital</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div style="background:var(--bg3);border-radius:8px;padding:12px">
-          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">Dirección Provincial</div>
-          <div style="font-size:11px;color:var(--text2);line-height:1.6">Tucumán 176, Córdoba Capital<br>Lun-Vie 8 a 20 hs · También online<br>Ley 24.240 + Ley Provincial 10.247<br>Gratuito · Sin patrocinio obligatorio</div>
-        </div>
-        <div style="background:var(--bg3);border-radius:8px;padding:12px">
-          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">Dirección Municipal</div>
-          <div style="font-size:11px;color:var(--text2);line-height:1.6">Municipalidad de Córdoba<br>Presencial y virtual<br>Bancos · Telefonía · Internet · Cable<br>Planes de ahorro · Medicina prepaga</div>
-        </div>
-      </div>
-    </div>
+    <div id="intro-content"></div>
   </div>
 
   <!-- SECTORES 1-5 -->
@@ -815,52 +763,7 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
   </div>
 
-  <!-- MODELO DE VOLUMEN -->
-  <div id="cap-volumen" style="display:none">
-    <div class="card">
-      <div class="card-title">El problema de escala con publicidad</div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">Un anuncio bien segmentado puede generar 30 a 100 consultas por semana. Atender cada una individualmente hace que el modelo no cierre económicamente — la mayoría serán prescriptas, de monto mínimo, o sin documentación. La solución: un sistema de dos etapas.</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">
-        <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:6px">PASO 1 — El cliente llega por el anuncio</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.5">Ve el anuncio (Instagram, Facebook, Google). Hace clic y llega a un formulario de precalificación. No habla con nadie del estudio todavía. Todo automático.</div>
-      </div>
-      <div class="card" style="margin-bottom:0;border-left:3px solid var(--purple)">
-        <div style="font-size:12px;font-weight:600;color:var(--purple);margin-bottom:8px">PASO 2 — Formulario de precalificación (5 preguntas, máximo 3 minutos)</div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text2)"><strong>1.</strong> ¿Cuál es el tipo de empresa? (telecos / plan de ahorro / banco o tarjeta / salud / compra online / otro)</div>
-          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text2)"><strong>2.</strong> ¿Qué problema estás teniendo? (descripción breve o selección por sector)</div>
-          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text2)"><strong>3.</strong> ¿Desde cuándo ocurre? (mes y año) → calcula automáticamente si hay prescripción vigente</div>
-          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text2)"><strong>4.</strong> ¿Cuánto es el monto mensual? (menos de $5.000 / $5.000 a $20.000 / $20.000 a $50.000 / más de $50.000)</div>
-          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text2)"><strong>5.</strong> ¿Tenés documentación? (facturas / contrato / capturas / historial de reclamos / ninguna)</div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:0;border-left:3px solid var(--green)">
-        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px">PASO 3 — Clasificación automática en tres grupos</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-          <div style="background:var(--green-bg);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">GRUPO A (~25-30%)</div><div style="font-size:11px;color:var(--text2);line-height:1.4">Monto significativo + prescripción vigente + documentación. Pasan a consulta con abogado en 24-48 hs</div></div>
-          <div style="background:var(--orange-bg);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px">GRUPO B (~45%)</div><div style="font-size:11px;color:var(--text2);line-height:1.4">Monto bajo o prescripción parcial. Reciben instructivo automatizado para gestión propia en Dirección de Consumidor</div></div>
-          <div style="background:var(--red-bg);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">GRUPO C (~25%)</div><div style="font-size:11px;color:var(--text2);line-height:1.4">Prescripto + sin documentación + monto mínimo. Respuesta automática explicando por qué no hay caso</div></div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:0;border-left:3px solid var(--orange)">
-        <div style="font-size:12px;font-weight:600;color:var(--orange);margin-bottom:6px">PASO 4 — Consulta con abogado (solo Grupo A)</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">El abogado atiende al cliente ya clasificado y con información previa. No arranca de cero. Objetivo: confirmar la clasificación, revisar la documentación, calcular el daño exacto, definir la estrategia.</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px"><span class="badge b-blue">1. Revisar documentación</span><span class="badge b-blue">2. Calcular daño exacto</span><span class="badge b-blue">3. Evaluar punitivo</span><span class="badge b-blue">4. Definir vía</span><span class="badge b-blue">5. Firmar acuerdo de honorarios</span><span class="badge b-blue">6. Abrir expediente interno</span></div>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Ejemplo de semana tipo con publicidad activa en telecos</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">
-          <div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:var(--text)">60</div><div style="font-size:10px;color:var(--text3)">Consultas al formulario</div></div>
-          <div style="background:var(--red-bg);border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:var(--red)">15</div><div style="font-size:10px;color:var(--text3)">Descartados automáticamente</div></div>
-          <div style="background:var(--orange-bg);border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:var(--orange)">27</div><div style="font-size:10px;color:var(--text3)">Instructivo administrativo</div></div>
-          <div style="background:var(--green-bg);border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:var(--green)">18</div><div style="font-size:10px;color:var(--text3)">Consulta con abogado</div></div>
-        </div>
-        <div style="margin-top:8px;font-size:12px;color:var(--text2);text-align:center">El abogado invierte tiempo real en 18 casos, no en 60.</div>
-      </div>
-    </div>
-  </div>
+
 
   <!-- ÍNDICE DE NORMATIVA -->
   <div id="cap-normativa" style="display:none">
@@ -1244,6 +1147,7 @@ function goTo(s){
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
+  if(s==='capacitacion'){setTimeout(function(){introTab('sistema');},50);}
   
 }
 
@@ -3582,16 +3486,131 @@ var CAP_SECTORES = {
   }
 };
 
+
+// ─── INTRO TABS ───
+var INTRO_DATA = {
+  sistema: {
+    title: '1. El sistema legal — cómo funciona la defensa del consumidor',
+    html: function(){
+      return '<div class="card" style="margin-bottom:12px"><div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">La relación entre una empresa y un cliente que le compra un producto o le contrata un servicio se llama <strong>RELACIÓN DE CONSUMO</strong>. El derecho argentino reconoce que hay una parte más poderosa (la empresa) y una más débil (el cliente). La norma central es la <strong>Ley 24.240 (LDC)</strong>. Su art. 3 establece que en caso de duda, siempre se interpreta a favor del consumidor. Tiene jerarquía constitucional: art. 42 CN.</div>' +
+      '<div class="card-title">Las normas que el equipo usa todos los días</div>' +
+      [
+        ['Art. 1 LDC','Consumidor es quien adquiere o usa bienes o servicios como destinatario final. <em>Para qué sirve:</em> primer check de toda consulta.'],
+        ['Art. 2 LDC','Proveedor es quien en forma profesional produce, importa, distribuye o presta servicios con ánimo de lucro. Claro, un banco, una prepaga, MercadoLibre: todos son proveedores.'],
+        ['Art. 3 LDC','En caso de duda, siempre se resuelve a favor del consumidor. <strong>Es la regla de desempate de todo el área.</strong>'],
+        ['Art. 4 LDC','Deber de información cierta, clara, detallada y gratuita. Cualquier vez que la empresa no informó algo relevante, hay infracción.'],
+        ['Art. 8 LDC','La publicidad integra el contrato y es exigible aunque no esté en el texto escrito.'],
+        ['Art. 10 ter LDC','El consumidor puede cancelar por el mismo medio que contrató. Prohíbe la "baja hostil".'],
+        ['Art. 11 LDC','Garantía legal: 1 año bienes nuevos / 6 meses usados desde la entrega.'],
+        ['Art. 34 LDC','Arrepentimiento en ventas online: 10 días corridos desde la entrega, sin cargo, sin dar razones.'],
+        ['Art. 37 LDC','Cláusulas abusivas: nulas de pleno derecho aunque el cliente haya "firmado". Aplica a cargos escondidos, penalidades desproporcionadas, actualizaciones sin tope.'],
+        ['Art. 45 LDC','La autoridad actúa como conciliador antes del sumario.'],
+        ['Art. 47 LDC','Multas al proveedor. Van al Estado, no al cliente. Por eso siempre sumar la vía civil.'],
+        ['Art. 50 LDC','Prescripción: 3 años desde cada acto dañoso. Primer filtro de toda consulta.'],
+        ['Art. 52 bis LDC','Daño punitivo: multa civil a favor del consumidor cuando el proveedor actuó con dolo o culpa grave. El rubro que transforma el modelo de honorarios.'],
+        ['Art. 53 LDC','Inversión de la carga de la prueba: el proveedor debe aportar todos los elementos probatorios. No es el consumidor quien prueba que no contrató el seguro: es la empresa quien prueba que sí lo contrató.'],
+        ['Art. 2654 CCCN','Prórroga de jurisdicción al extranjero = nula. El consumidor siempre puede demandar en Córdoba. Habilita demandar a Netflix, Adobe, Spotify, Amazon directamente en Córdoba.'],
+      ].map(function(r){
+        return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="min-width:110px;font-size:11px;font-weight:700;color:var(--blue)">'+r[0]+'</div><div style="font-size:12px;color:var(--text2);line-height:1.5">'+r[1]+'</div></div>';
+      }).join('') + '</div>';
+    }
+  },
+  vias: {
+    title: '2. Las tres vías y cómo se articulan',
+    html: function(){
+      return '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">' +
+        '<div class="card" style="margin-bottom:0;border-left:3px solid var(--green)"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">VÍA 1 — ADMINISTRATIVA (gratuita, sin abogado obligatorio)</div><div style="font-size:12px;color:var(--text2);line-height:1.6">El consumidor denuncia ante la Dirección Provincial o Municipal. La autoridad convoca a audiencia conciliatoria. Si hay acuerdo: se homologa. Si no: sumario y multa al proveedor.<br><strong>Qué obtiene el cliente:</strong> reintegro o cumplimiento del servicio. No hay daño moral ni punitivo. La multa va al Estado, no al cliente.<br><strong>Tiempo:</strong> 30-60 días.</div></div>' +
+        '<div class="card" style="margin-bottom:0;border-left:3px solid var(--text3)"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px">VÍA 2 — RECURSO JUDICIAL CONTRA RESOLUCIÓN ADMINISTRATIVA</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Apelación ante la Cámara Civil y Comercial de turno. Continuación de la vía administrativa. En la práctica es menos usada que la Vía 3 porque cuando hay potencial de daño moral y punitivo conviene ir a civil desde el inicio.</div></div>' +
+        '<div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)"><div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">VÍA 3 — DEMANDA CIVIL DIRECTA ⭐</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Demanda directamente ante los Juzgados Civil y Comercial de Córdoba, independientemente de lo que ocurra en la vía administrativa. Puede iniciarse antes, durante o después.<br><strong>Qué obtiene el cliente:</strong> daño emergente + intereses + daño moral + daño punitivo.<br><strong>Tiempo:</strong> 6-18 meses.</div></div>' +
+        '<div style="background:var(--blue-bg);border-radius:var(--radius);padding:12px 14px;font-size:12px;color:var(--blue)"><strong>Estrategia más habitual:</strong> Vía 1 + Vía 3 corriendo en paralelo. La multa administrativa va al Estado; la indemnización civil va al cliente. Son independientes y compatibles.</div>' +
+      '</div>' +
+      '<div class="card"><div class="card-title">Comparativa de lo que obtiene el cliente</div><div style="overflow-x:auto"><table><tr><th>Rubro</th><th>Vía Administrativa</th><th>Vía Civil</th></tr>' +
+      '<tr><td>Reintegro/cumplimiento</td><td style="color:var(--green)">✓ Sí</td><td style="color:var(--green)">✓ Sí</td></tr>' +
+      '<tr><td>Intereses</td><td style="color:var(--red)">✗ No</td><td style="color:var(--green)">✓ Sí</td></tr>' +
+      '<tr><td>Daño moral</td><td style="color:var(--red)">✗ No</td><td style="color:var(--green)">✓ Sí (art. 1741 CCCN)</td></tr>' +
+      '<tr><td>Daño punitivo</td><td style="color:var(--red)">✗ No</td><td style="color:var(--green)">✓ Sí (art. 52 bis LDC)</td></tr>' +
+      '<tr><td>Multa al proveedor</td><td style="color:var(--orange)">Va al Estado</td><td style="color:var(--text3)">No aplica</td></tr>' +
+      '<tr><td>Tiempo estimado</td><td>30-60 días</td><td>6-18 meses</td></tr>' +
+      '<tr><td>Requiere abogado</td><td>No obligatorio</td><td>Sí, siempre</td></tr>' +
+      '</table></div></div>';
+    }
+  },
+  punitivo: {
+    title: '3. El daño punitivo — el rubro que cambia la ecuación',
+    html: function(){
+      return '<div class="grid2" style="margin-bottom:12px">' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Qué es</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Es una multa civil que el juez impone al proveedor <strong>a favor del consumidor</strong>, por encima de la reparación del daño real. No compensa un daño específico del cliente: castiga la conducta del proveedor y la disuade para que no la repita. Lo establece el <strong>art. 52 bis LDC</strong>.</div>' +
+        '<div style="background:var(--green-bg);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:11px;color:var(--green)"><strong>Analogía con el laboral:</strong> El punitivo del art. 52 bis LDC cumple el mismo rol que el art. 2 de la Ley 25.323 en laboral. Un cobro indebido de $150.000 con punitivo puede convertirse en una condena de $900.000. Esa diferencia de 6x es lo que cierra el modelo económico.</div></div>' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Cuándo procede</div><div style="display:flex;flex-direction:column;gap:6px">' +
+        ['La conducta es masiva y sistemática (no un error aislado — una pauta deliberada que afecta a miles simultáneamente)','El proveedor obtiene un beneficio económico directo. Un seguro no contratado de $8.000/mes cobrado a 500.000 clientes = $4.000.000.000/mes. No es un error, es una decisión de negocio','El proveedor ignoró reclamos individuales porque el costo de ignorarlos era menor que el beneficio de continuar','El proveedor no corrigió voluntariamente cuando tuvo la oportunidad'].map(function(t){return '<div style="display:flex;gap:8px"><span style="color:var(--green);flex-shrink:0">✓</span><span style="font-size:12px;color:var(--text2)">'+t+'</span></div>';}).join('') +
+        '</div></div></div>' +
+        '<div class="card"><div class="card-title">Cuánto puede ser</div><div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Lo fija el juez. La ley no establece un múltiplo fijo. Varía según la envergadura del demandado, la magnitud de la conducta, y el criterio de la sala actuante en Córdoba.</div>' +
+        '<div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--orange)"><strong>Rango orientativo:</strong> 2 a 8 veces el daño real. <strong>REGLA OPERATIVA:</strong> antes de cuantificar el punitivo en la demanda, verificar jurisprudencia actualizada de las Cámaras Civiles y Comerciales de Córdoba. Los montos varían y usar criterios desactualizados genera expectativas incorrectas.</div></div>';
+    }
+  },
+  prescripcion: {
+    title: '4. Prescripción — el primer filtro de toda consulta',
+    html: function(){
+      return '<div class="card" style="margin-bottom:12px">' +
+        '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px;margin-bottom:12px">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px">Art. 50 LDC — 3 años desde cada acto dañoso individual</div>' +
+        '<div style="font-size:12px;color:var(--text2);line-height:1.5">En cobros indebidos, el plazo corre desde <strong>cada cobro por separado</strong>, no desde el primero. Parte de los cobros puede estar prescripta aunque otros no.</div></div>' +
+        '<div class="card-title">Ejemplo concreto</div>' +
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Seguro no contratado cobrado desde enero 2021. Consulta: mayo 2026.<br>' +
+        '<span style="color:var(--red)">✗</span> <strong>Cobros prescriptos:</strong> enero 2021 a abril 2023. No se pueden reclamar.<br>' +
+        '<span style="color:var(--green)">✓</span> <strong>Cobros vigentes:</strong> mayo 2023 a mayo 2026 (36 meses). Se pueden reclamar.<br>' +
+        'Si el cobro era de $10.000/mes → daño emergente reclamable: $10.000 × 36 = <strong>$360.000</strong></div>' +
+        '<div class="card-title">Cómputo según el tipo de reclamo</div>' +
+        [['Cobros indebidos','Desde cada cobro individual'],['Negativa de cobertura en salud','Desde la fecha de la negativa'],['Demora en entrega','Desde la fecha de entrega comprometida incumplida'],['Rescisión abusiva','Desde la notificación de rescisión'],['Arrepentimiento rechazado','Desde el rechazo de la solicitud de devolución']].map(function(r){return '<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)"><div style="min-width:180px;font-size:11px;font-weight:600;color:var(--text)">'+r[0]+'</div><div style="font-size:12px;color:var(--text2)">'+r[1]+'</div></div>';}).join('') +
+        '</div>' +
+        '<div class="card"><div class="card-title">Cómo se suspende</div><div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">Cuando se presenta la solicitud de mediación prejudicial (Ley 8858 Córdoba), la prescripción se suspende automáticamente. Si está próxima a vencer, presentar la mediación <strong>antes</strong> de que se cumpla el plazo.</div>' +
+        '<div style="background:var(--orange-bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--orange)"><strong>REGLA OPERATIVA DEL EQUIPO:</strong> La prescripción es lo primero que se verifica en toda consulta, antes de analizar el fondo. Si todo está prescripto: explicar al cliente y cerrar. Si está parcialmente prescripto: recalcular el daño solo sobre el período vigente. Calcular mal la prescripción en la consulta inicial es el error más frecuente del área.</div></div>';
+    }
+  },
+  autoridades: {
+    title: '5. Autoridades de aplicación en Córdoba',
+    html: function(){
+      return '<div class="grid2" style="margin-bottom:12px">' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Dirección Provincial — Defensa del Consumidor</div>' +
+        '<div style="font-size:12px;color:var(--text2);line-height:1.7">📍 Tucumán 176, Córdoba Capital<br>⏰ Lun-Vie 8 a 20 hs · También online<br>Marco legal: Ley 24.240 + Ley Provincial 10.247<br>Gratuito, no requiere abogado.<br><em>Cuándo usarla:</em> casos de consumo masivo (telecos, bancos, prepagas, e-commerce). Mayor experiencia en casos complejos y más capacidad de presión sobre empresas grandes.</div></div>' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Dirección Municipal — Consumidor y Mediación</div>' +
+        '<div style="font-size:12px;color:var(--text2);line-height:1.7">Municipalidad de Córdoba · Presencial y virtual<br>Bancos · Tarjetas · Telefonía · Internet · Cable · Planes de ahorro · Medicina prepaga<br><em>Cuándo usarla:</em> cuando hay demora en la Dirección Provincial, o cuando se quiere presentar en ambas en paralelo para mayor presión.</div></div></div>' +
+        '<div class="card" style="margin-bottom:12px"><div class="card-title">Organismos reguladores nacionales por sector</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+        [['📱 Telecos','ENACOM — enacom.gob.ar<br>Recibe reclamos y tiene antecedentes de sanciones. Los oficios al ENACOM refuerzan el punitivo.','b-blue'],['🏦 Bancos y tarjetas','BCRA — bcra.gob.ar (Usuarios Financieros)<br>Reclamo online, el banco debe responder en plazos estrictos. Muy efectivo combinado con Dirección de Consumidor.','b-purple'],['🏥 Medicina prepaga','SSS — sssalud.gob.ar<br>Muy efectiva para negativas del PMO y aumentos no autorizados. Las prepagas le temen más al regulador que a la Dirección de Consumidor.','b-green'],['🚗 Planes de ahorro','IGJ o CNV según la administradora. Verificar cuál corresponde al caso concreto al momento de la consulta.','b-orange']].map(function(r){return '<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">'+r[0]+'</div><div style="font-size:11px;color:var(--text2);line-height:1.5">'+r[1]+'</div></div>';}).join('') +
+        '</div></div>' +
+        '<div class="card"><div class="card-title">Estrategia general</div><div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">Para los sectores con regulador específico (bancos, salud, telecos): presentar el reclamo ante el regulador Y ante la Dirección de Consumidor en paralelo. La combinación de dos canales regulatorios genera más presión que uno solo y muchas empresas resuelven antes de que llegue a sumario.</div><div style="background:var(--bg3);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--text2)"><strong>Vía judicial en Córdoba:</strong> Juzgados Civil y Comercial (Código Procesal Civil, Ley 8465). Apelaciones ante la Cámara Civil y Comercial de turno. Mediación prejudicial obligatoria previa: Ley 8858 Córdoba.</div></div>';
+    }
+  }
+};
+
+function introTab(key){
+  document.querySelectorAll('#intro-tabs .tab').forEach(function(b){b.className='tab';});
+  var btn=document.getElementById('intro-tab-'+key);
+  if(!btn){
+    document.querySelectorAll('#intro-tabs .tab').forEach(function(b,i){
+      if(b.getAttribute('onclick')==="introTab('"+key+"')") b.className='tab active';
+    });
+  }
+  var d=INTRO_DATA[key];
+  if(!d) return;
+  document.getElementById('intro-content').innerHTML='<div class="card-title" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">'+d.title+'</div>'+d.html();
+}
+
 function capMostrarSector(){
   var v=document.getElementById('cap-sector').value;
-  var all=['cap-intro','cap-sector-content','cap-checklists','cap-tabla','cap-volumen','cap-normativa'];
+  var all=['cap-intro','cap-sector-content','cap-checklists','cap-tabla','cap-normativa'];
   all.forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
-  if(v==='intro') document.getElementById('cap-intro').style.display='block';
-  else if(v==='volumen') document.getElementById('cap-volumen').style.display='block';
-  else if(v==='checklists') document.getElementById('cap-checklists').style.display='block';
-  else if(v==='tabla') document.getElementById('cap-tabla').style.display='block';
-  else if(v==='normativa') document.getElementById('cap-normativa').style.display='block';
-  else if(['s1','s2','s3','s4','s5'].includes(v)){
+  if(v==='intro'){
+    document.getElementById('cap-intro').style.display='block';
+    introTab('sistema');
+  } else if(v==='checklists'){
+    document.getElementById('cap-checklists').style.display='block';
+  } else if(v==='tabla'){
+    document.getElementById('cap-tabla').style.display='block';
+  } else if(v==='normativa'){
+    document.getElementById('cap-normativa').style.display='block';
+  } else if(['s1','s2','s3','s4','s5'].includes(v)){
     document.getElementById('cap-sector-content').style.display='block';
     renderCapSector(v);
   }
