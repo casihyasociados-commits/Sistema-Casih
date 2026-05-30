@@ -3493,25 +3493,44 @@ var INTRO_DATA = {
     title: '1. El sistema legal — cómo funciona la defensa del consumidor',
     html: function(){
       return '<div class="card" style="margin-bottom:12px"><div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">La relación entre una empresa y un cliente que le compra un producto o le contrata un servicio se llama <strong>RELACIÓN DE CONSUMO</strong>. El derecho argentino reconoce que hay una parte más poderosa (la empresa) y una más débil (el cliente). La norma central es la <strong>Ley 24.240 (LDC)</strong>. Su art. 3 establece que en caso de duda, siempre se interpreta a favor del consumidor. Tiene jerarquía constitucional: art. 42 CN.</div>' +
-      '<div class="card-title">Las normas que el equipo usa todos los días</div>' +
+      '<div class="card-title">Las normas que usamos todos los días</div>' +
+      '<div style="font-size:12px;color:var(--text2);margin-bottom:12px">No hace falta memorizar toda la LDC. Estas son las normas que aparecen en casi todos los casos. Hacé clic en cada una para ver qué dice y por qué importa.</div>' +
       [
-        ['Art. 1 LDC','Consumidor es quien adquiere o usa bienes o servicios como destinatario final. <em>Para qué sirve:</em> primer check de toda consulta.'],
-        ['Art. 2 LDC','Proveedor es quien en forma profesional produce, importa, distribuye o presta servicios con ánimo de lucro. Claro, un banco, una prepaga, MercadoLibre: todos son proveedores.'],
-        ['Art. 3 LDC','En caso de duda, siempre se resuelve a favor del consumidor. <strong>Es la regla de desempate de todo el área.</strong>'],
-        ['Art. 4 LDC','Deber de información cierta, clara, detallada y gratuita. Cualquier vez que la empresa no informó algo relevante, hay infracción.'],
-        ['Art. 8 LDC','La publicidad integra el contrato y es exigible aunque no esté en el texto escrito.'],
-        ['Art. 10 ter LDC','El consumidor puede cancelar por el mismo medio que contrató. Prohíbe la "baja hostil".'],
-        ['Art. 11 LDC','Garantía legal: 1 año bienes nuevos / 6 meses usados desde la entrega.'],
-        ['Art. 34 LDC','Arrepentimiento en ventas online: 10 días corridos desde la entrega, sin cargo, sin dar razones.'],
-        ['Art. 37 LDC','Cláusulas abusivas: nulas de pleno derecho aunque el cliente haya "firmado". Aplica a cargos escondidos, penalidades desproporcionadas, actualizaciones sin tope.'],
-        ['Art. 45 LDC','La autoridad actúa como conciliador antes del sumario.'],
-        ['Art. 47 LDC','Multas al proveedor. Van al Estado, no al cliente. Por eso siempre sumar la vía civil.'],
-        ['Art. 50 LDC','Prescripción: 3 años desde cada acto dañoso. Primer filtro de toda consulta.'],
-        ['Art. 52 bis LDC','Daño punitivo: multa civil a favor del consumidor cuando el proveedor actuó con dolo o culpa grave. El rubro que transforma el modelo de honorarios.'],
-        ['Art. 53 LDC','Inversión de la carga de la prueba: el proveedor debe aportar todos los elementos probatorios. No es el consumidor quien prueba que no contrató el seguro: es la empresa quien prueba que sí lo contrató.'],
-        ['Art. 2654 CCCN','Prórroga de jurisdicción al extranjero = nula. El consumidor siempre puede demandar en Córdoba. Habilita demandar a Netflix, Adobe, Spotify, Amazon directamente en Córdoba.'],
-      ].map(function(r){
-        return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="min-width:110px;font-size:11px;font-weight:700;color:var(--blue)">'+r[0]+'</div><div style="font-size:12px;color:var(--text2);line-height:1.5">'+r[1]+'</div></div>';
+        ['Art. 1 y 2 LDC','Quién es consumidor y quién es proveedor',
+          '<span style="color:var(--blue)"><strong>Art. 1:</strong></span> consumidor es quien adquiere o usa bienes o servicios como destinatario final. También quien, sin ser parte del contrato, resulta expuesto a la relación de consumo.<br><br><span style="color:var(--blue)"><strong>Art. 2:</strong></span> proveedor es quien en forma profesional produce, importa, distribuye o presta servicios con ánimo de lucro.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> lo primero que verificamos en toda consulta. Si se cumplen ambas condiciones, la LDC aplica y el cliente tiene todos sus derechos.'],
+        ['Art. 3 LDC','Principio pro consumidor',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> en caso de duda sobre la interpretación de la ley o del contrato, siempre se resuelve a favor del consumidor.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> es la regla de desempate de todo el área. Cuando hay ambigüedad, gana el consumidor. No es una cortesía, es una regla legal.'],
+        ['Art. 4 LDC','Deber de información',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> el proveedor tiene que informar en forma cierta, clara, detallada y gratuita todo lo relacionado con el bien o servicio, incluyendo cualquier cambio en las condiciones.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> es la norma más amplia del área. Cualquier vez que la empresa no informó algo relevante antes de que el cliente lo aceptara, hay infracción.'],
+        ['Art. 8 LDC','La publicidad integra el contrato',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> todo lo que la empresa publicita (precio, condiciones, prestaciones, plazos) es parte del contrato y es exigible, aunque no esté en el texto escrito.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> cuando la empresa dice "eso era solo publicidad, no es vinculante", este artículo lo refuta.'],
+        ['Art. 10 ter LDC','Derecho de cancelación',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> el consumidor puede cancelar el servicio por el mismo medio por el que lo contrató. Si contrató online, da de baja online.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> es la norma que prohíbe la "baja hostil". Si la empresa dificulta la cancelación, hay infracción directa.'],
+        ['Art. 11 LDC','Garantía legal',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> bienes muebles nuevos: 1 año de garantía desde la entrega. Usados: 6 meses. Durante ese período el proveedor repara, reemplaza o reintegra el precio a elección del consumidor.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> aplica en e-commerce y en cualquier venta de bienes muebles.'],
+        ['Art. 34 LDC','Derecho de arrepentimiento en ventas online',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> en ventas electrónicas el consumidor puede revocar la compra dentro de los 10 días corridos desde la entrega, sin necesidad de dar explicaciones y sin ningún cargo.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> las cláusulas de "no devoluciones" en ventas online son nulas. Si la empresa rechaza la devolución o cobra gastos, está violando directamente este artículo.'],
+        ['Art. 37 LDC','Cláusulas abusivas',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> son nulas de pleno derecho las cláusulas que desnaturalizan las obligaciones del proveedor, limitan su responsabilidad, o imponen condiciones que el consumidor no hubiera aceptado de haber sido informado correctamente.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> aplica aunque el cliente haya "firmado" el contrato. Permite anular cargos escondidos, penalidades desproporcionadas, actualizaciones sin tope, y cláusulas de jurisdicción al extranjero.'],
+        ['Art. 47 LDC','Multas al proveedor',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> la autoridad puede aplicar multas al proveedor.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> las multas van al Estado, no al cliente. Por eso siempre conviene sumar la vía civil: la multa y la indemnización son independientes y compatibles.'],
+        ['Art. 50 LDC','Prescripción — 3 años',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> 3 años desde cada acto dañoso individual.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> es el primer filtro de toda consulta. Ver pestaña "4. Prescripción" para el desarrollo completo con ejemplos.'],
+        ['Art. 52 bis LDC','Daño punitivo',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> el juez puede aplicar una multa civil a favor del consumidor cuando el proveedor actuó con dolo o culpa grave.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> es el rubro que transforma el modelo de honorarios. Ver pestaña "3. Daño punitivo" para el desarrollo completo.'],
+        ['Art. 53 LDC','Inversión de la carga de la prueba',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> en los procesos de consumo, el proveedor debe aportar todos los elementos probatorios que estén en su poder.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> no es el consumidor quien tiene que probar que no contrató el seguro: es la empresa quien tiene que probar que sí lo contrató.'],
+        ['Art. 2654 CCCN','El consumidor siempre puede demandar en Córdoba',
+          '<span style="color:var(--blue)"><strong>Qué dice:</strong></span> en contratos de consumo, las cláusulas de prórroga de jurisdicción al extranjero son nulas de nulidad absoluta.<br><br><span style="color:var(--blue)"><strong>Para qué sirve:</strong></span> habilita demandar a Netflix, Adobe, Spotify, Amazon directamente en Córdoba, aunque sus términos digan que cualquier disputa se resuelve en Delaware o Irlanda.'],
+      ].map(function(r,i){
+        var id='acc-'+i;
+        return '<div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;overflow:hidden">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:var(--bg3)" onclick="toggleAcc(\'' + id + '\')">' +
+            '<div><span style="font-size:12px;font-weight:600;color:var(--text)">'+r[0]+'</span> <span style="font-size:12px;color:var(--text3)">— '+r[1]+'</span></div>' +
+            '<span id="'+id+'-icon" style="font-size:11px;color:var(--blue);font-weight:600">ver ▾</span>' +
+          '</div>' +
+          '<div id="'+id+'" style="display:none;padding:14px;background:var(--bg2);font-size:12px;color:var(--text2);line-height:1.7">'+r[2]+'</div>' +
+        '</div>';
       }).join('') + '</div>';
     }
   },
@@ -3583,6 +3602,19 @@ var INTRO_DATA = {
     }
   }
 };
+
+function toggleAcc(id){
+  var el=document.getElementById(id);
+  var icon=document.getElementById(id+'-icon');
+  if(!el) return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(icon) icon.textContent='ver ▴';
+  } else {
+    el.style.display='none';
+    if(icon) icon.textContent='ver ▾';
+  }
+}
 
 function introTab(key){
   document.querySelectorAll('#intro-tabs .tab').forEach(function(b){b.className='tab';});
