@@ -672,17 +672,24 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="page-header">
     <div>
       <div class="page-title">Derecho del Consumidor</div>
-      <div class="page-sub">Material de uso interno del equipo · Marco General · Planes de ahorro · Medicina prepaga · Bancos y tarjetas · Mayo 2026</div>
+      <div class="page-sub">Material de uso interno del equipo · Parte I: Marco General · Parte II: Los Cinco Sectores · Parte III: Herramientas · Mayo 2026</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <select class="fs" id="cap-sector" onchange="capMostrarSector()" style="font-size:12px;padding:6px 12px;width:auto">
         <optgroup label="Parte I — Marco General">
           <option value="intro">Marco general completo</option>
         </optgroup>
-        <optgroup label="Los tres sectores">
-          <option value="s2">Planes de ahorro automotor</option>
-          <option value="s3">Medicina prepaga y obras sociales</option>
-          <option value="s4">Bancos y tarjetas de crédito</option>
+        <optgroup label="Parte II — Los Cinco Sectores">
+          <option value="s1">Sector 1 — Telecomunicaciones</option>
+          <option value="s2">Sector 2 — Planes de ahorro</option>
+          <option value="s3">Sector 3 — Medicina prepaga</option>
+          <option value="s4">Sector 4 — Bancos y tarjetas</option>
+          <option value="s5">Sector 5 — E-commerce</option>
+        </optgroup>
+        <optgroup label="Parte III — Herramientas">
+          <option value="checklists">Checklists universales</option>
+          <option value="tabla">Tabla comparativa</option>
+          <option value="normativa">Índice de normativa</option>
         </optgroup>
       </select>
     </div>
@@ -702,12 +709,11 @@ input.currency-input{letter-spacing:0.5px;}
 
     <!-- SUBSECTION TABS -->
     <div class="tabs" id="intro-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
-      <button class="tab active" onclick="introTab('quees')">¿Qué es?</button>
-      <button class="tab" onclick="introTab('sectores')">Sectores</button>
-      <button class="tab" onclick="introTab('vias')">Las dos vías</button>
-      <button class="tab" onclick="introTab('punitivo')">Daño punitivo</button>
-      <button class="tab" onclick="introTab('prescripcion')">Prescripción</button>
-      <button class="tab" onclick="introTab('viabilidad')">Viabilidad</button>
+      <button class="tab active" onclick="introTab('sistema')">1. El sistema legal</button>
+      <button class="tab" onclick="introTab('vias')">2. Las tres vías</button>
+      <button class="tab" onclick="introTab('punitivo')">3. Daño punitivo</button>
+      <button class="tab" onclick="introTab('prescripcion')">4. Prescripción</button>
+      <button class="tab" onclick="introTab('autoridades')">5. Autoridades</button>
     </div>
     <div id="intro-content"></div>
   </div>
@@ -717,6 +723,121 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="cap-sector-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem"></div>
     <div id="cap-sector-body"></div>
   </div>
+
+  <!-- CHECKLISTS -->
+  <div id="cap-checklists" style="display:none">
+    <div class="grid2">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">✅ Checklist — Primera consulta (cualquier sector)</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="checklist-consulta">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Hay relación de consumo? (arts. 1 y 2 LDC — consumidor + proveedor)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿La prescripción de 3 años (art. 50 LDC) está vigente?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿El cliente tiene documentación mínima para sostener el reclamo?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Cuál es el daño emergente calculable con la documentación disponible?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Hay conducta reiterada o masiva del proveedor? (habilita punitivo)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Hay urgencia que requiera medida cautelar? (aplica en salud principalmente)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Qué vía conviene: administrativa, civil, o ambas en paralelo?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿El monto total estimado (con punitivo) justifica la vía civil?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Se firmó el acuerdo de honorarios antes de iniciar cualquier gestión?</span></label>
+        </div>
+        <button class="btn-sm" style="margin-top:12px" onclick="resetChecklist('checklist-consulta')">Resetear</button>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">✅ Checklist — Demanda civil (cualquier sector)</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="checklist-demanda">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Mediación prejudicial completada o exceptuada (Ley 8858 Córdoba)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Factor de atribución identificado y norma citada</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Prescripción verificada y no corrida</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Daño emergente cuantificado con documentación concreta</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Intereses desde cada incumplimiento (verificar tasa vigente del fuero)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Daño moral: ¿acreditable con hechos concretos?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Daño punitivo: ¿hay dolo o culpa grave? ¿conducta lucrativa?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Prueba documental completa y ordenada como anexos</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Prueba informativa identificada (a quién, qué se pide)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">¿Se necesita pericia? ¿de qué tipo?</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Competencia del fuero cordobés fundada (art. 2654 CCCN si es plataforma extranjera)</span></label>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:2px;flex-shrink:0"><span style="font-size:12px;color:var(--text2)">Tasa de interés: verificar acta o acordada vigente del fuero</span></label>
+        </div>
+        <button class="btn-sm" style="margin-top:12px" onclick="resetChecklist('checklist-demanda')">Resetear</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- ÍNDICE DE NORMATIVA -->
+  <div id="cap-normativa" style="display:none">
+    <div class="card">
+      <div class="card-title">Índice rápido — Ley 24.240 (LDC)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 1</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Definición de consumidor</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 2</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Definición de proveedor</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 3</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Principio pro consumidor — en caso de duda, a favor del consumidor</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 4</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Deber de información cierta, clara y detallada</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 8</span><span style="font-size:11px;color:var(--text2);margin-left:6px">La publicidad integra el contrato y es exigible</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 10 ter</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Cancelación por el mismo canal de contratación (prohibición baja hostil)</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 11</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Garantía legal: 1 año bienes nuevos / 6 meses usados desde la entrega</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 18</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Vicios redhibitorios — defectos que hacen la cosa impropia para su uso</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 34</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Arrepentimiento: 10 días en ventas online, sin cargo, sin dar razones</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 37</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Cláusulas abusivas — nulas de pleno derecho aunque el cliente haya "firmado"</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 45</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Conciliación ante autoridad de aplicación</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 47</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Multas al proveedor → van al Estado (por eso siempre sumar la vía civil)</span></div>
+        <div style="background:var(--red-bg);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--red)">Art. 50</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Prescripción: 3 años desde cada acto dañoso individual ⚠️ PRIMER FILTRO</span></div>
+        <div style="background:var(--green-bg);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--green)">Art. 52 bis</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Daño punitivo a favor del consumidor ⭐ EL RUBRO QUE CAMBIA LA ECUACIÓN</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--blue)">Art. 53</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Inversión de la carga de la prueba — el proveedor debe probar, no el consumidor</span></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">CCCN — Artículos clave</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--purple)">Arts. 1092–1122</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Contratos de consumo</span></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--purple)">Art. 1741</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Daño moral — cuantificado por el juez según satisfacciones sustitutivas</span></div>
+          <div style="background:var(--green-bg);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--green)">Art. 2654</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Prórroga de jurisdicción al extranjero en contratos de consumo = NULA ⭐</span></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--purple)">Art. 771</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Morigeración de intereses abusivos — los jueces pueden reducirlos</span></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--purple)">Art. 1399</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Débito automático requiere autorización expresa del cliente</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Leyes específicas por sector</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--orange)">Ley 26.682</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Medicina prepaga: cobertura, aumentos con autorización SSS, prohibición de rescisión</span></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--orange)">Ley 25.065</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Tarjetas de crédito: límites a intereses, obligaciones de información</span></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--orange)">Ley 10.247 (Cba)</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Procedimiento administrativo provincial — Tucumán 176</span></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px 10px"><span style="font-size:11px;font-weight:700;color:var(--orange)">Ley 8858 (Cba)</span><span style="font-size:11px;color:var(--text2);margin-left:6px">Mediación prejudicial obligatoria antes de demandar en Córdoba</span></div>
+        </div>
+        <div style="margin-top:10px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Organismos de aplicación</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.8">Dirección Provincial Consumidor: Tucumán 176, Cba<br>Dirección Municipal Consumidor: Municipalidad de Cba<br>SSS: www.sssalud.gob.ar (salud)<br>BCRA: www.bcra.gob.ar (bancos y tarjetas)<br>ENACOM: www.enacom.gob.ar (telecos)<br>IGJ / CNV: (planes de ahorro)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA COMPARATIVA -->
+  <div id="cap-tabla" style="display:none">
+    <div class="card">
+      <div class="card-title">Tabla comparativa — Los cinco sectores</div>
+      <div style="overflow-x:auto">
+        <table>
+          <tr><th>Sector</th><th>Volumen</th><th>Monto base</th><th>Con punitivo</th><th>Estandarizable</th><th>Urgencia</th></tr>
+          <tr><td style="font-weight:500">📱 Telecomunicaciones</td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-red">Bajo</span></td><td><span class="badge b-orange">Medio-alto</span></td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-gray">Baja</span></td></tr>
+          <tr><td style="font-weight:500">🚗 Planes de ahorro</td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-orange">Media</span></td></tr>
+          <tr><td style="font-weight:500">🏥 Medicina prepaga</td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-green">Medio-alto</span></td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-red">Bajo</span></td><td><span class="badge b-red">Alta</span></td></tr>
+          <tr><td style="font-weight:500">🏦 Bancos y tarjetas</td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-green">Medio-alto</span></td><td><span class="badge b-gray">Baja-media</span></td></tr>
+          <tr><td style="font-weight:500">🛒 E-commerce</td><td><span class="badge b-green">Muy alto</span></td><td><span class="badge b-orange">Bajo-medio</span></td><td><span class="badge b-orange">Medio</span></td><td><span class="badge b-green">Alto</span></td><td><span class="badge b-gray">Baja</span></td></tr>
+        </table>
+      </div>
+      <div style="margin-top:1rem;background:var(--bg3);border-radius:8px;padding:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Estrategia sugerida de incorporación</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-blue">1°</span><span style="font-size:12px;color:var(--text2)"><strong>Telecomunicaciones + E-commerce</strong> — Ganar experiencia, estandarizar procesos. Volumen alto, complejidad baja.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-purple">2°</span><span style="font-size:12px;color:var(--text2)"><strong>Bancos y Tarjetas</strong> — Montos más altos, modelo conocido.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-orange">3°</span><span style="font-size:12px;color:var(--text2)"><strong>Planes de Ahorro</strong> — Montos altos, más trabajo por caso.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="badge b-green">4°</span><span style="font-size:12px;color:var(--text2)"><strong>Medicina Prepaga</strong> — Mayor complejidad, mayor reputación y honorario.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MODALES -->
 <div class="modal-bg" id="m-cliente" onclick="if(event.target===this)closeModal('m-cliente')">
@@ -1026,7 +1147,7 @@ function goTo(s){
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
-  if(s==='capacitacion'){setTimeout(function(){introTab('quees');},50);}
+  if(s==='capacitacion'){setTimeout(function(){introTab('sistema');},50);}
   
 }
 
@@ -3091,189 +3212,405 @@ function initEventos(){}
 
 // ─── CAPACITACIÓN ───
 var CAP_SECTORES = {
-  s2: {
-    nombre: 'Planes de ahorro automotor',
-    empresas: 'Plan Rombo (Renault) · Plan Óvalo (Ford) · Plan Chevrolet · VW Ahorro · Toyota',
-    intro: 'Córdoba tiene una de las bases de suscriptores de planes de ahorro más altas del país. La conflictividad explotó desde 2018: las cuotas están indexadas al precio del vehículo 0km y muchos adherentes vieron sus cuotas triplicarse sin haber sido informados claramente de ese mecanismo al momento de contratar. Los contratos de cada administradora son prácticamente iguales para todos los adherentes del mismo plan y año — eso permite estandarizar el trabajo rápidamente.',
-    semaforo: [
-      {color:'green', label:'VERDE', caso:'La cuota se triplicó', desc:'Casi siempre viable. Los montos superan el umbral en la gran mayoría de los casos.'},
-      {color:'orange', label:'AMARILLO', caso:'Te adjudicaron el auto pero no te lo entregan', desc:'Viable cuando el cliente tiene gastos concretos durante la demora. Sin gastos acreditables el caso se sostiene pero es más débil.'},
-      {color:'orange', label:'AMARILLO', caso:'Penalidad abusiva por salirse del plan', desc:'Viable cuando la penalidad supera los $150.000 y el porcentaje cobrado supera el 25% de lo pagado.'},
-    ],
+  s1: {
+    nombre: 'Sector 1 — Telecomunicaciones',
+    empresas: 'Claro · Movistar · Personal · Fibertel · Telecentro',
+    intro: 'Las empresas de telecos tienen incentivos estructurales para facturar servicios adicionales que el cliente no contrató, actualizar precios unilateralmente, y dificultar la cancelación. Para el estudio es el punto de entrada ideal: casos repetitivos, altamente estandarizables, prueba exclusivamente documental. El equivalente del despido sin causa en laboral.',
     casos: [
-      {
-        id:'s2c1', titulo:'Caso 1 — La cuota se triplicó',
-        desc:'La cuota del plan de ahorro está indexada al precio del vehículo 0km. Cuando ese precio sube por inflación, la cuota sube en la misma proporción. El problema: en muchos contratos esto no estaba explicado claramente, o la publicidad mostraba valores que el cliente entendió como fijos.',
-        consultas:['Empecé pagando $35.000 y ahora me cobran $140.000, no puedo más.','Me vendieron el plan diciéndome que la cuota era accesible y ahora es impagable.','El contrato no dice en ningún lado que la cuota iba a subir tanto.','Pagué 3 años y la cuota se cuadruplicó, quiero saber si puedo reclamar algo.'],
-        preguntas:['¿Cuánto era la cuota original al momento de contratar?','¿Cuánto es la cuota actual?','¿Tiene el contrato original completo con todos sus anexos?','¿Tiene el folleto o material publicitario que le mostraron al contratar?','¿Tiene los comprobantes de pago de los últimos meses?','¿Desde cuándo empezó a subir la cuota?'],
-        viabilidad:'Calcular la diferencia entre cuota original y cuota actual × meses vigentes dentro de la prescripción de 3 años. Si supera $150.000: viable. Verificar si el contrato tiene tope de actualización — si no tiene, la cláusula es candidata directa a ser declarada abusiva (art. 37 LDC). Verificar si la publicidad mostraba un valor sin aclarar la indexación (art. 8 LDC).',
-        adm:['Preparar el relato con el detalle del plan contratado, la cuota original, la evolución mes a mes, y los intentos de reclamo previos si los hubo.','Identificar en el contrato las cláusulas abusivas y señalar por qué con la norma aplicable.','Presentar la denuncia ante la Dirección Provincial (Tucumán 176 o online por Ciudadano Digital nivel 2) o ante la IGJ o CNV según la administradora.','Preparar al cliente para la audiencia: pedir el reintegro en dinero (no como crédito dentro del plan), no aceptar menos del 80% sin consultar, no firmar nada con renuncia a acciones futuras.','Evaluar el resultado. Si el acuerdo cubre el daño emergente completo: firmar. Si la empresa ofrece solo una parte y el caso tiene punitivo significativo: rechazar y derivar a civil.'],
-        civil:['Mediación prejudicial obligatoria (Ley 8858 Córdoba). Tiempo estimado: 30 a 60 días.','Demanda con los siguientes rubros: nulidad de la cláusula de actualización ilimitada (art. 37 LDC), daño emergente por diferencia de cuotas cobradas en exceso (cálculo exacto mes a mes), intereses desde cada cobro indebido, daño moral por la angustia de cuotas impagables y el riesgo de perder el plan, daño punitivo porque la cláusula abusiva es idéntica en todos los contratos del plan.','Prueba documental: contrato completo, comprobantes de pago, material publicitario si existe. Prueba informativa: oficio a la administradora (contrato tipo + historial de actualizaciones), oficio a IGJ o CNV (antecedentes de sanciones). En casos complejos: pericia contable.','Las administradoras suelen acordar antes de sentencia cuando el punitivo está bien argumentado porque les conviene más pagar que exponer la cláusula abusiva en una sentencia que puede afectar a miles de adherentes.'],
-        cautelar:'Cuando el cliente no puede pagar la cuota actualizada y corre riesgo de rescisión, se puede pedir una medida cautelar de no innovar. Norma: art. 232 CPC Córdoba.',
-        normas:[
-          'Art. 4 LDC: deber de información. Si no se informó claramente el mecanismo de indexación al 0km, hay infracción directa.',
-          'Art. 8 LDC: la publicidad integra el contrato. Publicitar "cuotas accesibles" sin aclarar la indexación es exigible.',
-          'Art. 37 LDC: cláusulas abusivas. Actualización ilimitada sin tope — candidata directa a nulidad.',
-          'Art. 52 bis LDC: daño punitivo. La cláusula abusiva es idéntica en todos los contratos = decisión corporativa deliberada.',
-          'Art. 1741 CCCN: daño moral. La compra de un auto es un proyecto de vida. La frustración de ese proyecto tiene un peso emocional que los jueces reconocen.',
-          'Art. 2654 CCCN: prórroga de jurisdicción fuera de Córdoba = nula en relaciones de consumo.',
-          'Ley 8858 Córdoba: mediación prejudicial obligatoria antes de demandar.',
-          'IGJ o CNV según la administradora: organismos reguladores con poder de sanción.',
-        ]
-      },
-      {
-        id:'s2c2', titulo:'Caso 2 — Te adjudicaron el auto pero no te lo entregan',
-        desc:'El cliente ganó el sorteo o licitó y fue adjudicado. La administradora se comprometió a entregar el vehículo en un plazo determinado que consta en el acta de adjudicación. Ese plazo venció y el auto no llegó. Las excusas más comunes: falta de stock, problemas de producción, o asignación discrecional a otros adjudicados.',
-        consultas:['Me adjudicaron el auto hace 8 meses y todavía no me lo entregan.','Tengo el acta de adjudicación con una fecha de entrega que ya pasó y no me dan respuesta.','Mientras espero el auto tengo que alquilar uno para trabajar y nadie me paga eso.','La empresa me dice que hay demoras pero no me da una fecha concreta.'],
-        preguntas:['¿Tiene el acta de adjudicación con la fecha de entrega comprometida?','¿Cuántos meses lleva de demora desde esa fecha?','¿Tuvo gastos concretos por no tener el vehículo? ¿Tiene los comprobantes?','¿Tiene comunicaciones de la administradora reconociendo la demora?'],
-        viabilidad:'Si el cliente tiene gastos concretos documentados: viable casi siempre. Si no tiene gastos acreditables: el caso se sostiene en el daño moral y la pretensión de entrega forzada pero es más débil. Indicar al cliente desde la primera consulta que conserve TODOS los comprobantes de gastos adicionales.',
-        adm:['Preparar el relato con el detalle de la adjudicación, la fecha comprometida, los meses de demora, los gastos incurridos con comprobantes, y las comunicaciones con la administradora.','Presentar la denuncia ante la Dirección Provincial o ante la IGJ o CNV según la administradora.','En la audiencia pedir una fecha concreta de entrega con cláusula de penalidad diaria por incumplimiento. No aceptar un acuerdo sin fecha específica ni sin penalidad.','Si la empresa no cumple el acuerdo, ejecutarlo como título ejecutivo ante el juzgado civil.'],
-        civil:['Mediación prejudicial obligatoria (Ley 8858 Córdoba).','Demanda con los siguientes rubros: cumplimiento forzado de la entrega (pretensión de hacer), daño emergente por gastos concretos durante la demora (con comprobantes), intereses, daño moral por la frustración del proyecto de vida, daño punitivo si la demora es sistemática y afecta a múltiples adjudicados del mismo grupo.','Prueba documental: acta de adjudicación, comprobantes de gastos, comunicaciones de la administradora. Prueba informativa: oficio a la administradora para que informe cuántos adjudicados del mismo grupo están en situación de demora. Si hay muchos, el punitivo está prácticamente asegurado.'],
-        cautelar:'',
-        normas:[
-          'Art. 8 LDC: el plazo de entrega comprometido en el acta de adjudicación es parte del contrato y es exigible.',
-          'Art. 37 LDC: las cláusulas que limitan la responsabilidad de la administradora por demoras en la entrega son nulas.',
-          'Art. 52 bis LDC: daño punitivo cuando la demora es sistemática y afecta a múltiples adjudicados.',
-          'Art. 1741 CCCN: daño moral. La compra de un auto adjudicado tiene un peso emocional alto que los jueces reconocen.',
-          'Ley 8858 Córdoba: mediación prejudicial obligatoria.',
-        ]
-      },
-      {
-        id:'s2c3', titulo:'Caso 3 — Penalidad abusiva por salirse del plan',
-        desc:'El cliente quiere cancelar el plan y la administradora le informa una penalidad desproporcionada. Las penalidades suelen incluir un porcentaje de las cuotas pagadas más gastos administrativos que pueden sumar entre el 30 y el 50% de lo pagado total.',
-        consultas:['Quiero salirme del plan pero me dicen que me cobran el 40% de todo lo que pagué.','Me informaron una penalidad de $500.000 para darme de baja.','El contrato dice que si me voy antes pierdo todo lo que pagué más los gastos.','Pagué 2 años y la penalidad es casi lo mismo que lo que pagué.'],
-        preguntas:['¿Cuánto tiempo lleva en el plan y cuánto pagó en total?','¿Cuál es el monto exacto de la penalidad que le informaron?','¿Tiene el contrato con la cláusula de penalidad?','¿Tiene los comprobantes de todos los pagos realizados?'],
-        viabilidad:'Si la penalidad supera el 25% de lo pagado y el monto absoluto supera $150.000: viable. Si la penalidad es del 20% o menos: es el límite orientativo de lo que la jurisprudencia considera razonable — caso débil, analizar con cuidado. Si el monto absoluto no supera $150.000 aunque el porcentaje sea alto: evaluar si justifica el trabajo.',
-        adm:['Preparar el relato con el detalle del contrato, el total pagado, la cláusula de penalidad transcripta, y el monto que la administradora pretende cobrar.','Presentar la denuncia ante la Dirección Provincial o ante la IGJ o CNV.','En la audiencia pedir la nulidad de la cláusula de penalidad o su reducción a un porcentaje razonable, y el reintegro del porcentaje correspondiente de lo pagado.'],
-        civil:['Mediación prejudicial obligatoria (Ley 8858 Córdoba).','Demanda con los siguientes rubros: nulidad de la cláusula de penalidad (art. 37 LDC), restitución de lo cobrado en exceso, daño moral si la empresa aplicó la penalidad en forma coactiva, daño punitivo si la conducta es sistemática en todos los contratos del plan.'],
-        cautelar:'',
-        normas:[
-          'Art. 37 LDC: penalidades desproporcionadas que el consumidor no hubiera aceptado de haber sido informado correctamente son nulas de pleno derecho.',
-          'Art. 4 LDC: la penalidad tiene que haber sido informada claramente al momento de contratar.',
-          'Art. 52 bis LDC: daño punitivo si la cláusula de penalidad abusiva es idéntica en todos los contratos del plan.',
-          'Ley 8858 Córdoba: mediación prejudicial obligatoria.',
-          'IGJ o CNV según la administradora: presentar denuncia en paralelo para mayor presión.',
-        ]
-      }
-    ]
+      'Cobro de servicio no contratado: seguros del celular, paquetes de datos extra, contenidos premium (revisar la factura ítem por ítem)',
+      'Aumento unilateral de precio: sin notificación previa o con notificación de solo 2 días (art. 37 inc. a + art. 4 LDC)',
+      'Baja hostil: la empresa dificulta la cancelación, deriva en loop, sigue cobrando después del pedido de baja (art. 10 ter LDC)',
+      'Servicio diferente al publicado: velocidad, gigas, o calidad que no se corresponde con lo prometido en la publicidad (art. 8 LDC)'
+    ],
+    normas: [
+      'Art. 1 y 2 LDC: el usuario de telefonía/internet siempre es consumidor; Claro, Movistar, etc. siempre son proveedores',
+      'Art. 4 LDC: deber de información — cualquier cambio de precio o condiciones debe informarse con anticipación suficiente',
+      'Art. 8 LDC: la publicidad integra el contrato — lo prometido en el anuncio es exigible aunque no esté en el contrato escrito',
+      'Art. 10 ter LDC: la cancelación puede hacerse por el mismo canal de contratación (prohibición de baja hostil)',
+      'Art. 37 LDC: cláusulas abusivas — nulas aunque el cliente haya "firmado" el contrato sin ser informado específicamente',
+      'Art. 50 LDC: prescripción 3 años desde cada cobro indebido individual',
+      'Art. 52 bis LDC: daño punitivo — casi siempre aplicable: cobro masivo a miles de clientes = conducta deliberada y lucrativa',
+      'Art. 53 LDC: inversión de la prueba — la empresa debe demostrar que el servicio fue contratado, no el cliente que no lo contrató',
+      'Art. 1741 CCCN: daño moral — se acredita con historial de reclamos frustrados y tiempo invertido en gestiones sin resultado',
+      'Ley Provincial 10.247 + Ley 8858 Córdoba'
+    ],
+    pasos: {
+      consulta: [
+        'Escuchar y traducir el reclamo: "me cobran un seguro que no pedí" → cobro servicio no contratado = art. 37 LDC + posible punitivo art. 52 bis',
+        '⚠️ Verificar prescripción (art. 50 LDC — 3 años desde cada cobro): calcular el límite (hoy menos 3 años) y separar cobros prescriptos de vigentes. Es el primer filtro — si todo está prescripto, no hay caso',
+        'Documentación mínima: facturas de los últimos 12 meses (idealmente hasta el límite de prescripción) + contrato o email de bienvenida del plan original + historial de reclamos previos (número de ticket, chat, email)',
+        'Calcular el daño emergente exacto: monto del cargo × meses vigentes dentro de la prescripción',
+        'Evaluar punitivo: ¿el servicio tiene nombre genérico que aparece en miles de facturas? ¿la empresa ignoró reclamos previos? → conducta masiva = punitivo',
+        'Decidir vía: daño < $200.000 + quiere resolver rápido → administrativa (30-60 días, sin gastos). Daño > $200.000 + conducta sistemática → civil (6-18 meses, honorario real). Ambas pueden correr en paralelo'
+      ],
+      adm: [
+        'Preparar el relato escrito con estructura: encabezado (denunciante + empresa) → hechos cronológicos (plan contratado, cuándo apareció el cargo, reclamos y sus resultados) → cita art. 37 LDC → petición (reintegro + baja inmediata del servicio + intereses) → prueba con Anexos numerados',
+        'Presentar en Dirección Provincial (Tucumán 176, Lun-Vie 8-20 hs, también online) o Municipal (Municipalidad de Córdoba). Plazo hasta audiencia: 20 a 45 días hábiles. El cliente presenta; el estudio indica exactamente cómo',
+        'Preparar al cliente para la audiencia: pedir reintegro en dinero (nunca como crédito de la misma empresa); no aceptar menos del 80% sin consultar; no firmar nada sin leer; si la empresa no hace oferta razonable — dejar fracasar la conciliación (refuerza el punitivo en civil)',
+        'Acuerdo homologado (título ejecutivo si no cumple) o acta de fracaso (prueba de culpa grave para el punitivo en civil). El estudio revisa el texto del acuerdo antes de que el cliente firme'
+      ],
+      civil: [
+        'Mediación prejudicial obligatoria (Ley 8858 Córdoba): presentar solicitud, prescripción se suspende, audiencia con mediador. Las empresas de telecos tienen incentivo para acordar si el punitivo está en juego. Tiempo: 30-60 días. El estudio asiste al cliente (a diferencia de la administrativa)',
+        'Redactar la demanda: Hechos cronológicos → Derecho (art. 37 + art. 53: la empresa debe probar que fue contratado + art. 1741 CCCN daño moral + art. 52 bis punitivo por conducta masiva) → Prueba → Petición cuantificando cada rubro. Pedir costas',
+        'Prueba: documental (facturas + contrato original + historial de reclamos) + informativa a la empresa (que acompañe la autorización del cliente — si no puede, confirmó que no fue contratado) + informativa a ENACOM (antecedentes de sanciones a la empresa — refuerza el punitivo)',
+        'Negociación: después de la etapa probatoria la empresa ya sabe que perderá. Es el momento de mayor presión. La mayoría de los casos de telecos se resuelven en acuerdo antes de sentencia. Preparar al cliente para evaluar cuándo una oferta es razonable'
+      ]
+    },
+    ejemplos: [
+      {titulo:'Caso A — Seguro no contratado (civil, acuerdo en proceso)',desc:'Personal cobró "Seguro Celular Protect" $9.500/mes × 14 meses. 3 reclamos telefónicos sin resultado. Normas: arts. 37, 52 bis, 1741 CCCN, 53 LDC. En mediación solo ofrecieron el reintegro — se rechazó y se presentó demanda.',resultado:'Durante el proceso: $133.000 reintegro + $420.000 compensación = $553.000. Honorario 20%: $110.600'},
+      {titulo:'Caso B — Aumento unilateral de cuota (administrativo, acuerdo)',desc:'Plan de internet fijo $4.200/mes → subió a $7.800 sin notificación. Aviso enviado con 2 días de anticipación. Normas: arts. 37 inc. a, 4, 8 LDC.',resultado:'Conciliación a los 35 días: reintegró diferencia de 8 meses ($28.800) y respetó precio original hasta vencimiento del plan'},
+      {titulo:'Caso C — Baja hostil (civil, sentencia)',desc:'6 llamadas en 4 meses para cancelar Claro. Seguía cobrando $8.200/mes. Prueba: capturas de chats + grabaciones de llamadas + denuncia previa ENACOM. Normas: arts. 10 ter, 52 bis, 1741 CCCN.',resultado:'Sentencia: $41.000 reintegro + $280.000 daño moral + $600.000 punitivo = $921.000. Honorario 22%: $202.620'}
+    ],
+    honorarios: {
+      adm:'Modalidad A: consulta + preparación del relato (honorario fijo). Modalidad B: gestión completa (consulta + relato + preparación de audiencia). Modalidad C: sin cargo como captación cuando el caso claramente irá a civil — se firma el acuerdo de honorarios cuando se inicia la vía civil',
+      civil:'20-25% del total cobrado. Sin cobro anticipado al cliente',
+      ejemplo:'Seguro no contratado $12.000/mes × 36 meses vigentes\nDaño emergente:      $432.000\nIntereses (verificar tasa del fuero): ~$120.000\nDaño moral:          ~$350.000 (orientativo)\nDaño punitivo:       ~$600.000 (orientativo)\nTotal estimado:    $1.502.000\nHonorario al 20%:    $300.400\nHonorario al 25%:    $375.500'
+    }
+  },
+  s2: {
+    nombre: 'Sector 2 — Planes de ahorro automotor',
+    empresas: 'Plan Rombo (Renault) · Plan Óvalo (Ford) · Plan Chevrolet · VW Ahorro · Toyota',
+    intro: 'Córdoba tiene una de las bases de suscriptores de planes de ahorro más altas del país. La conflictividad explotó desde 2018: las cuotas están indexadas al precio del 0km y muchos adherentes vieron sus cuotas triplicarse. Los contratos tipo de cada administradora son iguales para todos los adherentes — una vez analizado el contrato de Plan Rombo 2021, el análisis aplica a todos los que tengan ese plan de ese año.',
+    casos: [
+      'Cuotas que se dispararon por indexación al precio del 0km: la cuota es un porcentaje del precio del vehículo 0km — sube con la inflación sin tope en muchos contratos',
+      'Demora en entrega del vehículo adjudicado: adjudicado pero sin entrega en el plazo comprometido (falta de stock, asignación discrecional)',
+      'Rescisión abusiva por parte de la administradora: rescisión por mora en 1 o 2 cuotas sin notificaciones previas o con penalidades abusivas',
+      'Penalidad abusiva cuando el adherente quiere salirse: monto desproporcionado respecto a lo pagado',
+      'Cargos administrativos o seguros no informados al contratar'
+    ],
+    normas: [
+      'Arts. 1 y 2 LDC: el adherente es consumidor; la administradora es proveedor. La LDC aplica plenamente',
+      'Art. 4 LDC: deber de información — al contratar se debe informar claramente el mecanismo de actualización de cuotas. Si no se informó que sube con el 0km, hay infracción',
+      'Art. 8 LDC: publicidad integra el contrato — "cuotas desde $X" sin aclarar la indexación sin tope es exigible como parte del contrato',
+      'Art. 37 LDC: cláusulas abusivas — actualización ilimitada sin tope, penalidad > 20% de lo pagado, prórroga automática sin notificación, todas candidatas a ser declaradas nulas',
+      'Art. 50 LDC: prescripción 3 años. Cómputo variable: cuotas en exceso → desde cada cuota; demora entrega → desde fecha comprometida incumplida; rescisión → desde notificación',
+      'Art. 52 bis LDC: punitivo — la cláusula abusiva es igual en TODOS los contratos del plan = decisión corporativa deliberada, no error puntual',
+      'Art. 1741 CCCN: daño moral — más alto que en telecos porque la compra de un auto es un proyecto de vida con peso emocional significativo',
+      'Art. 2654 CCCN: prórroga de jurisdicción al domicilio de la administradora fuera de Córdoba = nula. El cliente siempre puede demandar en Córdoba',
+      'Resoluciones IGJ o CNV según el tipo de administradora (verificar vigente al momento del caso)'
+    ],
+    pasos: {
+      consulta: [
+        'Identificar el tipo de problema con precisión: (a) cuota impagable por indexación (b) adjudicado sin entrega (c) administradora rescindió (d) quiere salirse y le cobran demasiado (e) cargos no informados',
+        '⚠️ Verificar prescripción con cómputo variable: cuotas en exceso → desde cada cuota cobrada de más; demora entrega → desde fecha comprometida incumplida; rescisión → desde notificación; penalidad → desde que fue comunicada',
+        'Documentación: contrato COMPLETO con todos los anexos + últimos 12 comprobantes de pago + todas las comunicaciones de la administradora + material publicitario del momento de contratación si lo conserva + acta de adjudicación si aplica',
+        '⚠️ Revisar el contrato buscando cláusulas abusivas (art. 37 LDC): mecanismo de actualización sin tope, penalidad > 20% de lo pagado, prórroga automática sin notificación, cláusula de jurisdicción fuera de Córdoba (nula)',
+        'Calcular daño emergente: cuotas en exceso → tabla mes por mes (cuota original vs. cobrada × meses vigentes). Demora entrega → gastos documentados por no tener el vehículo (alquileres, transporte)',
+        'Decidir vía: monto moderado + resolución rápida → administrativa. Monto alto + cláusulas abusivas + demora con daño concreto → civil. Ambas en paralelo es frecuente cuando hay múltiples problemas'
+      ],
+      adm: [
+        'Preparar relato con: datos del contrato + tabla cuota original vs. actual + transcripción y señalamiento de las cláusulas abusivas con la norma que las invalida + reclamos previos y resultados + cálculo del daño emergente (diferencia acumulada dentro de la prescripción)',
+        'Presentar en Dirección Provincial o Municipal de Córdoba. También se puede denunciar ante la IGJ o CNV según la administradora — agrega presión al regulador específico del sector',
+        'Las administradoras negocian más que las telecos cuando el reclamo está bien documentado. En demoras de entrega: pedir en la audiencia una fecha concreta de entrega con penalidad por incumplimiento incorporada al acuerdo',
+        '⚠️ Si el acuerdo parcial no cubre daño moral ni punitivo y el caso tiene potencial de punitivo significativo: rechazar el acuerdo e ir a civil directamente. No aceptar propuestas con renuncia a acciones futuras sin consultar'
+      ],
+      civil: [
+        'Mediación prejudicial (Ley 8858). Las administradoras suelen tener representantes con facultades de acordar. Si la nulidad de cláusulas está en juego tienen mucho para perder — ese es el mayor poder de negociación',
+        'Rubros según el tipo: cuotas en exceso → nulidad cláusula (art. 37) + emergente (diferencia mes por mes) + intereses + moral + punitivo (cláusula igual en todos los contratos). Demora entrega → cumplimiento forzado + gastos documentados + moral (proyecto de vida) + punitivo (demora sistemática)',
+        'Prueba: documental (contrato completo + comprobantes + comunicaciones) + pericial contable en cuotas complejas (más cara pero justifica en montos altos) + informativa a la administradora (contrato tipo + historial de actualizaciones de precio del 0km) + informativa IGJ o CNV (antecedentes de sanciones)',
+        '⚠️ Medida cautelar de no innovar (art. 232 CPC Córdoba): cuando el cliente no puede pagar la cuota actualizada y corre riesgo de que la administradora rescinda el contrato mientras dura el proceso'
+      ]
+    },
+    ejemplos: [
+      {titulo:'Caso A — Cuotas triplicadas sin información previa (civil, acuerdo)',desc:'Plan Rombo 2021: cuota $28.000 → llegó a $102.000/mes en 2024. Folleto publicitario decía "cuotas desde $28.000" sin mencionar la indexación al 0km sin tope. Normas: arts. 4, 37, 8, 52 bis LDC.',resultado:'Acuerdo antes de sentencia: reintegro cuotas en exceso $680.000 + compensación $400.000 = $1.080.000. Honorario 20%: $216.000'},
+      {titulo:'Caso B — Adjudicado sin entrega (civil, sentencia)',desc:'Plan Chevrolet: adjudicado enero 2023, entrega comprometida en 60 días, el auto llegó en octubre 2023 (9 meses de demora). El cliente alquilaba $32.000/mes para trabajar. Normas: arts. 8, 1741 CCCN, 52 bis LDC.',resultado:'Sentencia: $288.000 alquileres + $500.000 moral + $750.000 punitivo + entrega del vehículo. Total en dinero $1.538.000. Honorario 22%: $338.360'},
+      {titulo:'Caso C — Penalidad abusiva por rescisión (administrativo)',desc:'18 meses de pagos. Administradora pretendía penalidad 38% + gastos administrativos 12% = 50% total de lo pagado. Normas: art. 37 LDC (penalidad desproporcionada).',resultado:'Vía administrativa. Acuerdo: penalidad anulada, reintegro del 78% de lo pagado ($1.014.000) al rescindirse el plan'}
+    ],
+    honorarios: {
+      adm:'Honorario fijo por gestión completa. El trabajo de preparación del relato es significativo (revisar contrato, calcular diferencias mes por mes). No recomendable la modalidad sin cargo',
+      civil:'20-25% del total cobrado. Sin cobro anticipado',
+      ejemplo:'Cuota original $45.000 → cobrada $98.000 → diferencia $53.000/mes × 24 meses vigentes\nDaño emergente cuotas:    $1.272.000\nGastos de transporte (7 meses demora): $210.000\nIntereses estimados:         $380.000\nDaño moral:                  $600.000 (orientativo)\nDaño punitivo:               $900.000 (orientativo)\nTotal estimado:            $3.362.000\nHonorario al 20%:            $672.400\nHonorario al 25%:            $840.500'
+    }
   },
   s3: {
-    nombre: 'Medicina prepaga y obras sociales',
+    nombre: 'Sector 3 — Medicina prepaga y obras sociales',
     empresas: 'OSDE · Swiss Medical · Galeno · Medifé · Luis Pasteur · APOC · Obras sociales sindicales',
-    intro: 'El sector con mayor impacto emocional. El bien comprometido es la salud del cliente o de sus familiares. El daño moral es el más alto de todos los sectores, y en los casos urgentes hay que actuar en horas, no en días.',
-    herramientas: [
-      {titulo:'PMO — Programa Médico Obligatorio', desc:'Canasta básica de prestaciones que toda prepaga y obra social está obligada a cubrir por ley. Si la prestación rechazada está en el PMO, el caso es muy sólido.<br><br><strong>Cómo verificar:</strong> ingresar a <a href="https://deissms.github.io/buscador_m/pmo.html" target="_blank" style="color:var(--blue)">deissms.github.io/buscador_m/pmo.html</a>, ingresar el nombre de la práctica o medicamento y verificar si aparece. Es el primer paso en toda consulta de salud.'},
-      {titulo:'Superintendencia de Servicios de Salud (SSS)', desc:'Organismo nacional que regula prepagas y obras sociales. Las empresas le temen más al regulador que a la Dirección de Consumidor porque una sanción afecta su habilitación.<br><br><strong>Cuándo usarla:</strong> negativas de cobertura del PMO y demoras en autorización de prácticas.<br><strong>Reclamo online:</strong> <a href="https://sssalud.gob.ar" target="_blank" style="color:var(--blue)">sssalud.gob.ar</a><br><br><strong>Estrategia:</strong> presentar ante la SSS Y ante la Dirección de Consumidor en paralelo.'},
-    ],
-    semaforo: [
-      {color:'green', label:'VERDE', caso:'Negativa de cobertura con gastos de bolsillo', desc:'Muy viable cuando el cliente pagó la práctica de su bolsillo y tiene las facturas. Daño emergente exacto. Daño moral el más alto del sistema.'},
-      {color:'orange', label:'AMARILLO', caso:'Demora en práctica urgente con riesgo para la salud', desc:'Viable cuando hay urgencia médica activa o cuando el cliente tuvo gastos de bolsillo concretos durante la demora. Sin ninguno de los dos elementos, el caso es débil para la vía civil.'},
-    ],
+    intro: 'El sector de mayor impacto emocional. El bien comprometido es la salud del cliente o de sus familiares. El daño moral es el más alto de todos los sectores. En los casos urgentes hay que actuar en horas, no en días. Los casos urgentes con medidas cautelares de cobertura generan la mayor fidelidad y recomendación: el cliente cuya operación fue cubierta gracias al estudio no solo vuelve sino que recomienda activamente.',
     casos: [
-      {
-        id:'s3c1', titulo:'Caso 1 — Negativa de cobertura con gastos de bolsillo',
-        desc:'La prepaga rechaza cubrir una práctica, cirugía, medicamento, o estudio que el médico prescribió. El rechazo puede ser expreso (carta o email) o tácito (no responden). El cliente termina pagando de su bolsillo porque no puede esperar.',
-        consultas:['Mi prepaga me negó la cobertura de una cirugía y tuve que pagarla yo.','OSDE no me cubre el medicamento que me recetó el médico y cuesta $200.000 por mes.','Me mandaron una carta diciendo que la práctica no está cubierta pero el médico dice que es necesaria.','Llevo meses reclamando y la prepaga no me da respuesta, mientras tanto pago todo yo.'],
-        preguntas:['¿Tiene la negativa de cobertura por escrito? Si fue verbal, ¿tiene capturas o registros?','¿Tiene la prescripción médica con fecha?','¿Pagó la práctica o medicamento de su bolsillo? ¿Tiene las facturas?','¿La prestación rechazada está en el PMO? Verificar en deissms.github.io/buscador_m/pmo.html','¿Hace cuánto ocurrió la negativa? (verificar prescripción: 3 años desde la negativa)'],
-        viabilidad:'Si pagó de su bolsillo y las facturas superan $150.000: viable. Si no llega a ese monto pero la prestación sigue siendo necesaria en el futuro: puede ser viable pidiendo cobertura permanente + daño moral + punitivo. Si no pagó nada de bolsillo: derivar a SSS para forzar la cobertura futura, evaluar caso por caso para vía civil.',
-        adm:['Verificar si la prestación está en el PMO usando el buscador. Si está, citar expresamente el PMO en el reclamo.','Presentar reclamo ante la SSS (sssalud.gob.ar) con: datos de afiliación, prestación solicitada con indicación médica y fecha de prescripción, negativa de la prepaga con fecha, y facturas si pagó de bolsillo.','Presentar denuncia ante la Dirección de Consumidor de Córdoba en paralelo.','La SSS suele actuar rápido. Muchas prepagas resuelven antes de que emita una resolución desfavorable.'],
-        civil:['Mediación prejudicial obligatoria (Ley 8858 Córdoba). Evaluar si la urgencia habilita excepción en situaciones límite.','Demanda con los siguientes rubros: reintegro de gastos pagados de bolsillo (daño emergente exacto con facturas), cobertura futura permanente si sigue siendo necesaria (pretensión de hacer), daño moral por la angustia de no saber si se puede acceder al tratamiento y el impacto de enfrentar una enfermedad sin el respaldo contratado, daño punitivo porque negar una prestación obligatoria es una decisión deliberada y lucrativa que reduce costos de la empresa.','Prueba: prescripción médica con fecha, historia clínica (si no la tiene pedirla por oficio), PMO vigente, informativa a la SSS sobre antecedentes de sanciones a la empresa por rechazos similares (refuerza enormemente el punitivo), comprobantes de gastos de bolsillo. Pericia médica solo si la prepaga discute la necesidad médica.'],
-        cautelar:'',
-        normas:[
-          'Ley 24.240 arts. 1, 2, 3, 4, 37, 50, 52 bis: la relación del afiliado con la prepaga es una relación de consumo. El art. 3 aplica a favor del afiliado en caso de duda.',
-          'Ley 26.682 (Medicina Prepaga): establece prestaciones mínimas obligatorias. Prohíbe la rescisión unilateral salvo causales taxativas. El silencio implica autorización tácita.',
-          'PMO: verificar versión vigente en deissms.github.io/buscador_m/pmo.html antes de citar en cualquier reclamo.',
-          'Art. 52 bis LDC: negar una práctica reduce costos aunque sea obligatoria. Con antecedentes de rechazos similares el carácter sistemático está acreditado.',
-          'Art. 1741 CCCN: daño moral. Los jueces lo cuantifican más alto que en cualquier otro sector por la naturaleza del bien comprometido.',
-          'Art. 232 CPC Córdoba + art. 1711 CCCN: base legal de la medida cautelar innovativa de cobertura urgente.',
-          'Leyes 23.660 y 23.661: obras sociales sindicales. También deben cubrir el PMO.',
-        ]
-      },
-      {
-        id:'s3c2', titulo:'Caso 2 — Demora en práctica urgente con riesgo para la salud',
-        desc:'La prepaga no rechaza explícitamente pero tampoco autoriza. La práctica queda en un limbo burocrático que puede durar semanas mientras la salud se deteriora. En los casos más graves el cliente no puede esperar y termina pagando de su bolsillo o el tratamiento queda interrumpido.',
-        urgencia: true,
-        consultas:['Mi médico me recetó una cirugía hace dos meses y la prepaga no autoriza ni niega, solo dice que está en evaluación.','Me interrumpieron el tratamiento oncológico porque la prepaga no autoriza la segunda línea de quimio.','Llevo 6 semanas esperando autorización para una práctica que el médico dice que es urgente.','Tuve que pagar la consulta de urgencia de mi bolsillo porque no podía esperar más.'],
-        preguntas:['⚠️ ¿Hay riesgo real e inmediato para la salud si no se realiza la práctica? (Primera pregunta siempre)','¿Tiene la prescripción médica con fecha y la indicación de urgencia del médico tratante?','¿Hace cuántos días o semanas está pendiente la autorización sin respuesta?','¿La práctica está en el PMO? Verificar en deissms.github.io/buscador_m/pmo.html','¿Tuvo gastos de bolsillo durante la demora? ¿Tiene los comprobantes?'],
-        viabilidad:'Urgencia médica activa con práctica pendiente: viable siempre. La cautelar de cobertura es el camino y el juez puede ordenarla el mismo día. Demora resuelta con gastos de bolsillo > $150.000: viable para reintegro + daño moral + punitivo. Demora resuelta sin gastos y sin urgencia actual: débil para vía civil. Derivar a SSS sin compromiso de honorarios.',
-        adm:['Para casos sin urgencia activa o como complemento de la vía civil.','Presentar reclamo ante la SSS con la prescripción médica, la indicación de urgencia del médico, y el registro de los días transcurridos sin respuesta.','Presentar denuncia ante la Dirección de Consumidor en paralelo.'],
-        civil:['⚠️ URGENCIA MÉDICA ACTIVA: evaluar si la urgencia habilita excepción a la mediación prejudicial. Consultar con el juzgado en casos donde la vida o la salud están en riesgo inmediato.','Preparar demanda con medida cautelar innovativa. La cautelar pide al juez que ordene a la prepaga cubrir la prestación de inmediato. Para obtenerla: acreditar verosimilitud del derecho (prestación obligatoria por PMO o contrato) y peligro en la demora (riesgo para la salud). El juez puede dictarla el mismo día.','Una vez resuelta la urgencia, el juicio continúa para obtener reintegro de gastos, daño moral y daño punitivo.'],
-        cautelar:'Urgencia médica activa → demanda + cautelar innovativa. Tiempo estimado para la cautelar: 24 a 48 horas.',
-        normas:[
-          'Ley 26.682: la falta de respuesta en los plazos establecidos implica autorización tácita. La prepaga no puede dejar al afiliado sin respuesta indefinidamente.',
-          'PMO: si la práctica demorada está en el PMO la empresa no puede demorarla sin justificación médica.',
-          'Art. 52 bis LDC: la demora deliberada en autorizaciones es una práctica sistemática que reduce costos.',
-          'Art. 1741 CCCN: en casos de urgencia médica el daño moral es el más alto del sistema.',
-          'Art. 232 CPC Córdoba + art. 1711 CCCN: base legal de la medida cautelar innovativa de cobertura urgente.',
-          'Ley 8858 Córdoba: mediación prejudicial obligatoria. Evaluar excepción por urgencia en casos límite.',
-        ]
-      }
-    ]
+      'Negativa de cobertura de prestaciones: la prepaga rechaza cubrir una práctica, cirugía, medicamento, o estudio que el médico prescribió (expresa o por silencio)',
+      'Demora en autorización de prácticas: no rechazan pero no autorizan — la prestación queda en un limbo burocrático semanas mientras la salud se deteriora',
+      'Aumentos de cuota sin autorización de la Superintendencia: la Ley 26.682 exige autorización previa; sin ella cualquier aumento es ilegal',
+      'Exclusión de preexistencias diagnosticadas DESPUÉS de contratar: la prepaga no puede rechazar cubrir una condición que no fue diagnosticada al momento de contratar',
+      'Desafiliación intempestiva: la Ley 26.682 prohíbe la rescisión unilateral salvo causales muy específicas'
+    ],
+    normas: [
+      'Ley 24.240 LDC: arts. 1, 2, 3, 4, 37, 50, 52 bis. El principio pro consumidor (art. 3) aplica a favor del afiliado en caso de duda',
+      'Ley 26.682 (Medicina Prepaga): prestaciones mínimas obligatorias; aumentos requieren autorización de la Superintendencia; prohíbe rescisión unilateral; silencio en los plazos = autorización tácita',
+      'PMO (Programa Médico Obligatorio): canasta mínima que toda prepaga y obra social DEBE cubrir. Si la prestación rechazada está en el PMO: el argumento legal es el más sólido posible. Verificar versión vigente antes de citar en la demanda',
+      'Leyes 23.660 y 23.661: obras sociales sindicales (régimen diferente a prepaga privada pero también deben cubrir el PMO)',
+      'Art. 1741 CCCN: daño moral — los jueces lo cuantifican más alto que en cualquier otro sector por la naturaleza del bien comprometido',
+      'Art. 52 bis LDC: punitivo — cuando la negativa es deliberada y lucrativa. Negar una práctica reduce costos aunque sea obligatoria. Conducta sistemática acreditada con informativa a la SSS',
+      'Art. 232 CPC Córdoba + Art. 1711 CCCN: medidas cautelares — el juez puede ordenar la cobertura inmediata el mismo día en urgencias reales'
+    ],
+    pasos: {
+      consulta: [
+        '⚠️ PRIMERA PREGUNTA SIEMPRE — Evaluar urgencia médica: ¿la falta de cobertura genera riesgo real e inmediato para la salud? Tratamiento oncológico interrumpido / medicamento crónico vital / cirugía que no puede esperar → urgencia alta → acción en 24-48 horas → demanda civil con cautelar. Si hay urgencia: NO sigue el flujo estándar',
+        'Identificar el tipo de reclamo: ¿hay rechazo expreso por escrito? ¿o no autorizan y no explican? ¿cuántos días lleva sin respuesta? ¿cuánto subió la cuota y hubo autorización de la SSS? ¿el diagnóstico fue antes o después de contratar?',
+        'Verificar prescripción (art. 50 LDC — 3 años): negativa de cobertura → desde la negativa. Aumento de cuota → desde cada cuota cobrada en exceso. Desafiliación → desde la notificación',
+        'Documentación: contrato/credencial + negativa POR ESCRITO (fundamental — sin esto el caso es más difícil) + prescripción médica con FECHA + historia clínica si está disponible + comprobantes de pagos + comunicaciones de la prepaga sobre aumentos si aplica',
+        '⚠️ Verificar si la prestación está en el PMO vigente: si está en el PMO, la demanda es muy sólida — la prepaga no puede negar algo que la ley le obliga a cubrir',
+        'Decidir vía: urgencia médica → demanda civil con cautelar inmediata. Negativa sin urgencia + daño económico + punitivo aplicable → civil. Aumento de cuota → SSS + Dirección de Consumidor. Los casos urgentes tienen canal directo al abogado sin esperar el flujo estándar'
+      ],
+      adm: [
+        'SUPERINTENDENCIA DE SERVICIOS DE SALUD (www.sssalud.gob.ar): reclamos online. Especialmente efectiva para negativas del PMO y aumentos no autorizados. Las prepagas le temen más al regulador que a la Dirección de Consumidor porque una sanción de la SSS afecta su habilitación',
+        'DIRECCIÓN DE CONSUMIDOR (Córdoba): para cobros indebidos, aumentos no autorizados, cláusulas abusivas. Mismo procedimiento que otros sectores',
+        'Estrategia combinada recomendada: presentar ante la SSS Y ante la Dirección de Consumidor en paralelo. La SSS para la cobertura; la Dirección de Consumidor para los daños económicos',
+        'Relato para salud: datos de afiliación (plan + número de credencial + fecha) → prestación solicitada con indicación médica (fecha de prescripción) → si está en el PMO: citarlo expresamente → negativa o demora con fechas exactas → si el cliente pagó de su bolsillo: monto con facturas'
+      ],
+      civil: [
+        'Mediación prejudicial (Ley 8858): en casos de urgencia médica con riesgo real para la salud evaluar si la urgencia habilita excepción o acortamiento. Verificar con el juzgado ante situaciones límite. En casos sin urgencia: igual que todos los casos civiles',
+        'Cautelar innovativa (urgencia): la demanda + medida cautelar pide al juez que ordene a la prepaga cubrir la prestación INMEDIATAMENTE mientras dura el proceso. Para obtenerla: acreditar verosimilitud del derecho (prestación obligatoria según PMO o contrato) + peligro en la demora (riesgo para la salud). El juez puede dictarla el mismo día. ⚠️ Desde la consulta hasta la presentación judicial: máximo 24-48 horas',
+        'Rubros de la demanda: reintegro gastos pagados de bolsillo (daño emergente) + cobertura futura si sigue siendo necesaria (pretensión de hacer) + daño moral (en salud es el más alto — angustia, deterioro de salud durante la espera, enfrentar una enfermedad sin el respaldo que se contrató) + punitivo (negativa deliberada y lucrativa → acreditar con informativa a la SSS)',
+        'Prueba específica: prescripción médica con fecha + historia clínica (si no la tiene: pedir por oficio) + PMO vigente (acredita que la prestación es obligatoria) + pericial médica (cuando la prepaga discute la necesidad médica) + informativa a la SSS (antecedentes de sanciones similares — refuerza el punitivo más que cualquier otro elemento del sector)'
+      ]
+    },
+    ejemplos: [
+      {titulo:'Caso A — Negativa de cobertura oncológica (cautelar urgente + civil)',desc:'OSDE rechazó medicamento oncológico prescripto, incluido en el PMO vigente. El cliente no podía pagarlo ($220.000/mes). Urgencia alta. Normas: Ley 26.682 + PMO + art. 52 bis LDC (negativa de prestación obligatoria = dolosa).',resultado:'Cautelar otorgada al día siguiente. Acuerdo posterior: cobertura permanente + $850.000 moral + $1.300.000 punitivo = $2.150.000. Honorario 22%: $473.000'},
+      {titulo:'Caso B — Aumento no autorizado por la SSS (administrativo)',desc:'Swiss Medical aumentó cuota 95% en el primer semestre. La SSS había autorizado solo 48%. El cliente pagó la diferencia durante 10 meses. Normas: Ley 26.682 + arts. 37, 4 LDC.',resultado:'Reclamo SSS + Dirección de Consumidor en paralelo. En 35 días: reintegro de diferencias de 10 meses ($390.000) y ajuste de aumentos futuros a lo autorizado'},
+      {titulo:'Caso C — Exclusión de preexistencia (civil, acuerdo)',desc:'Prepaga rechazó cubrir hipertensión arterial alegando preexistencia. Diagnóstico fue 7 meses DESPUÉS de contratar el plan. Historia clínica lo acreditaba. 20 meses de tratamiento de bolsillo ($48.000/mes). Normas: Ley 26.682 + arts. 37, 52 bis LDC.',resultado:'Acuerdo: $960.000 reintegro + $500.000 moral + $750.000 punitivo = $2.210.000. Honorario 20%: $442.000'}
+    ],
+    honorarios: {
+      adm:'Honorario fijo por gestión. El cliente tiene alta motivación para pagar cuando el problema afecta su salud o la de un familiar. Mayor urgencia = mayor disposición',
+      civil:'20-25% del total cobrado. En casos con cautelar: el honorario se calcula sobre el daño moral y el punitivo de la sentencia (la cautelar resolvió el acceso a la práctica sin gasto de bolsillo del cliente)',
+      ejemplo:'Cirugía rechazada pagada de bolsillo\nDaño emergente (cirugía + medicación): $1.170.000\nIntereses estimados:         $280.000\nDaño moral:                  $700.000 (orientativo)\nDaño punitivo:             $1.000.000 (orientativo)\nTotal estimado:            $3.150.000\nHonorario al 20%:            $630.000\nHonorario al 25%:            $787.500'
+    }
   },
   s4: {
-    nombre: 'Bancos y tarjetas de crédito',
+    nombre: 'Sector 4 — Bancos y tarjetas de crédito',
     empresas: 'Santander · BBVA · Galicia · Macro · Nación · Provincia · Naranja X · HSBC',
-    intro: 'Los bancos son los demandados más solventes del universo de consumidor. Cuando hay condena, el cobro es seguro. Las conductas son masivas por naturaleza: cuando un banco cobra algo que no debería cobrar, se lo cobra a todos sus clientes simultáneamente. El daño emergente es calculable con precisión exacta a partir de los resúmenes y estados de cuenta.',
-    herramientas: [
-      {titulo:'BCRA — Primer paso obligatorio en ambos casos', desc:'El Banco Central tiene un sistema de reclamos en <a href="https://bcra.gob.ar" target="_blank" style="color:var(--blue)">bcra.gob.ar</a> (Usuarios Financieros). El banco debe responder en plazos estrictos. Si no responde, el BCRA puede aplicar sanciones que afectan la licencia bancaria. Por eso muchos bancos resuelven antes de que llegue a sumario.<br><br><strong>Cómo presentar:</strong> bcra.gob.ar → Usuarios Financieros → completar formulario con datos del banco, tipo de reclamo, y documentación de respaldo. Gratuito, online, sin abogado.'},
-    ],
-    semaforo: [
-      {color:'orange', label:'AMARILLO', caso:'Tasas abusivas en préstamos', desc:'Viable cuando el préstamo es de monto alto y el exceso de intereses calculado supera $150.000. Requiere pericia contable — contemplar ese costo al evaluar la viabilidad.'},
-      {color:'green', label:'VERDE', caso:'Estafa digital y el banco no devolvió', desc:'Muy viable y en crecimiento. Cuando el monto estafado supera el umbral y el cliente tiene documentación, el caso es sólido. Mayor proyección del sector en los próximos años.'},
-    ],
+    intro: 'Los bancos son los demandados más solventes del universo de consumidor: cuando hay condena, el cobro es seguro. Las conductas son masivas por naturaleza — cuando un banco cobra una comisión que no debe, la cobra a todos sus clientes simultáneamente. Cada caso individual es la punta de un iceberg que afecta a miles. Ese carácter masivo y deliberado habilita los montos más altos de daño punitivo. El daño emergente es calculable con precisión exacta desde los resúmenes: esa es la fortaleza diferencial del sector.',
     casos: [
-      {
-        id:'s4c1', titulo:'Caso 1 — Tasas abusivas en préstamos de banco o billetera virtual',
-        desc:'La Ley 25.065 establece límites a los intereses que los bancos pueden cobrar. Los compensatorios no pueden superar el 25% de la tasa que el emisor cobra al comercio adherido. Los punitorios no pueden superar en más del 50% a los compensatorios. Cuando un banco o billetera virtual cobra por encima de esos límites, cada pago de intereses en exceso es un cobro indebido reclamable.',
-        consultas:['Saqué un préstamo en Mercado Pago y la tasa que me cobran es una locura.','Tengo una tarjeta de crédito y los intereses por no pagar el mínimo son desproporcionados.','Tomé un crédito personal y siento que estoy pagando el doble de lo que pedí.','El banco me refinanció la deuda y los intereses que me aplica superan cualquier cosa razonable.'],
-        preguntas:['¿Tiene el contrato del préstamo con la TNA y TEA especificadas?','¿Tiene los resúmenes o estados de cuenta donde figuran los intereses cobrados?','¿Cuál es el monto total del préstamo original?','¿Hace cuánto tomó el préstamo y cuánto lleva pagado en intereses?'],
-        viabilidad:'El monto del préstamo tiene que ser suficientemente alto para que el exceso de intereses calculado supere $150.000 y justifique el costo de la pericia contable. Para préstamos de billeteras virtuales de montos bajos: calcular el exceso estimado antes de tomar el caso.',
-        adm:['Presentar reclamo ante el BCRA (bcra.gob.ar) con el contrato del préstamo y los resúmenes mostrando los intereses cobrados.','Presentar denuncia ante la Dirección de Consumidor en paralelo.','El BCRA puede ordenar la corrección de la tasa hacia adelante, pero el reintegro de intereses ya cobrados en exceso generalmente requiere la vía civil.'],
-        civil:['Mediación prejudicial obligatoria (Ley 8858 Córdoba).','Demanda con los siguientes rubros: nulidad de la cláusula de tasas (art. 16 Ley 25.065 o art. 37 LDC + art. 771 CCCN), restitución de los intereses cobrados en exceso calculados por pericia contable, intereses sobre los montos cobrados en exceso, daño moral si el cobro abusivo generó un impacto concreto en la economía del cliente, daño punitivo porque el banco aplica la misma tasa abusiva a miles de clientes simultáneamente.','Prueba: contrato del préstamo, resúmenes con los intereses cobrados, pericia contable (calcula el exceso sobre los límites legales), informativa al BCRA (antecedentes de sanciones al banco por conductas similares).'],
-        cautelar:'',
-        normas:[
-          'Ley 25.065 arts. 16 y 18: intereses compensatorios ≤ 25% de la tasa al comercio adherido. Punitorios ≤ 150% de los compensatorios.',
-          'Art. 771 CCCN: los jueces pueden reducir los intereses cuando resulten abusivos o desproporcionados.',
-          'Art. 37 LDC: cláusulas de tasas que superan los límites legales = cláusulas abusivas nulas.',
-          'CCCN arts. 1378-1420: los bancos tienen obligaciones de información más estrictas que cualquier otro proveedor.',
-          'Art. 52 bis LDC: daño punitivo. El banco aplica la misma tasa abusiva a miles de clientes — decisión corporativa deliberada.',
-          'Circulares BCRA: verificar la circular aplicable al producto al momento de cada caso. Se actualizan con frecuencia.',
-          'Ley 8858 Córdoba: mediación prejudicial obligatoria.',
-        ]
-      },
-      {
-        id:'s4c2', titulo:'Caso 2 — Estafa digital y el banco no devolvió el dinero',
-        desc:'El cliente fue víctima de una estafa digital. El banco argumenta que el cliente proporcionó sus datos voluntariamente y se niega a devolver. La jurisprudencia está evolucionando rápidamente a favor del consumidor porque los bancos tienen la obligación legal de implementar medidas de seguridad suficientes para proteger a sus clientes.',
-        consultas:['Me llamaron del banco, me pidieron el token, y me vaciaron la cuenta.','Entré a un link que me mandaron por mensaje que parecía del banco y me robaron todo.','Hice una transferencia pensando que era una operación del banco y era una estafa. El banco dice que fue culpa mía.','Me hackearon la cuenta del homebanking y el banco no quiere devolverme la plata.'],
-        preguntas:['¿Cuál es el monto total estafado?','¿Tiene la denuncia policial o ante el Ministerio Público Fiscal?','¿Tiene el registro de las llamadas o mensajes que recibió?','¿Tiene los movimientos de cuenta mostrando las transferencias o extracciones fraudulentas?','¿Presentó el reclamo ante el banco? ¿Tiene la respuesta negando la devolución?','¿Hace cuánto ocurrió? (verificar prescripción: 3 años desde el hecho)'],
-        tipos_estafa:['Phishing telefónico: llaman haciéndose pasar por el banco, generan urgencia, piden el token. Con ese código hacen transferencias.','Vishing por SMS o WhatsApp: mandan un link que parece oficial. El cliente ingresa sus credenciales en la página falsa.','Cuento del tío digital: convencen al cliente de hacer una transferencia voluntaria con algún pretexto como un problema técnico del sistema.','Malware bancario: instalan un programa en el celular o computadora que captura las credenciales al operar en el homebanking.'],
-        viabilidad:'Si el monto estafado supera $150.000 y el cliente tiene la denuncia policial y los movimientos de cuenta: viable. Si el banco ya ofreció devolución parcial: evaluar si el monto restante y el daño moral justifican continuar. Si el monto es inferior al umbral: derivar al BCRA y Dirección de Consumidor sin compromiso de honorarios.',
-        adm:['El BCRA es el primer paso obligatorio. Es muy efectivo porque los bancos le temen al regulador y en muchos casos resuelven antes de que llegue a sumario.','Presentar reclamo ante el BCRA con la denuncia policial, los movimientos de cuenta mostrando las operaciones fraudulentas, y la comunicación del banco donde niega la devolución.','Presentar denuncia ante la Dirección de Consumidor en paralelo.','Si el banco resuelve y devuelve el monto completo: caso cerrado. Si no resuelve o la oferta es parcial: derivar a vía civil.'],
-        civil:['Mediación prejudicial obligatoria (Ley 8858 Córdoba). Los bancos suelen enviar representantes con facultades de acordar.','Demanda con los siguientes rubros: restitución del monto estafado como daño emergente exacto (movimientos de cuenta como prueba), intereses desde la fecha de la estafa, daño moral por el impacto en la economía familiar y la angustia de haber perdido dinero que el banco se niega a devolver, daño punitivo porque la negativa sistemática de los bancos a devolver en casos de estafa digital es una política corporativa deliberada.','Prueba: denuncia policial, movimientos de cuenta, comunicaciones con el banco, registro de llamadas o mensajes del estafador. Informativa al BCRA: antecedentes de reclamos similares contra el banco (acredita el carácter sistemático y refuerza enormemente el punitivo).'],
-        cautelar:'',
-        argumento:'El banco tiene la obligación de implementar medidas de seguridad suficientes para proteger a sus clientes. Cuando un tercero accede a la cuenta usando técnicas de engaño que el banco debería haber prevenido con sistemas de autenticación más robustos, la responsabilidad no es solo del estafador sino también del banco por falta de medidas adecuadas. La jurisprudencia argentina está reconociendo esto de forma creciente.',
-        normas:[
-          'CCCN arts. 1378-1420: los bancos tienen obligaciones de seguridad y diligencia especiales respecto a sus clientes.',
-          'Art. 1724 CCCN: responsabilidad por dolo o culpa grave. El banco actúa con culpa grave cuando sus sistemas de seguridad son insuficientes para prevenir este tipo de estafas.',
-          'Art. 52 bis LDC: daño punitivo. La negativa sistemática a devolver en casos de estafa digital es una política corporativa deliberada.',
-          'Art. 1741 CCCN: daño moral. El impacto de perder los ahorros por una estafa que el banco no previno es significativo y acreditable.',
-          'Art. 37 LDC: cláusulas que eximen al banco de responsabilidad ante fraudes electrónicos son abusivas y nulas.',
-          'Circulares BCRA sobre seguridad informática: el incumplimiento refuerza la responsabilidad del banco.',
-          'Ley 8858 Córdoba: mediación prejudicial obligatoria.',
-        ]
-      }
-    ]
+      'Seguros adheridos al resumen sin consentimiento: el más frecuente. Seguros de vida, desempleo, compras protegidas, celular. Buscar en el resumen: "Seg. Vida Cred.", "Prot. Plus", "Seg. Equipo" — conceptos que el cliente paga sin haberlos contratado',
+      'Comisiones y cargos no informados: mantenimiento de cuenta, uso de cajero de otra red, renovación de plástico, tasas de servicio — comparar el resumen con el contrato de apertura',
+      'Tasas de interés abusivas: la Ley 25.065 fija límites. Los compensatorios no pueden superar el 25% de la tasa que el emisor cobra al comercio adherido. Los punitorios no pueden superar en más del 50% a los compensatorios',
+      'Débitos automáticos no autorizados: el banco procesó débitos a empresas con las que el cliente no tiene relación (requiere autorización expresa — art. CCCN 1399)',
+      'Préstamos UVA: cuotas indexadas por inflación que se volvieron impagables. Alta litigiosidad activa — requiere análisis particular de la jurisprudencia vigente del fuero'
+    ],
+    normas: [
+      'Ley 24.240 LDC: arts. 1, 2, 4, 37, 50, 52 bis. La relación bancaria de un consumidor siempre es una relación de consumo',
+      'Ley 25.065 (Tarjetas de Crédito): art. 5 (contrato escrito obligatorio — condiciones no informadas no son vinculantes); art. 16 (intereses compensatorios ≤ 25% de la tasa al comercio); art. 18 (punitorios ≤ 150% de los compensatorios); art. 22 (el resumen debe detallar todos los ítems con claridad)',
+      'CCCN arts. 1378-1420: contratos bancarios — obligaciones de información más estrictas que cualquier otro proveedor',
+      'CCCN art. 1399: débito automático requiere autorización expresa del cliente',
+      'Art. 771 CCCN: los jueces pueden reducir intereses abusivos',
+      'Circulares BCRA: regulan comisiones y comunicación de los bancos. Se actualizan frecuentemente — verificar circular aplicable al producto en cuestión',
+      'Art. 37 LDC: comisiones no informadas y tasas que superan los límites de la Ley 25.065 son cláusulas abusivas nulas',
+      'Art. 52 bis LDC: punitivo — en bancos son los montos más altos del área. Un cargo de $5.000 cobrado a 500.000 clientes = $2.500.000.000/mes de ingresos ilegítimos. No es un error: es una estrategia de negocio deliberada'
+    ],
+    pasos: {
+      consulta: [
+        'Identificar el tipo de reclamo: seguro no contratado (buscar en el resumen conceptos de seguros ítem por ítem) / comisión no informada (comparar resumen con contrato de apertura) / tasa abusiva (calcular la TEA y comparar con límites Ley 25.065) / débito no autorizado (identificar empresa receptora del débito)',
+        '⚠️ Verificar prescripción (art. 50 LDC — 3 años desde cada cobro individual): mismo mecanismo que telecos. Los cobros más antiguos a 3 años pueden estar prescriptos; los recientes, vigentes',
+        'Documentación: resúmenes de los últimos 12 meses (hasta 36 si es posible) + contrato de apertura de cuenta o de la tarjeta con condiciones generales + en tasas: el contrato de préstamo con TNA y TEA especificadas + comunicaciones del banco sobre adhesión a seguros',
+        'Calcular el daño con precisión exacta: en bancos el daño emergente es exacto — los resúmenes tienen el monto de cada cargo sin ambigüedad. Esa precisión es la mayor fortaleza del sector en la negociación',
+        'Evaluar doble canal: BCRA + Dirección de Consumidor antes de ir a civil. La combinación genera más presión. El banco quiere evitar sanciones de ambos reguladores simultáneamente — muchos resuelven con esto',
+        'Decidir vía: daño moderado + quiere resolución rápida → BCRA + Consumidor. Daño alto + conducta masiva y lucrativa + punitivo → civil'
+      ],
+      adm: [
+        'BCRA (www.bcra.gob.ar — Usuarios Financieros): reclamo online gratuito. El banco debe responder en plazos estrictos. Si no responde o no resuelve: el BCRA puede aplicar sanciones que afectan la licencia bancaria. Por eso muchos bancos resuelven antes del sumario del BCRA',
+        'DIRECCIÓN DE CONSUMIDOR (Córdoba): para cobros indebidos, cláusulas abusivas, cargos no informados. Mismo procedimiento general',
+        'ESTRATEGIA: reclamo ante BCRA + denuncia Dirección de Consumidor en paralelo. Si en 30 días ninguno resolvió o la oferta es insuficiente: vía civil',
+        'Relato para bancos: identificación del producto (número de cuenta/tarjeta) + descripción EXACTA del cargo (nombre tal como figura en el resumen + monto mensual + período) + por qué es ilegítimo (no informado al contratar / supera límites de la Ley 25.065 / no fue autorizado) + tabla mes por mes con el daño exacto + resúmenes como Anexo 1 + contrato como Anexo 2'
+      ],
+      civil: [
+        'Mediación prejudicial (Ley 8858): los bancos suelen enviar representantes con facultades de acordar. Si el caso está bien presentado, es el mejor momento de negociación — el banco ya tiene calculado el costo de ir a juicio',
+        'Rubros de la demanda: emergente exacto (desde los resúmenes, sin estimaciones) + intereses (verificar tasa vigente del fuero cordobés) + daño moral (bloqueo de cuenta sin notificación, rechazo de operaciones en situaciones críticas, cuotas impagables — hechos concretos, no genérico) + punitivo (argumento central: la escala. Un cargo cobrado a miles de clientes no es un error — es una decisión corporativa deliberada)',
+        'En tarjetas: si la TEA supera los límites de la Ley 25.065 → pedir nulidad de la cláusula de tasas (art. 37 LDC) + restitución de intereses en exceso',
+        'Prueba: resúmenes + contrato + comunicaciones + informativa al banco (que acompañe autorización del cliente — si no puede, confirma que no fue autorizado) + informativa al BCRA (antecedentes de sanciones al banco — especialmente poderosa porque el BCRA lleva registros detallados) + pericial contable en tasas abusivas'
+      ]
+    },
+    ejemplos: [
+      {titulo:'Caso A — Seguros no contratados en tarjeta (civil, acuerdo en mediación)',desc:'Banco Galicia: 3 seguros ($10.600/mes total) durante 26 meses. El cliente los encontró revisando el resumen al cambiar de banco. Normas: art. 37 LDC + art. 52 bis (conducta masiva — los seguros están en millones de resúmenes) + art. 53 LDC.',resultado:'Acuerdo en mediación: reintegro $275.600 + compensación $680.000 = $955.600. Honorario 20%: $191.120'},
+      {titulo:'Caso B — Tasa abusiva en préstamo personal (civil, sentencia)',desc:'TEA del 320% anual. Límites de la Ley 25.065 y criterios del fuero la hacían impugnable. Pericia contable calculó el exceso. Normas: Ley 25.065 arts. 16 y 18 + art. 37 LDC + art. 771 CCCN.',resultado:'Sentencia: reintegro intereses en exceso $540.000 + daño moral $200.000 = $740.000. Honorario 20%: $148.000'},
+      {titulo:'Caso C — Débitos no autorizados (BCRA + administrativo)',desc:'11 débitos a empresa de servicios financieros que el cliente nunca contrató. $5.400/mes. Detectado al revisar el estado de cuenta por otro motivo. Normas: CCCN art. 1399 + arts. 37, 4 LDC.',resultado:'BCRA notificó al banco. En 18 días: reintegro $59.400 + $18.000 de compensación ofrecida voluntariamente para cerrar el reclamo'}
+    ],
+    honorarios: {
+      adm:'Honorario fijo por gestión. Los bancos resuelven rápido ante el BCRA cuando el reclamo está bien fundado. La gestión administrativa es relativamente sencilla en este sector',
+      civil:'20-25% del total cobrado. Sin cobro anticipado',
+      ejemplo:'3 seguros adheridos sin consentimiento: $9.500/mes × 28 meses vigentes\nDaño emergente:         $266.000\nIntereses estimados:     $85.000\nDaño moral:             $280.000 (orientativo)\nDaño punitivo:          $850.000 (orientativo — conducta masiva y lucrativa)\nTotal estimado:       $1.481.000\nHonorario al 20%:       $296.200\nHonorario al 25%:       $370.250'
+    }
+  },
+  s5: {
+    nombre: 'Sector 5 — E-commerce y plataformas digitales',
+    empresas: 'MercadoLibre · Amazon · Tiendanube · PedidosYa · Rappi · Netflix · Spotify · Adobe',
+    intro: 'El e-commerce en Argentina creció exponencialmente. Millones de personas compran online constantemente. Los clientes tienen la documentación de manera natural (todo está en el email o la app). Los casos de monto bajo (la mayoría) se despachan con instructivos automatizados. Los de monto alto tienen estructura similar y los escritos se replican. Elemento diferencial: para plataformas extranjeras, la cláusula de jurisdicción al extranjero es nula (art. 2654 CCCN) — el consumidor argentino siempre puede demandar en Córdoba.',
+    casos: [
+      'Incumplimiento del plazo de entrega: el más común. El plazo prometido en la confirmación de compra integra el contrato y es exigible (art. 8 LDC)',
+      'Producto recibido diferente al publicado o con defectos: capturar la publicación original es clave. Normas: arts. 8, 18, 11 LDC',
+      'Derecho de arrepentimiento no respetado: art. 34 LDC — 10 días corridos desde la entrega, sin dar razones, sin cargo. Las cláusulas de "política de no devoluciones" son nulas (art. 37 LDC)',
+      'Cobro de suscripción después de la cancelación: art. 10 ter LDC (cancelación por el mismo canal) + art. 34 LDC. En plataformas extranjeras: el art. 2654 CCCN invalida la cláusula de jurisdicción al extranjero',
+      'Publicidad engañosa sobre precio final: el precio mostrado no incluye costos que se agregan al final. Arts. 8 y 4 LDC (precio final con todos los costos debe estar visible antes de confirmar la compra)'
+    ],
+    normas: [
+      'Art. 1 y 2 LDC: el comprador online siempre es consumidor. La plataforma y el vendedor son proveedores. La LDC aplica incluso si la plataforma es extranjera',
+      'Art. 4 LDC: el precio final con todos los impuestos y costos tiene que estar visible antes de confirmar la compra',
+      'Art. 8 LDC: todo lo que se muestra en la publicación online (precio, descripción, plazo de entrega) es parte del contrato y es exigible',
+      'Art. 10 ter LDC: la cancelación del servicio por el mismo canal de contratación. Si se suscribió online, la baja es online',
+      'Art. 11 LDC: garantía legal — bienes nuevos 1 año desde la entrega; usados 6 meses. El vendedor repara, reemplaza, o reintegra a elección del consumidor',
+      'Art. 18 LDC: vicios redhibitorios — defectos que hacen la cosa impropia para su uso',
+      'Art. 34 LDC: arrepentimiento — 10 días corridos desde la entrega, sin razones, SIN NINGÚN CARGO. El proveedor debe reintegrar dentro de los 10 días de recibida la revocación. No puede cobrar gastos de devolución ni ningún otro cargo',
+      'Art. 37 LDC: cláusulas de "no devoluciones" o "venta final" que contradigan el art. 34 son nulas de pleno derecho',
+      '⭐ Art. 2654 CCCN: cláusulas de prórroga de jurisdicción al extranjero en contratos de consumo = NULAS. El consumidor siempre puede demandar en su domicilio (Córdoba). Esto habilita casos contra Amazon, Adobe, Spotify, y cualquier plataforma con sede en EE.UU. o Europa. ES EL ARGUMENTO QUE CUESTIONARÁN PRIMERO — tenerlo sólido desde la demanda',
+      'Art. 52 bis LDC: punitivo cuando hay conducta sistemática del vendedor o la plataforma'
+    ],
+    pasos: {
+      consulta: [
+        'Identificar el tipo de reclamo: (a) ¿llegó el producto? ¿cuál era el plazo prometido? (b) ¿es diferente a lo publicado o tiene defectos? (c) ¿cuándo pidió la devolución? ¿qué respondieron? (d) ¿cuándo pidió la cancelación? ¿siguieron cobrando? (e) ¿cuánto se publicó vs. cuánto se cobró al final?',
+        '⚠️ Verificar prescripción (art. 50 LDC — 3 años): entrega incumplida → desde la fecha prometida incumplida. Producto defectuoso → desde que se detectó el defecto. Arrepentimiento rechazado → desde el rechazo. Suscripción → desde cada cobro posterior a la cancelación',
+        'Documentación: captura de la publicación con precio y descripción AL MOMENTO DE LA COMPRA + confirmación de compra o factura electrónica + historial del pedido (fechas y estados de envío) + comunicaciones con el vendedor o la plataforma + fotos del producto tal como llegó si hay defecto + comunicación de solicitud de devolución y respuesta',
+        '⚠️ UMBRAL DE RENTABILIDAD (más importante en e-commerce): para vía civil necesita al menos uno de estos elementos: monto daño emergente > $300.000, o el producto era insumo laboral con lucro cesante acreditable, o conducta reiterada del mismo vendedor, o plataforma que sistemáticamente dificulta el arrepentimiento o la garantía. Sin alguno de estos: vía administrativa o instructivo',
+        'Para plataformas extranjeras: verificar la cláusula de jurisdicción. Si establece jurisdicción extranjera → citar art. 2654 CCCN que la invalida. Sin ese artículo el demandado cuestionará la competencia del fuero cordobés',
+        'Decidir vía: monto bajo + plataforma tiene sistema de reclamos → reclamo directo primero. No resolvió + monto moderado → administrativa. Monto alto + conducta sistemática + daño acreditable → civil'
+      ],
+      adm: [
+        'PRIMER PASO — Reclamo en la plataforma (antes de ir a Consumidor): MercadoLibre y otras plataformas grandes tienen sistemas de mediación internos que resuelven muchos casos en días. Si resuelve: caso cerrado sin tiempo del estudio. Si no resuelve en 7-10 días: el antecedente del reclamo ignorado refuerza el caso en la vía posterior',
+        'DIRECCIÓN DE CONSUMIDOR (Córdoba): el daño documentable (captura + confirmación de compra + comunicaciones) hace que las audiencias suelen resolverse en acuerdo porque la empresa quiere evitar la multa y la mala publicidad',
+        'Relato para e-commerce: descripción de lo comprado (captura adjunta como Anexo 1) + fecha de compra y plazo prometido + lo que ocurrió (no llegó / llegó diferente / se rechazó la devolución) + reclamos previos en la plataforma (capturas como Anexo 2) + daño calculado (precio pagado + gastos adicionales documentados)'
+      ],
+      civil: [
+        'Mediación prejudicial (Ley 8858). Para plataformas extranjeras: verificar si tienen representación legal en Argentina que pueda ser citada a la mediación',
+        'Rubros según el caso: entrega incumplida → emergente (precio + lucro cesante si era insumo laboral documentado) + intereses + moral (hechos concretos: era regalo con fecha, era insumo crítico para trabajar) + punitivo (acreditar patrón con reviews de otros compradores del mismo vendedor). Producto diferente → emergente + pretensión de hacer + moral + punitivo (entrega de algo completamente diferente = dolo directo). Arrepentimiento rechazado → precio pagado + punitivo (rechazo de derecho expresamente establecido en el art. 34 = especialmente grave)',
+        'Prueba: publicación + confirmación de compra + comunicaciones + reviews públicas de otros compradores del mismo vendedor (para acreditar carácter sistemático = refuerza punitivo) + informativa a la plataforma sobre historial de reclamos contra ese vendedor',
+        '⚠️ Para plataformas extranjeras: citar SIEMPRE art. 2654 CCCN con el argumento desarrollado en la demanda. Es el primer argumento que cuestionarán. Sin él, el demandado pedirá la incompetencia del fuero cordobés'
+      ]
+    },
+    ejemplos: [
+      {titulo:'Caso A — Arrepentimiento rechazado (administrativo, acuerdo)',desc:'Ropa online $98.000. Solicitó devolución el día 4 de recibido (dentro del plazo de 10 días del art. 34 LDC). La tienda rechazó alegando "política de no devoluciones en ropa" — el producto no era a medida. Normas: arts. 34, 37 LDC.',resultado:'Denuncia en Dirección de Consumidor. Acuerdo a los 24 días: reintegro completo de $98.000'},
+      {titulo:'Caso B — Producto diferente al publicado (civil, acuerdo)',desc:'TV 4K 65" $430.000 en MercadoLibre → recibió TV 32" HD. Vendedor y plataforma no resolvieron. Publicación capturada el día de la compra. Normas: arts. 8, 18, 52 bis LDC (entregar algo completamente diferente = dolo directo).',resultado:'Acuerdo en mediación: reintegro $430.000 + compensación $400.000 = $830.000. Honorario 20%: $166.000'},
+      {titulo:'Caso C — Suscripción post-cancelación con jurisdicción extranjera (civil)',desc:'Software cancelado en marzo 2024. La plataforma (sede en EE.UU.) siguió cobrando $16.500/mes durante 11 meses = $181.500. Contrato con cláusula de jurisdicción en Delaware. Normas: arts. 34, 2654 CCCN, 52 bis LDC.',resultado:'El art. 2654 CCCN presionó a la plataforma a acordar en Córdoba: reintegro $181.500 + $580.000 compensación = $761.500. Honorario 20%: $152.300'}
+    ],
+    honorarios: {
+      adm:'Honorario fijo bajo o instructivo sin cargo. En e-commerce los montos base suelen ser bajos y el cliente puede gestionar el reclamo con un instructivo. El umbral de rentabilidad es más alto que en otros sectores',
+      civil:'20-25% del total cobrado. ⚠️ Evaluar bien el umbral de rentabilidad antes de comprometerse: el monto potencial total debe justificar el trabajo',
+      ejemplo:'Equipamiento laboral $780.000 no entregado en 45 días. La empresa no pudo completar 3 proyectos\nDaño emergente (precio del producto): $780.000\nLucro cesante documentado:           $420.000\nIntereses estimados:                 $200.000\nDaño moral:                          $220.000 (orientativo)\nDaño punitivo:                       $480.000 (orientativo)\nTotal estimado:                    $2.100.000\nHonorario al 20%:                    $420.000\nHonorario al 25%:                    $525.000'
+    }
   }
 };
 
+
+// ─── INTRO TABS ───
+var INTRO_DATA = {
+  sistema: {
+    title: '1. El sistema legal — cómo funciona la defensa del consumidor',
+    html: function(){
+      return '<div class="card" style="margin-bottom:12px"><div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">La relación entre una empresa y un cliente que le compra un producto o le contrata un servicio se llama <strong>RELACIÓN DE CONSUMO</strong>. El derecho argentino reconoce que hay una parte más poderosa (la empresa) y una más débil (el cliente). La norma central es la <strong>Ley 24.240 (LDC)</strong>. Su art. 3 establece que en caso de duda, siempre se interpreta a favor del consumidor. Tiene jerarquía constitucional: art. 42 CN.</div>' +
+      '<div class="card-title">Las normas que el equipo usa todos los días</div>' +
+      [
+        ['Art. 1 LDC','Consumidor es quien adquiere o usa bienes o servicios como destinatario final. <em>Para qué sirve:</em> primer check de toda consulta.'],
+        ['Art. 2 LDC','Proveedor es quien en forma profesional produce, importa, distribuye o presta servicios con ánimo de lucro. Claro, un banco, una prepaga, MercadoLibre: todos son proveedores.'],
+        ['Art. 3 LDC','En caso de duda, siempre se resuelve a favor del consumidor. <strong>Es la regla de desempate de todo el área.</strong>'],
+        ['Art. 4 LDC','Deber de información cierta, clara, detallada y gratuita. Cualquier vez que la empresa no informó algo relevante, hay infracción.'],
+        ['Art. 8 LDC','La publicidad integra el contrato y es exigible aunque no esté en el texto escrito.'],
+        ['Art. 10 ter LDC','El consumidor puede cancelar por el mismo medio que contrató. Prohíbe la "baja hostil".'],
+        ['Art. 11 LDC','Garantía legal: 1 año bienes nuevos / 6 meses usados desde la entrega.'],
+        ['Art. 34 LDC','Arrepentimiento en ventas online: 10 días corridos desde la entrega, sin cargo, sin dar razones.'],
+        ['Art. 37 LDC','Cláusulas abusivas: nulas de pleno derecho aunque el cliente haya "firmado". Aplica a cargos escondidos, penalidades desproporcionadas, actualizaciones sin tope.'],
+        ['Art. 45 LDC','La autoridad actúa como conciliador antes del sumario.'],
+        ['Art. 47 LDC','Multas al proveedor. Van al Estado, no al cliente. Por eso siempre sumar la vía civil.'],
+        ['Art. 50 LDC','Prescripción: 3 años desde cada acto dañoso. Primer filtro de toda consulta.'],
+        ['Art. 52 bis LDC','Daño punitivo: multa civil a favor del consumidor cuando el proveedor actuó con dolo o culpa grave. El rubro que transforma el modelo de honorarios.'],
+        ['Art. 53 LDC','Inversión de la carga de la prueba: el proveedor debe aportar todos los elementos probatorios. No es el consumidor quien prueba que no contrató el seguro: es la empresa quien prueba que sí lo contrató.'],
+        ['Art. 2654 CCCN','Prórroga de jurisdicción al extranjero = nula. El consumidor siempre puede demandar en Córdoba. Habilita demandar a Netflix, Adobe, Spotify, Amazon directamente en Córdoba.'],
+      ].map(function(r){
+        return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="min-width:110px;font-size:11px;font-weight:700;color:var(--blue)">'+r[0]+'</div><div style="font-size:12px;color:var(--text2);line-height:1.5">'+r[1]+'</div></div>';
+      }).join('') + '</div>';
+    }
+  },
+  vias: {
+    title: '2. Las tres vías y cómo se articulan',
+    html: function(){
+      return '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">' +
+        '<div class="card" style="margin-bottom:0;border-left:3px solid var(--green)"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">VÍA 1 — ADMINISTRATIVA (gratuita, sin abogado obligatorio)</div><div style="font-size:12px;color:var(--text2);line-height:1.6">El consumidor denuncia ante la Dirección Provincial o Municipal. La autoridad convoca a audiencia conciliatoria. Si hay acuerdo: se homologa. Si no: sumario y multa al proveedor.<br><strong>Qué obtiene el cliente:</strong> reintegro o cumplimiento del servicio. No hay daño moral ni punitivo. La multa va al Estado, no al cliente.<br><strong>Tiempo:</strong> 30-60 días.</div></div>' +
+        '<div class="card" style="margin-bottom:0;border-left:3px solid var(--text3)"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px">VÍA 2 — RECURSO JUDICIAL CONTRA RESOLUCIÓN ADMINISTRATIVA</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Apelación ante la Cámara Civil y Comercial de turno. Continuación de la vía administrativa. En la práctica es menos usada que la Vía 3 porque cuando hay potencial de daño moral y punitivo conviene ir a civil desde el inicio.</div></div>' +
+        '<div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)"><div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">VÍA 3 — DEMANDA CIVIL DIRECTA ⭐</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Demanda directamente ante los Juzgados Civil y Comercial de Córdoba, independientemente de lo que ocurra en la vía administrativa. Puede iniciarse antes, durante o después.<br><strong>Qué obtiene el cliente:</strong> daño emergente + intereses + daño moral + daño punitivo.<br><strong>Tiempo:</strong> 6-18 meses.</div></div>' +
+        '<div style="background:var(--blue-bg);border-radius:var(--radius);padding:12px 14px;font-size:12px;color:var(--blue)"><strong>Estrategia más habitual:</strong> Vía 1 + Vía 3 corriendo en paralelo. La multa administrativa va al Estado; la indemnización civil va al cliente. Son independientes y compatibles.</div>' +
+      '</div>' +
+      '<div class="card"><div class="card-title">Comparativa de lo que obtiene el cliente</div><div style="overflow-x:auto"><table><tr><th>Rubro</th><th>Vía Administrativa</th><th>Vía Civil</th></tr>' +
+      '<tr><td>Reintegro/cumplimiento</td><td style="color:var(--green)">✓ Sí</td><td style="color:var(--green)">✓ Sí</td></tr>' +
+      '<tr><td>Intereses</td><td style="color:var(--red)">✗ No</td><td style="color:var(--green)">✓ Sí</td></tr>' +
+      '<tr><td>Daño moral</td><td style="color:var(--red)">✗ No</td><td style="color:var(--green)">✓ Sí (art. 1741 CCCN)</td></tr>' +
+      '<tr><td>Daño punitivo</td><td style="color:var(--red)">✗ No</td><td style="color:var(--green)">✓ Sí (art. 52 bis LDC)</td></tr>' +
+      '<tr><td>Multa al proveedor</td><td style="color:var(--orange)">Va al Estado</td><td style="color:var(--text3)">No aplica</td></tr>' +
+      '<tr><td>Tiempo estimado</td><td>30-60 días</td><td>6-18 meses</td></tr>' +
+      '<tr><td>Requiere abogado</td><td>No obligatorio</td><td>Sí, siempre</td></tr>' +
+      '</table></div></div>';
+    }
+  },
+  punitivo: {
+    title: '3. El daño punitivo — el rubro que cambia la ecuación',
+    html: function(){
+      return '<div class="grid2" style="margin-bottom:12px">' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Qué es</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Es una multa civil que el juez impone al proveedor <strong>a favor del consumidor</strong>, por encima de la reparación del daño real. No compensa un daño específico del cliente: castiga la conducta del proveedor y la disuade para que no la repita. Lo establece el <strong>art. 52 bis LDC</strong>.</div>' +
+        '<div style="background:var(--green-bg);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:11px;color:var(--green)"><strong>Analogía con el laboral:</strong> El punitivo del art. 52 bis LDC cumple el mismo rol que el art. 2 de la Ley 25.323 en laboral. Un cobro indebido de $150.000 con punitivo puede convertirse en una condena de $900.000. Esa diferencia de 6x es lo que cierra el modelo económico.</div></div>' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Cuándo procede</div><div style="display:flex;flex-direction:column;gap:6px">' +
+        ['La conducta es masiva y sistemática (no un error aislado — una pauta deliberada que afecta a miles simultáneamente)','El proveedor obtiene un beneficio económico directo. Un seguro no contratado de $8.000/mes cobrado a 500.000 clientes = $4.000.000.000/mes. No es un error, es una decisión de negocio','El proveedor ignoró reclamos individuales porque el costo de ignorarlos era menor que el beneficio de continuar','El proveedor no corrigió voluntariamente cuando tuvo la oportunidad'].map(function(t){return '<div style="display:flex;gap:8px"><span style="color:var(--green);flex-shrink:0">✓</span><span style="font-size:12px;color:var(--text2)">'+t+'</span></div>';}).join('') +
+        '</div></div></div>' +
+        '<div class="card"><div class="card-title">Cuánto puede ser</div><div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Lo fija el juez. La ley no establece un múltiplo fijo. Varía según la envergadura del demandado, la magnitud de la conducta, y el criterio de la sala actuante en Córdoba.</div>' +
+        '<div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--orange)"><strong>Rango orientativo:</strong> 2 a 8 veces el daño real. <strong>REGLA OPERATIVA:</strong> antes de cuantificar el punitivo en la demanda, verificar jurisprudencia actualizada de las Cámaras Civiles y Comerciales de Córdoba. Los montos varían y usar criterios desactualizados genera expectativas incorrectas.</div></div>';
+    }
+  },
+  prescripcion: {
+    title: '4. Prescripción — el primer filtro de toda consulta',
+    html: function(){
+      return '<div class="card" style="margin-bottom:12px">' +
+        '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px;margin-bottom:12px">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px">Art. 50 LDC — 3 años desde cada acto dañoso individual</div>' +
+        '<div style="font-size:12px;color:var(--text2);line-height:1.5">En cobros indebidos, el plazo corre desde <strong>cada cobro por separado</strong>, no desde el primero. Parte de los cobros puede estar prescripta aunque otros no.</div></div>' +
+        '<div class="card-title">Ejemplo concreto</div>' +
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Seguro no contratado cobrado desde enero 2021. Consulta: mayo 2026.<br>' +
+        '<span style="color:var(--red)">✗</span> <strong>Cobros prescriptos:</strong> enero 2021 a abril 2023. No se pueden reclamar.<br>' +
+        '<span style="color:var(--green)">✓</span> <strong>Cobros vigentes:</strong> mayo 2023 a mayo 2026 (36 meses). Se pueden reclamar.<br>' +
+        'Si el cobro era de $10.000/mes → daño emergente reclamable: $10.000 × 36 = <strong>$360.000</strong></div>' +
+        '<div class="card-title">Cómputo según el tipo de reclamo</div>' +
+        [['Cobros indebidos','Desde cada cobro individual'],['Negativa de cobertura en salud','Desde la fecha de la negativa'],['Demora en entrega','Desde la fecha de entrega comprometida incumplida'],['Rescisión abusiva','Desde la notificación de rescisión'],['Arrepentimiento rechazado','Desde el rechazo de la solicitud de devolución']].map(function(r){return '<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)"><div style="min-width:180px;font-size:11px;font-weight:600;color:var(--text)">'+r[0]+'</div><div style="font-size:12px;color:var(--text2)">'+r[1]+'</div></div>';}).join('') +
+        '</div>' +
+        '<div class="card"><div class="card-title">Cómo se suspende</div><div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">Cuando se presenta la solicitud de mediación prejudicial (Ley 8858 Córdoba), la prescripción se suspende automáticamente. Si está próxima a vencer, presentar la mediación <strong>antes</strong> de que se cumpla el plazo.</div>' +
+        '<div style="background:var(--orange-bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--orange)"><strong>REGLA OPERATIVA DEL EQUIPO:</strong> La prescripción es lo primero que se verifica en toda consulta, antes de analizar el fondo. Si todo está prescripto: explicar al cliente y cerrar. Si está parcialmente prescripto: recalcular el daño solo sobre el período vigente. Calcular mal la prescripción en la consulta inicial es el error más frecuente del área.</div></div>';
+    }
+  },
+  autoridades: {
+    title: '5. Autoridades de aplicación en Córdoba',
+    html: function(){
+      return '<div class="grid2" style="margin-bottom:12px">' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Dirección Provincial — Defensa del Consumidor</div>' +
+        '<div style="font-size:12px;color:var(--text2);line-height:1.7">📍 Tucumán 176, Córdoba Capital<br>⏰ Lun-Vie 8 a 20 hs · También online<br>Marco legal: Ley 24.240 + Ley Provincial 10.247<br>Gratuito, no requiere abogado.<br><em>Cuándo usarla:</em> casos de consumo masivo (telecos, bancos, prepagas, e-commerce). Mayor experiencia en casos complejos y más capacidad de presión sobre empresas grandes.</div></div>' +
+        '<div class="card" style="margin-bottom:0"><div class="card-title">Dirección Municipal — Consumidor y Mediación</div>' +
+        '<div style="font-size:12px;color:var(--text2);line-height:1.7">Municipalidad de Córdoba · Presencial y virtual<br>Bancos · Tarjetas · Telefonía · Internet · Cable · Planes de ahorro · Medicina prepaga<br><em>Cuándo usarla:</em> cuando hay demora en la Dirección Provincial, o cuando se quiere presentar en ambas en paralelo para mayor presión.</div></div></div>' +
+        '<div class="card" style="margin-bottom:12px"><div class="card-title">Organismos reguladores nacionales por sector</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+        [['📱 Telecos','ENACOM — enacom.gob.ar<br>Recibe reclamos y tiene antecedentes de sanciones. Los oficios al ENACOM refuerzan el punitivo.','b-blue'],['🏦 Bancos y tarjetas','BCRA — bcra.gob.ar (Usuarios Financieros)<br>Reclamo online, el banco debe responder en plazos estrictos. Muy efectivo combinado con Dirección de Consumidor.','b-purple'],['🏥 Medicina prepaga','SSS — sssalud.gob.ar<br>Muy efectiva para negativas del PMO y aumentos no autorizados. Las prepagas le temen más al regulador que a la Dirección de Consumidor.','b-green'],['🚗 Planes de ahorro','IGJ o CNV según la administradora. Verificar cuál corresponde al caso concreto al momento de la consulta.','b-orange']].map(function(r){return '<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">'+r[0]+'</div><div style="font-size:11px;color:var(--text2);line-height:1.5">'+r[1]+'</div></div>';}).join('') +
+        '</div></div>' +
+        '<div class="card"><div class="card-title">Estrategia general</div><div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">Para los sectores con regulador específico (bancos, salud, telecos): presentar el reclamo ante el regulador Y ante la Dirección de Consumidor en paralelo. La combinación de dos canales regulatorios genera más presión que uno solo y muchas empresas resuelven antes de que llegue a sumario.</div><div style="background:var(--bg3);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--text2)"><strong>Vía judicial en Córdoba:</strong> Juzgados Civil y Comercial (Código Procesal Civil, Ley 8465). Apelaciones ante la Cámara Civil y Comercial de turno. Mediación prejudicial obligatoria previa: Ley 8858 Córdoba.</div></div>';
+    }
+  }
+};
+
+function introTab(key){
+  document.querySelectorAll('#intro-tabs .tab').forEach(function(b){b.className='tab';});
+  var btn=document.getElementById('intro-tab-'+key);
+  if(!btn){
+    document.querySelectorAll('#intro-tabs .tab').forEach(function(b,i){
+      if(b.getAttribute('onclick')==="introTab('"+key+"')") b.className='tab active';
+    });
+  }
+  var d=INTRO_DATA[key];
+  if(!d) return;
+  document.getElementById('intro-content').innerHTML='<div class="card-title" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">'+d.title+'</div>'+d.html();
+}
+
 function capMostrarSector(){
   var v=document.getElementById('cap-sector').value;
-  var all=['cap-intro','cap-sector-content'];
+  var all=['cap-intro','cap-sector-content','cap-checklists','cap-tabla','cap-normativa'];
   all.forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
   if(v==='intro'){
     document.getElementById('cap-intro').style.display='block';
-    introTab('quees');
-  } else if(['s2','s3','s4'].includes(v)){
+    introTab('sistema');
+  } else if(v==='checklists'){
+    document.getElementById('cap-checklists').style.display='block';
+  } else if(v==='tabla'){
+    document.getElementById('cap-tabla').style.display='block';
+  } else if(v==='normativa'){
+    document.getElementById('cap-normativa').style.display='block';
+  } else if(['s1','s2','s3','s4','s5'].includes(v)){
     document.getElementById('cap-sector-content').style.display='block';
     renderCapSector(v);
   }
@@ -3281,12 +3618,12 @@ function capMostrarSector(){
 
 function renderCapSector(key){
   var s=CAP_SECTORES[key];
-  var tabs=['intro','semaforo','casos','normativa'];
-  var tabLabels={intro:'Introducción',semaforo:'Semáforo',casos:'Casos',normativa:'Normativa'};
+  var tabs=['consulta','adm','civil','ejemplos','honorarios'];
+  var tabLabels={consulta:'1. Consulta inicial',adm:'2. Vía administrativa',civil:'3. Vía civil',ejemplos:'4. Ejemplos prácticos',honorarios:'5. Honorarios'};
   document.getElementById('cap-sector-tabs').innerHTML=tabs.map(function(t){
-    return '<button class="tab'+(t==='intro'?' active':'')+'" onclick="capTab(\''+t+'\',\''+key+'\')" id="captab-'+t+'">'+tabLabels[t]+'</button>';
+    return '<button class="tab'+(t==='consulta'?' active':'')+'" onclick="capTab(\''+t+'\',\''+key+'\')" id="captab-'+t+'">'+tabLabels[t]+'</button>';
   }).join('');
-  capRenderTab('intro',s);
+  capRenderTab('consulta',s);
 }
 
 function capTab(t,key){
@@ -3297,139 +3634,47 @@ function capTab(t,key){
 
 function capRenderTab(t,s){
   var html='';
-
-  if(t==='intro'){
-    html='<div class="card" style="margin-bottom:12px">' +
-      '<div class="card-title">'+s.nombre+'</div>' +
-      '<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:8px">'+s.intro+'</div>' +
-      '<div style="font-size:11px;color:var(--text3)">'+s.empresas+'</div>' +
-    '</div>';
-
-    // Herramientas clave (s3 y s4)
-    if(s.herramientas&&s.herramientas.length){
-      html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Herramientas clave</div>';
-      var htIdx=0;
-      html+=s.herramientas.map(function(h){
-        var hid='ht-'+key+'-'+(htIdx++);
-        return '<div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:var(--bg3)" onclick="toggleAcc(\"'+hid+'\")">' +
-            '<span style="font-size:12px;font-weight:600;color:var(--text)">'+h.titulo+'</span>' +
-            '<span id="'+hid+'-icon" style="font-size:11px;color:var(--blue);font-weight:600">ver ▾</span>' +
-          '</div>' +
-          '<div id="'+hid+'" style="display:none;padding:14px;background:var(--bg2);font-size:12px;color:var(--text2);line-height:1.7">'+h.desc+'</div>' +
-        '</div>';
-      }).join('');
-    }
-
-    // Semáforo preview
-    html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px">Vista rápida de viabilidad</div>';
-    html+='<div style="display:flex;flex-direction:column;gap:6px">';
-    s.semaforo.forEach(function(sem){
-      var col=sem.color==='green'?'var(--green)':sem.color==='orange'?'var(--orange)':'var(--red)';
-      var bg=sem.color==='green'?'var(--green-bg)':sem.color==='orange'?'var(--orange-bg)':'var(--red-bg)';
-      html+='<div style="display:flex;gap:10px;align-items:flex-start;background:'+bg+';border-radius:8px;padding:10px 12px">' +
-        '<span class="badge" style="background:'+bg+';color:'+col+';border:1px solid '+col+';flex-shrink:0">'+sem.label+'</span>' +
-        '<div><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">'+sem.caso+'</div>' +
-        '<div style="font-size:11px;color:var(--text2)">'+sem.desc+'</div></div>' +
+  if(t==='consulta'||t==='adm'||t==='civil'){
+    var steps=s.pasos[t==='adm'?'adm':t==='civil'?'civil':'consulta']||[];
+    html='<div class="grid2" style="margin-bottom:12px">';
+    html+='<div class="card" style="margin-bottom:0"><div class="card-title">'+s.nombre+'</div>';
+    html+='<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">'+s.intro+'</div>';
+    html+='<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Casos frecuentes</div>';
+    html+=s.casos.map(function(c){return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="color:var(--blue);flex-shrink:0">›</span><span style="font-size:12px;color:var(--text2)">'+c+'</span></div>';}).join('');
+    html+='</div>';
+    html+='<div class="card" style="margin-bottom:0"><div class="card-title">Pasos — '+(t==='consulta'?'Consulta inicial':t==='adm'?'Vía administrativa':'Vía civil directa')+'</div>';
+    steps.forEach(function(step,i){
+      var isAlert=step.startsWith('⚠️');
+      html+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)'+(i===steps.length-1?';border-bottom:none':'')+'">'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:'+(isAlert?'var(--orange-bg)':'var(--blue-bg)')+';color:'+(isAlert?'var(--orange)':'var(--blue)')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(isAlert?'!':i+1)+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);line-height:1.5">'+step+'</div>'+
       '</div>';
     });
-    html+='</div>';
-  }
-
-  else if(t==='semaforo'){
+    html+='</div></div>';
+    if(t==='consulta'){
+      html+='<div class="card"><div class="card-title">Normativa aplicable</div><div style="display:flex;flex-wrap:wrap;gap:6px">';
+      html+=s.normas.map(function(n){return '<span class="badge b-blue" style="font-size:10px;padding:4px 8px;text-transform:none;letter-spacing:0;font-weight:400">'+n+'</span>';}).join('');
+      html+='</div></div>';
+    }
+  } else if(t==='ejemplos'){
     html='<div style="display:flex;flex-direction:column;gap:10px">';
-    s.semaforo.forEach(function(sem){
-      var col=sem.color==='green'?'var(--green)':sem.color==='orange'?'var(--orange)':'var(--red)';
-      var bg=sem.color==='green'?'var(--green-bg)':sem.color==='orange'?'var(--orange-bg)':'var(--red-bg)';
-      html+='<div class="card" style="margin-bottom:0;border-left:3px solid '+col+'">' +
-        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">' +
-          '<span class="badge" style="background:'+bg+';color:'+col+';border:1px solid '+col+'">'+sem.label+'</span>' +
-          '<span style="font-size:13px;font-weight:600;color:var(--text)">'+sem.caso+'</span>' +
-        '</div>' +
-        '<div style="font-size:12px;color:var(--text2);line-height:1.5">'+sem.desc+'</div>' +
+    s.ejemplos.forEach(function(e){
+      html+='<div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">'+e.titulo+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">'+e.desc+'</div>'+
+        '<div style="background:var(--green-bg);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--green)">✓ '+e.resultado+'</div>'+
       '</div>';
     });
     html+='</div>';
+  } else if(t==='honorarios'){
+    html='<div class="grid2" style="margin-bottom:12px">'+
+      '<div class="card" style="margin-bottom:0"><div class="card-title">Vía administrativa</div><div style="font-size:12px;color:var(--text2);line-height:1.6">'+s.honorarios.adm+'</div></div>'+
+      '<div class="card" style="margin-bottom:0"><div class="card-title">Vía civil directa</div><div style="font-size:14px;font-weight:600;color:var(--green);margin-bottom:8px">'+s.honorarios.civil+'</div></div>'+
+    '</div>'+
+    '<div class="card"><div class="card-title">Ejemplo de liquidación</div><div style="font-size:12px;color:var(--text2);line-height:1.8;font-family:monospace;white-space:pre-wrap">'+s.honorarios.ejemplo+'</div></div>';
   }
-
-  else if(t==='casos'){
-    html='<div style="display:flex;flex-direction:column;gap:12px">';
-    s.casos.forEach(function(caso){
-      var isUrgent=caso.urgente||caso.urgencia;
-      html+='<div class="card" style="margin-bottom:0'+(isUrgent?';border:1px solid var(--red)':'')+'">';
-      if(isUrgent){
-        html+='<div style="background:var(--red-bg);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--red)">⚠️ ATENCIÓN: este caso requiere acción inmediata. Si hay riesgo real para la salud, va directo al abogado — no sigue el flujo estándar.</div>';
-      }
-      html+='<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">'+caso.titulo+'</div>';
-      html+='<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px">'+caso.desc+'</div>';
-
-      // Accordion sections
-      var sections=[
-        {id:caso.id+'-cons', label:'Consultas típicas', content: caso.consultas?caso.consultas.map(function(q){return '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:var(--text3);flex-shrink:0">"</span><span style="font-size:12px;color:var(--text2);font-style:italic">'+q+'</span></div>';}).join(''):''},
-        {id:caso.id+'-preg', label:'Preguntas clave para identificar el caso', content: caso.preguntas?caso.preguntas.map(function(p){return '<div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:var(--blue);flex-shrink:0">▸</span><span style="font-size:12px;color:var(--text2)">'+p+'</span></div>';}).join(''):''},
-        {id:caso.id+'-viab', label:'Parámetros de viabilidad', content:'<div style="font-size:12px;color:var(--text2);line-height:1.6">'+caso.viabilidad+'</div>'},
-        {id:caso.id+'-adm', label:'Resolución por vía administrativa', content: caso.adm?caso.adm.map(function(step,i){return '<div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)"><div style="width:22px;height:22px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</div><div style="font-size:12px;color:var(--text2);line-height:1.5">'+step+'</div></div>';}).join(''):''},
-        {id:caso.id+'-civ', label:'Resolución por vía civil', content: caso.civil?caso.civil.map(function(step,i){return '<div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)"><div style="width:22px;height:22px;border-radius:50%;background:var(--purple-bg);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</div><div style="font-size:12px;color:var(--text2);line-height:1.5">'+step+'</div></div>';}).join(''):''},
-      ];
-
-      if(caso.cautelar){
-        sections.push({id:caso.id+'-caut', label:'Medida cautelar', content:'<div style="background:var(--orange-bg);border-radius:8px;padding:10px;font-size:12px;color:var(--orange)">'+caso.cautelar+'</div>'});
-      }
-      if(caso.argumento){
-        sections.push({id:caso.id+'-arg', label:'Argumento central de responsabilidad', content:'<div style="font-size:12px;color:var(--text2);line-height:1.6">'+caso.argumento+'</div>'});
-      }
-      if(caso.tipos_estafa){
-        sections.push({id:caso.id+'-tipos', label:'Tipos de estafa más comunes', content: caso.tipos_estafa.map(function(t){return '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:var(--orange);flex-shrink:0">›</span><span style="font-size:12px;color:var(--text2)">'+t+'</span></div>';}).join('')});
-      }
-
-      sections.forEach(function(sec){
-        if(!sec.content) return;
-        html+='<div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:5px;overflow:hidden">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;cursor:pointer;background:var(--bg3)" onclick="toggleAcc(\''+sec.id+'\')">' +
-            '<span style="font-size:12px;font-weight:500;color:var(--text)">'+sec.label+'</span>' +
-            '<span id="'+sec.id+'-icon" style="font-size:11px;color:var(--blue);font-weight:600">ver ▾</span>' +
-          '</div>' +
-          '<div id="'+sec.id+'" style="display:none;padding:12px;background:var(--bg2)">'+sec.content+'</div>' +
-        '</div>';
-      });
-
-      html+='</div>';
-    });
-    html+='</div>';
-  }
-
-  else if(t==='normativa'){
-    html='<div style="display:flex;flex-direction:column;gap:12px">';
-    s.casos.forEach(function(caso){
-      if(!caso.normas||!caso.normas.length) return;
-      html+='<div class="card" style="margin-bottom:0">';
-      html+='<div class="card-title">'+caso.titulo+'</div>';
-      html+=caso.normas.map(function(n){
-        var parts=n.split(':');
-        var label=parts[0];
-        var desc=parts.slice(1).join(':');
-        return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">'+
-          '<div style="min-width:160px;font-size:11px;font-weight:700;color:var(--blue)">'+label+'</div>'+
-          '<div style="font-size:12px;color:var(--text2);line-height:1.5">'+desc+'</div>'+
-        '</div>';
-      }).join('');
-      html+='</div>';
-    });
-    html+='</div>';
-  }
-
   document.getElementById('cap-sector-body').innerHTML=html;
-
-  // Re-bind accordion toggles using event delegation for dynamically created elements
-  document.getElementById('cap-sector-body').querySelectorAll('[onclick^="toggleAcc"]').forEach(function(el){
-    var match=el.getAttribute('onclick').match(/toggleAcc\('([^']+)'\)/);
-    if(match){
-      var id=match[1];
-      el.onclick=function(){toggleAcc(id);};
-    }
-  });
 }
-
 
 function resetChecklist(id){
   document.getElementById(id).querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
