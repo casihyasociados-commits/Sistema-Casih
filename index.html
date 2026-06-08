@@ -1814,7 +1814,7 @@ function introTab(key) {
     html += capCard('¿Por qué incorporamos este servicio?',
       '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">Cualquier persona que paga un servicio, tiene una prepaga, un plan de ahorro o un préstamo bancario es un consumidor. Cuando una empresa le falla, la ley le da herramientas concretas para reclamar y obtener una indemnización.</p>' +
       '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">La norma central es la <strong style="color:var(--text)">Ley 24.240 (LDC)</strong>. Su principio más importante está en el artículo 3: en caso de duda, siempre se interpreta a favor del consumidor. Ese principio tiene jerarquía constitucional — artículo 42 CN.</p>' +
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Lo que hace especialmente atractiva esta área es que el modelo de trabajo es idéntico al laboral. El cliente no pone dinero de bolsillo y el estudio cobra un porcentaje de lo que el cliente cobra. La diferencia clave es el <strong style="color:var(--green)">daño punitivo del artículo 52 bis</strong> — el equivalente directo del artículo 2 de la Ley 25.323 que ya conocemos bien.</p>',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Lo que hace especialmente atractiva esta área es que el modelo de trabajo es idéntico al laboral. La diferencia clave respecto al laboral es el <strong style="color:var(--green)">daño punitivo del artículo 52 bis</strong> — el equivalente directo del artículo 2 de la Ley 25.323 que ya conocemos bien: el rubro que transforma el resultado de un caso y hace viable el modelo de honorarios sobre resultado.</p>',
       'var(--blue)');
 
     html += capCard('Las normas que el equipo usa todos los días',
@@ -1847,7 +1847,7 @@ function introTab(key) {
         '<div style="background:var(--green-bg);border-radius:6px;padding:8px">✅ Reintegro o cumplimiento del servicio</div>' +
         '<div style="background:var(--red-bg);border-radius:6px;padding:8px;color:var(--red)">✗ Sin daño moral ni punitivo</div>' +
         '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">📍 Tucumán 176, Córdoba / Online: cidi.cba.gov.ar</div>' +
-        '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⏱ 30 a 60 días · Sin abogado obligatorio · Gratuita</div>' +
+        '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⏱ 30 a 60 días · Sin abogado obligatorio</div>' +
       '</div>', 'var(--green)');
 
     html += capCard('Vía Civil Directa',
@@ -1858,7 +1858,15 @@ function introTab(key) {
         '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⏱ 6 a 18 meses</div>' +
         '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⚖ Siempre requiere abogado</div>' +
       '</div>' +
-      '<div style="background:var(--blue-bg);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--blue)"><strong>Estrategia más habitual:</strong> Ambas vías en paralelo. La multa administrativa va al Estado; la indemnización civil va al cliente. Son independientes y compatibles.</div>',
+      '<div style="background:var(--blue-bg);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--blue);margin-bottom:8px"><strong>Estrategia más habitual:</strong> Ambas vías en paralelo. La multa administrativa va al Estado; la indemnización civil va al cliente. Son independientes y compatibles.</div>' +
+      '<div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;color:var(--text2);line-height:1.7">' +
+        '<strong style="color:var(--text)">¿Y si la vía administrativa resuelve primero?</strong><br><br>' +
+        'Si la administrativa resuelve con el reintegro completo del daño emergente, el estudio evalúa si vale la pena seguir con la civil solo por el daño moral y el punitivo. ' +
+        'En muchos casos <strong style="color:var(--text)">sí vale la pena</strong>, porque esos rubros pueden ser significativamente mayores al daño emergente. ' +
+        'Un caso donde el daño emergente fue de $300.000 y la administrativa lo reintegró puede tener un daño moral de $400.000 y un punitivo de $800.000 esperando en la civil. ' +
+        'El criterio del equipo: si el acuerdo administrativo incluye una cláusula de renuncia a acciones futuras, <strong style="color:var(--red)">no firmar sin analizar</strong> el potencial de la vía civil primero. ' +
+        'Si el acuerdo no tiene renuncia, el reintegro cobrado no impide continuar con la civil por los demás rubros.' +
+      '</div>',
       'var(--blue)');
   }
 
@@ -1892,12 +1900,44 @@ function introTab(key) {
       'var(--red)');
 
     html += capCard('Cómputo según el tipo de reclamo',
-      [
-        capNorma('Cobros indebidos', 'Desde cada cobro individual.'),
-        capNorma('Negativa de cobertura médica', 'Desde la fecha de la negativa.'),
-        capNorma('Demora en entrega de vehículo', 'Desde la fecha de entrega comprometida incumplida.'),
-        capNorma('Rescisión o penalidad abusiva', 'Desde que fue comunicada o aplicada.')
-      ].join('') +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px">🚗 PLANES DE AHORRO — Cuota que se triplicó</div>' +
+          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde cada cuota cobrada en exceso</div>' +
+          '<div style="font-size:12px;color:var(--text2);line-height:1.6">El cliente contrató en 2020 con cuota de $20.000. En 2022 empezó a subir. Consulta en junio 2026. ' +
+          'El límite de prescripción es junio 2023. Las cuotas cobradas en exceso de <span style="color:var(--red)">antes de junio 2023 están prescriptas</span>. ' +
+          'Las de <span style="color:var(--green)">junio 2023 a junio 2026 (36 cuotas) sí se reclaman</span>. ' +
+          'Si la diferencia promedio es $80.000/mes → daño emergente: <strong style="color:var(--green)">$2.880.000</strong>.</div>' +
+        '</div>' +
+
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">🏥 MEDICINA PREPAGA — Negativa de cobertura con gastos de bolsillo</div>' +
+          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde la fecha de la negativa y desde cada pago de bolsillo</div>' +
+          '<div style="font-size:12px;color:var(--text2);line-height:1.6">La prepaga negó en marzo 2022 la cobertura de un medicamento oncológico. El cliente lo pagó de su bolsillo desde entonces: $45.000/mes. Consulta en junio 2026. ' +
+          'La negativa de marzo 2022 <span style="color:var(--red)">está prescripta como hecho</span>. ' +
+          'Pero los pagos de <span style="color:var(--green)">junio 2023 a junio 2026 (36 meses) sí se reclaman</span>. ' +
+          'Daño emergente: $45.000 × 36 = <strong style="color:var(--green)">$1.620.000</strong>. ' +
+          'Además: la cobertura hacia adelante como pretensión de hacer no prescribe.</div>' +
+        '</div>' +
+
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px">🏦 BANCOS — Tasas abusivas en préstamo</div>' +
+          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde cada pago de intereses en exceso</div>' +
+          '<div style="font-size:12px;color:var(--text2);line-height:1.6">El cliente tomó un préstamo en enero 2021 y pagó intereses por encima del límite legal todos los meses. Consulta en junio 2026. ' +
+          'Los pagos de <span style="color:var(--red)">enero 2021 a mayo 2023 están prescriptos</span>. ' +
+          'Los de <span style="color:var(--green)">junio 2023 a junio 2026 son reclamables</span>. ' +
+          'La pericia contable calcula el exceso exacto sobre esos 36 meses.</div>' +
+        '</div>' +
+
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px">🚗 PLANES DE AHORRO — Penalidad abusiva</div>' +
+          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde que fue comunicada o aplicada</div>' +
+          '<div style="font-size:12px;color:var(--text2);line-height:1.6">La empresa informó en mayo 2026 que la penalidad por rescisión es de $600.000. El plazo de 3 años corre desde esa comunicación. ' +
+          'En este caso el reclamo está completamente vigente. Hay tiempo hasta mayo 2029.</div>' +
+        '</div>' +
+
+      '</div>' +
       '<div style="margin-top:10px;background:var(--blue-bg);border-radius:6px;padding:10px;font-size:12px;color:var(--blue)"><strong>Suspensión:</strong> Cuando se presenta la solicitud de mediación prejudicial (Ley 8858), la prescripción se suspende automáticamente. Si está próxima a vencer, presentar la mediación antes de que se cumpla el plazo.</div>',
       'var(--red)');
   }
