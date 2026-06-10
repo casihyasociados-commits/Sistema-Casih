@@ -229,6 +229,23 @@ input[type="date"],input[type="time"],input[type="datetime-local"]{color-scheme:
   .btn-sm{font-size:12px!important;padding:5px 10px!important;}
 }
 input.currency-input{letter-spacing:0.5px;}
+
+/* SOCIEDADES */
+.soc-step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.soc-step:last-child{border-bottom:none;}
+.soc-step-num{width:32px;height:32px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.soc-step-body{flex:1;}
+.soc-step-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.soc-step-desc{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:6px;}
+.soc-norma{font-size:11px;color:var(--text3);margin-top:4px;}
+.soc-norma strong{color:var(--blue);}
+.soc-alert{background:var(--orange-bg);border-left:3px solid var(--orange);border-radius:0 6px 6px 0;padding:8px 12px;font-size:11px;color:var(--orange);line-height:1.5;margin-top:6px;}
+.soc-tip{background:var(--blue-bg);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:8px 12px;font-size:11px;color:var(--blue);line-height:1.5;margin-top:6px;}
+.soc-header-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 10px;border-radius:6px;font-weight:600;margin-bottom:12px;}
+.soc-plat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;}
+.soc-plat-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.soc-plat-link{font-size:11px;color:var(--blue);text-decoration:none;display:block;margin-bottom:2px;}
+.soc-plat-link:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -254,6 +271,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
     <button class="nav-btn" onclick="goTo('documentos')">Modelos</button>
     <button class="nav-btn" onclick="goTo('capacitacion')">Der. Consumidor</button>
+    <button class="nav-btn" onclick="goTo('sociedades')">Sociedades</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -582,6 +600,31 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
+<!-- SOCIEDADES -->
+<div class="section" id="sec-sociedades">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Sociedades</div>
+      <div class="page-sub">Constitución y modificación · Nivel 1 · LGS · Ley 27.349 · IGJ · DPPJ</div>
+    </div>
+  </div>
+
+  <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
+    ⚠️ <strong>Borrador para revisión profesional.</strong> Los requisitos registrales (formularios, montos de capital, documentación) son fijados por resolución de IGJ o DPPJ y se modifican con frecuencia. Verificar el estado actual ante el organismo antes de cada presentación.
+  </div>
+
+  <!-- TABS PRINCIPALES -->
+  <div class="tabs" id="soc-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
+    <button class="tab active" onclick="socMostrar('sas')">SAS</button>
+    <button class="tab" onclick="socMostrar('srl')">SRL</button>
+    <button class="tab" onclick="socMostrar('sa')">SA</button>
+    <button class="tab" onclick="socMostrar('mod')">Modificaciones</button>
+    <button class="tab" onclick="socMostrar('alertas')">⚠ Alertas normativas</button>
+  </div>
+
+  <div id="soc-contenido"></div>
+</div>
+
 </div><!-- end main -->
 </div><!-- end app -->
 
@@ -838,7 +881,7 @@ function closeModal(id){document.getElementById(id).className='modal-bg';}
 function goTo(s){
   document.querySelectorAll('.section').forEach(function(x){x.className='section';});
   document.getElementById('sec-'+s).className='section active';
-  ['dashboard','clientes','tareas','agenda','admin','documentos','capacitacion'].forEach(function(n,i){
+  ['dashboard','clientes','tareas','agenda','admin','documentos','capacitacion','sociedades'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes')renderClientes();
@@ -847,6 +890,7 @@ function goTo(s){
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
   if(s==='capacitacion'){setTimeout(function(){capMostrar('intro');},50);}
+  if(s==='sociedades'){setTimeout(function(){socMostrar('sas');},50);}
 }
 
 // ─── FECHA ───
@@ -2385,7 +2429,246 @@ function sectorTab(key, tab) {
   el.innerHTML = html;
 }
 
-// ─── INIT ───
+
+// ─── MÓDULO SOCIEDADES ───
+
+function socMostrar(tab) {
+  // Actualizar tabs
+  document.querySelectorAll('#soc-tabs .tab').forEach(function(b,i){
+    b.className='tab'+(['sas','srl','sa','mod','alertas'][i]===tab?' active':'');
+  });
+  var el=document.getElementById('soc-contenido');
+  if(!el)return;
+  if(tab==='sas')el.innerHTML=socRenderSAS();
+  else if(tab==='srl')el.innerHTML=socRenderSRL();
+  else if(tab==='sa')el.innerHTML=socRenderSA();
+  else if(tab==='mod')el.innerHTML=socRenderMod();
+  else if(tab==='alertas')el.innerHTML=socRenderAlertas();
+}
+
+function socStep(num,titulo,desc,norma,alert,tip){
+  var html='<div class="soc-step"><div class="soc-step-num">'+num+'</div><div class="soc-step-body">';
+  html+='<div class="soc-step-title">'+titulo+'</div>';
+  html+='<div class="soc-step-desc">'+desc+'</div>';
+  if(norma)html+='<div class="soc-norma"><strong>Normativa:</strong> '+norma+'</div>';
+  if(alert)html+='<div class="soc-alert">⚠️ '+alert+'</div>';
+  if(tip)html+='<div class="soc-tip">ℹ️ '+tip+'</div>';
+  html+='</div></div>';
+  return html;
+}
+
+function socPlataformas(){
+  return '<div class="grid2" style="margin-bottom:16px">'+
+    '<div class="soc-plat"><div class="soc-plat-title">IGJ — Ciudad Autónoma de Buenos Aires</div>'+
+    '<a class="soc-plat-link" href="https://tramitesadistancia.gob.ar" target="_blank">→ tramitesadistancia.gob.ar (TAD)</a>'+
+    '<a class="soc-plat-link" href="https://www.argentina.gob.ar/justicia/igj" target="_blank">→ argentina.gob.ar/justicia/igj</a>'+
+    '<a class="soc-plat-link" href="https://www.argentina.gob.ar/justicia/igj/tad" target="_blank">→ Trámites IGJ en TAD</a>'+
+    '<div style="font-size:11px;color:var(--text3);margin-top:6px">RG IGJ 15/2024 (reemplaza RG IGJ 7/2015)</div></div>'+
+    '<div class="soc-plat"><div class="soc-plat-title">DPPJ — Provincia de Buenos Aires</div>'+
+    '<a class="soc-plat-link" href="https://www.gba.gob.ar/dppj" target="_blank">→ gba.gob.ar/dppj</a>'+
+    '<a class="soc-plat-link" href="https://www.gba.gob.ar/dppj/tramites_digitales" target="_blank">→ Trámites digitales DPPJ</a>'+
+    '<div style="font-size:11px;color:var(--text3);margin-top:6px">Desde 01/08/2025 todos los trámites ingresan exclusivamente digital (Disp. DPPJ 306/25)</div></div>'+
+  '</div>';
+}
+
+function socRenderSAS(){
+  var html='';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SAS</span>';
+  html+='<span class="soc-header-badge" style="background:var(--blue-bg);color:var(--blue)">Ley 27.349</span>';
+  html+='<span class="soc-header-badge" style="background:var(--green-bg);color:var(--green)">Admite socio único</span>';
+  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Inscripción digital</span>';
+  html+='</div>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad por Acciones Simplificada · Sin tope de socios · Trámite 100% online · Sin escritura pública obligatoria.</p>';
+  html+=socPlataformas();
+  html+='<div class="card" style="margin-bottom:0">';
+  html+=socStep(1,'Diagnóstico inicial con el cliente',
+    'Cantidad de socios (mínimo 1, sin tope). Actividad a desarrollar. Distribución del capital. Domicilio social. Confirmar que ningún socio sea otra SAS o SA (restricción vigente). Verificar que el objeto no corresponda a una actividad regulada.',
+    'Art. 33 Ley 27.349 — objeto: toda actividad lícita',
+    'Verificar resoluciones actuales sobre restricción de socios SAS/SA.',null);
+  html+=socStep(2,'Redacción del instrumento constitutivo',
+    'Se puede usar el estatuto modelo aprobado por la IGJ (proceso más ágil) o redactar uno propio. Contemplar: denominación social (debe incluir "SAS"), domicilio, objeto, capital, cuotas, órgano de administración, representación y plazo de duración.',
+    'Arts. 36–38 Ley 27.349 — contenido del instrumento constitutivo',
+    null,
+    'Ventaja clave: se admite instrumento privado con firma digital o firma certificada por escribano, sin escritura pública obligatoria.');
+  html+=socStep(3,'Integración de capital',
+    'El capital mínimo equivale a dos salarios mínimos vitales y móviles (SMVM) al momento de la constitución. Los aportes dinerarios se acreditan mediante CBU o comprobante de transferencia bancaria. Los aportes en especie requieren valuación.',
+    'Art. 41 Ley 27.349 — integración de aportes',
+    'Verificar monto vigente del SMVM ante DPPJ o IGJ según jurisdicción — el capital mínimo se actualiza con cada variación del salario mínimo.',null);
+  html+=socStep(4,'Presentación digital ante IGJ (CABA) o DPPJ (PBA)',
+    'Trámite íntegramente online. Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ) con CUIT y clave fiscal. Adjuntar instrumento constitutivo, comprobante de integración de capital, datos de los socios y del administrador designado. Pago de tasa registral online.',
+    'Arts. 46–48 Ley 27.349 — trámite registral simplificado · RG IGJ vigente · Disposición DPPJ 306/25',
+    'Los requisitos de documentación se actualizan por resolución. Verificar la lista actual en el portal del organismo antes de iniciar el trámite.',null);
+  html+=socStep(5,'Inscripción y obtención de CUIT',
+    'Plazo estimado: 3 a 8 días hábiles sin observaciones. La IGJ o DPPJ notifica por el mismo sistema digital. El CUIT se gestiona ante ARCA (ex AFIP) — en el trámite urgente de IGJ puede obtenerse simultáneamente a la inscripción. Con el CUIT habilitado se puede abrir cuenta bancaria e iniciar actividades.',
+    'Resolución General ARCA vigente — tramitación del CUIT persona jurídica',
+    null,null);
+  html+=socStep(6,'Apertura de libros digitales y entrega al cliente',
+    'Las SAS llevan libros digitales. Dentro de los 180 días de la inscripción deben acreditar la apertura de todos los libros digitales contables y societarios obligatorios. Entregar al cliente: instrumento inscripto, constancia registral, CUIT, y guía básica de funcionamiento.',
+    'Resolución IGJ vigente sobre libros digitales en SAS',
+    null,null);
+  html+='</div>';
+  return html;
+}
+
+function socRenderSRL(){
+  var html='';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SRL</span>';
+  html+='<span class="soc-header-badge" style="background:var(--purple-bg);color:var(--purple)">Arts. 146–162 LGS</span>';
+  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Máx. 50 socios</span>';
+  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Capital en cuotas</span>';
+  html+='</div>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad de Responsabilidad Limitada · Mínimo 2 socios · Máximo 50 · Requiere publicación en Boletín Oficial.</p>';
+  html+=socPlataformas();
+  html+='<div class="card" style="margin-bottom:0">';
+  html+=socStep(1,'Diagnóstico inicial con el cliente',
+    'Cantidad de socios (mínimo 2, máximo 50 — art. 146 LGS). Actividad a desarrollar. Distribución de cuotas. Designación del gerente (puede ser socio o no). Domicilio social. Verificar si algún socio es persona jurídica (requiere documentación adicional del ente). Confirmar que el objeto no requiera habilitación especial.',
+    'Art. 146 LGS — límite de socios · Art. 147 LGS — denominación',
+    null,null);
+  html+=socStep(2,'Redacción del contrato social',
+    'La denominación debe incluir "SRL" o "Sociedad de Responsabilidad Limitada". El contrato debe contemplar: domicilio, objeto, capital dividido en cuotas iguales, aportaciones de cada socio, gerencia (designación, facultades, retribución), mayorías para resoluciones sociales, plazo de duración y cláusula de restricción a la transmisión de cuotas si los socios lo acuerdan.',
+    'Arts. 147–151 LGS — contenido del contrato social · Art. 153 LGS — transmisión de cuotas',
+    null,
+    'La transmisión de cuotas está sujeta por ley al derecho de preferencia de los restantes socios (art. 153 LGS). Si los socios quieren modificar ese régimen, debe constar expresamente en el contrato.');
+  html+=socStep(3,'Integración de capital',
+    'Los aportes dinerarios deben integrarse al 25% en el acto constitutivo; el saldo restante en un plazo máximo de 2 años. Los aportes en especie se integran íntegramente en el acto. Acreditar mediante depósito bancario o transferencia a nombre de la sociedad en formación.',
+    'Art. 149 LGS — integración de aportes · Art. 150 LGS — aportes en especie',
+    'Verificar monto mínimo de capital vigente ante IGJ o DPPJ — se modifica por resolución.',null);
+  html+=socStep(4,'Reserva de denominación',
+    'Antes de redactar el contrato definitivo, verificar disponibilidad de la denominación en el organismo de contralor. En IGJ se realiza a través de TAD. En DPPJ a través de gba.gob.ar/dppj. La reserva tiene un plazo determinado — verificar vigencia.',
+    'Resolución IGJ vigente sobre reserva de denominaciones · DPPJ: trámite digital',
+    null,null);
+  html+=socStep(5,'Publicación en el Boletín Oficial',
+    'Publicar el aviso de constitución en el Boletín Oficial (nacional para IGJ, provincial para DPPJ). El aviso debe contener los datos del art. 10 LGS. Conservar el comprobante de publicación para adjuntar a la presentación registral.',
+    'Art. 10 LGS — publicidad de la constitución',
+    'Verificar contenido exacto del aviso y el plazo requerido ante IGJ o DPPJ. Los requisitos pueden diferir entre organismos.',null);
+  html+=socStep(6,'Presentación ante IGJ o DPPJ',
+    'Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ) con CUIT y clave fiscal. Adjuntar: contrato social con firmas certificadas, comprobante de publicación, comprobante de integración de capital, datos de socios y gerentes. Pago de tasas registrales.',
+    'RG IGJ vigente · Disposición DPPJ 306/25 — presentación exclusivamente digital desde 01/08/2025',
+    'Verificar la lista de documentación actualizada antes de presentar. Una observación por documentación incorrecta reinicia el plazo del trámite.',null);
+  html+=socStep(7,'Inscripción, CUIT y libros obligatorios',
+    'Obtener CUIT ante ARCA (ex AFIP) una vez inscripta la sociedad. Rubricar libros societarios obligatorios: libro de actas de reuniones de socios y libro de registro de cuotas partes. Si tendrá empleados: libro especial del art. 52 LCT. Los libros pueden ser digitales si el organismo lo admite — verificar modalidad vigente.',
+    'Art. 162 LGS — libros societarios · Art. 52 LCT — libro de sueldos y jornales',
+    null,null);
+  html+=socStep(8,'Entrega al cliente',
+    'Contrato social inscripto, constancia registral, CUIT, libros rubricados, y guía básica de funcionamiento: mayorías aplicables para resoluciones ordinarias y extraordinarias, restricciones a la cesión de cuotas (art. 153 LGS), funcionamiento de la gerencia, obligación de llevar estados contables anuales.',
+    null,null,null);
+  html+='</div>';
+  return html;
+}
+
+function socRenderSA(){
+  var html='';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SA cerrada</span>';
+  html+='<span class="soc-header-badge" style="background:var(--red-bg);color:var(--red)">Arts. 163–307 LGS</span>';
+  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Capital en acciones</span>';
+  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Sin oferta pública</span>';
+  html+='</div>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Sociedad Anónima cerrada (sin oferta pública) · Directorio · Requiere escritura pública.</p>';
+  html+='<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--red)">⚠️ Este proceso requiere escritura pública ante escribano como paso previo a la presentación registral. Coordinar con el escribano actuante antes de iniciar el trámite.</div>';
+  html+=socPlataformas();
+  html+='<div class="card" style="margin-bottom:0">';
+  html+=socStep(1,'Diagnóstico inicial con el cliente',
+    'Cantidad de accionistas y distribución accionaria. Estructura del directorio: unipersonal o colegiado; duración del mandato (máximo 3 ejercicios — art. 257 LGS). Necesidad de sindicatura (depende del capital — verificar umbral vigente). Domicilio social. Confirmar expresamente que la sociedad no realizará oferta pública de sus acciones.',
+    'Arts. 163–165 LGS — constitución · Art. 257 LGS — duración del directorio',
+    'La sindicatura es obligatoria cuando el capital supera determinado monto fijado por resolución del organismo de contralor. Verificar el umbral vigente ante IGJ o DPPJ antes de asesorar al cliente sobre la estructura.',null);
+  html+=socStep(2,'Redacción del estatuto',
+    'La denominación debe incluir "SA" o "Sociedad Anónima". El estatuto debe contemplar: domicilio, objeto, capital y clases de acciones, directorio (cantidad de miembros, duración del mandato, remuneración con el límite del art. 261 LGS), asamblea ordinaria y extraordinaria, sindicatura si corresponde, representación legal, y plazo de duración.',
+    'Art. 166 LGS — contenido del estatuto · Art. 261 LGS — límite de remuneración de directores',
+    'La remuneración de directores tiene un límite legal de orden público (art. 261 LGS). Toda remuneración que supere ese límite sin decisión asamblearia puede ser impugnada. Contemplarlo en la redacción del estatuto.',null);
+  html+=socStep(3,'Escritura pública ante escribano',
+    'El estatuto de la SA se otorga mediante escritura pública (art. 165 LGS). Coordinar con el escribano actuante la redacción final del estatuto, la designación de los primeros directores y síndico si corresponde. La escritura debe contener todos los datos del art. 166 LGS.',
+    'Art. 165 LGS — escritura pública obligatoria para SA',
+    null,null);
+  html+=socStep(4,'Integración de capital',
+    'Los aportes dinerarios se integran al 25% en el acto constitutivo; el saldo en un plazo máximo de 2 años. Los aportes en especie se integran íntegramente. Acreditar mediante depósito en banco oficial o privado a nombre de la sociedad en formación.',
+    'Art. 187 LGS — integración de aportes en SA',
+    null,null);
+  html+=socStep(5,'Publicación en el Boletín Oficial',
+    'Publicar el aviso de constitución en el Boletín Oficial con los datos del art. 10 LGS. Para IGJ: Boletín Oficial de la Nación. Para DPPJ: Boletín Oficial de la Provincia de Buenos Aires. Conservar el comprobante de publicación.',
+    'Art. 10 LGS — publicidad · Art. 165 LGS',
+    'Verificar el contenido mínimo del aviso exigido por el organismo. Hay diferencias entre los requisitos de IGJ y DPPJ.',null);
+  html+=socStep(6,'Presentación ante IGJ o DPPJ',
+    'Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ) con CUIT y clave fiscal. Adjuntar: primer testimonio de la escritura de constitución, comprobante de publicación en Boletín Oficial, comprobante de integración de capital, datos y documentación de directores y síndico si corresponde. Pago de tasas registrales.',
+    'RG IGJ 15/2024 (reemplaza RG IGJ 7/2015) · Disposición DPPJ vigente',
+    'IGJ puede observar el trámite y requerir subsanaciones. Las observaciones reinician el plazo. Verificar la lista de documentación actualizada en argentina.gob.ar/justicia/igj antes de presentar.',null);
+  html+=socStep(7,'Inscripción, CUIT y libros obligatorios',
+    'Obtener CUIT ante ARCA una vez inscripta la sociedad. Rubricar libros societarios obligatorios: libro de actas de directorio, libro de actas de asamblea, libro de registro de acciones. Si hay sindicatura: libro de informes de síndico. Si tendrá empleados: libro especial del art. 52 LCT.',
+    'Arts. 213 y 238 LGS — libros societarios SA · Art. 52 LCT',
+    null,null);
+  html+=socStep(8,'Entrega al cliente',
+    'Estatuto inscripto, constancia registral, CUIT, libros rubricados, y guía básica de funcionamiento: tipos de asamblea y su temario (arts. 234–235 LGS), quórum y mayorías, límite de remuneración de directores (art. 261 LGS), obligación de presentar estados contables anuales ante el organismo de contralor.',
+    null,null,null);
+  html+='</div>';
+  return html;
+}
+
+function socRenderMod(){
+  var html='';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Modificaciones estatutarias</span>';
+  html+='</div>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Cambio de sede social · Cambio de denominación · Ampliación del objeto · Designación o remoción de autoridades.</p>';
+  html+=socPlataformas();
+  html+='<div class="card" style="margin-bottom:0">';
+  html+=socStep(1,'Identificar el tipo de modificación y el órgano competente',
+    'El órgano competente y las mayorías requeridas dependen del tipo societario: en SA, asamblea ordinaria o extraordinaria según el caso (arts. 234–235 LGS); en SRL, reunión de socios con mayorías del contrato; en SAS, según lo que disponga el estatuto.',
+    'SA: arts. 234–235 LGS — competencia de asambleas · SRL: arts. 159–160 LGS — mayorías · SAS: Ley 27.349',
+    'Un error en la determinación del quórum o las mayorías requeridas invalida la asamblea o reunión, y con ella la modificación aprobada. Verificar antes de convocar.',null);
+  html+=socStep(2,'Convocatoria al órgano correspondiente',
+    'Respetar los plazos de convocatoria y el orden del día establecido en el estatuto o contrato. Para SA: publicación de la convocatoria en el Boletín Oficial y en un diario de publicaciones legales, con los plazos del art. 237 LGS. Para SRL y SAS: seguir los mecanismos previstos en el contrato o estatuto.',
+    'Art. 237 LGS — convocatoria a asambleas de SA',
+    'El orden del día de la asamblea es cerrado en la SA. Solo se pueden tratar los puntos incluidos en él. Una modificación no incluida en el orden del día no puede aprobarse válidamente, salvo las excepciones del art. 246 LGS.',null);
+  html+=socStep(3,'Celebración de la reunión y labramiento del acta',
+    'Labrar el acta con todos los requisitos formales: fecha y lugar, quórum verificado, socios o accionistas presentes, mayorías con que se aprobó cada punto, resolución adoptada, y texto completo de la modificación aprobada. El acta debe asentarse en el libro correspondiente y estar firmada por los asistentes o por el presidente y secretario según el tipo societario.',
+    'Art. 73 LGS — libros de actas y su valor probatorio',
+    null,null);
+  html+=socStep(4,'Publicación en el Boletín Oficial (si corresponde)',
+    'Ciertas modificaciones estatutarias requieren publicación previa a la inscripción. En general: cambio de sede, modificación del objeto y cambio de denominación requieren publicación. La renovación de autoridades puede no requerirla en algunos tipos societarios — verificar en cada caso.',
+    'Art. 10 LGS — publicidad de modificaciones',
+    'No asumir que la publicación no es necesaria sin verificarlo. Una inscripción sin la publicación previa requerida puede ser observada por el organismo.',null);
+  html+=socStep(5,'Presentación ante IGJ o DPPJ',
+    'Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ). Adjuntar: acta certificada o testimonio de escritura según tipo societario, comprobante de publicación si corresponde, formularios del organismo, pago de tasas. Para SA: el acta de asamblea debe estar certificada por escribano o con firmas certificadas.',
+    'RG IGJ vigente (RG IGJ 15/2024) · Disposición DPPJ 306/25',
+    'Los requisitos documentales por tipo de modificación varían entre IGJ y DPPJ, y dentro de cada organismo según el tipo societario. Verificar la lista actualizada antes de cada presentación.',null);
+  html+=socStep(6,'Inscripción y entrega al cliente',
+    'Una vez inscripta la modificación, entregar al cliente la constancia registral y el estatuto o contrato actualizado con la modificación incorporada. Si el cambio afecta el domicilio fiscal o la actividad declarada ante ARCA, recordar al cliente actualizar los datos en el sistema impositivo.',
+    'Resolución General ARCA vigente — actualización de datos de persona jurídica',
+    null,null);
+  html+='</div>';
+  return html;
+}
+
+function socRenderAlertas(){
+  var html='';
+  html+='<div style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text);margin-bottom:16px">Alertas normativas vigentes — junio 2026</div>';
+  var alertas=[
+    {titulo:'RG IGJ 15/2024',desc:'Nuevo marco normativo general de IGJ, reemplaza a la RG IGJ 7/2015. Los contenidos del sitio de Argentina.gob.ar se encuentran en proceso de actualización.',link:'https://www.argentina.gob.ar/justicia/igj'},
+    {titulo:'Disposición DPPJ 306/25',desc:'Desde el 01/08/2025, todos los trámites de constitución ante la DPPJ ingresan exclusivamente por vía digital.',link:'https://www.gba.gob.ar/dppj'},
+    {titulo:'Disposición DPPJ 303/25',desc:'Introduce obligación de adjuntar Certificado de Libre Deuda Alimentaria por cada integrante de los órganos de administración, fiscalización o gobierno.',link:null},
+    {titulo:'Capital mínimo SAS',desc:'Equivalente a 2 SMVM. El monto en pesos se actualiza con cada modificación del salario mínimo — verificar valor vigente antes de cada constitución.',link:null},
+    {titulo:'Capital mínimo SRL y SA',desc:'Fijado por resolución del organismo de contralor — verificar ante IGJ o DPPJ antes de cada constitución.',link:null}
+  ];
+  html+='<div style="display:flex;flex-direction:column;gap:10px">';
+  alertas.forEach(function(a){
+    html+='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px">';
+    html+='<div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:5px">'+a.titulo+'</div>';
+    html+='<div style="font-size:12px;color:var(--text2);line-height:1.6">'+a.desc+'</div>';
+    if(a.link)html+='<a href="'+a.link+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;margin-top:6px;display:inline-block">→ Verificar en el organismo</a>';
+    html+='</div>';
+  });
+  html+='</div>';
+  html+='<div style="margin-top:16px;background:var(--bg3);border-radius:var(--radius);padding:14px 16px;font-size:12px;color:var(--text3);line-height:1.6">';
+  html+='<strong style="color:var(--text2)">Consideraciones transversales a todos los servicios</strong><br><br>';
+  html+='<strong style="color:var(--text)">Trámite registral:</strong> El punto más sensible en constituciones es siempre el trámite ante el organismo de contralor. Antes de cada presentación, verificar en la web oficial los formularios vigentes y los montos de tasas actualizados. Una presentación con documentación incorrecta genera observaciones que demoran el trámite.<br><br>';
+  html+='<strong style="color:var(--text)">Objeto social:</strong> Un objeto demasiado restrictivo limita la operatoria; uno demasiado genérico puede generar observaciones en la IGJ o DPPJ. Para actividades reguladas (sector financiero, seguros, salud, agroquímicos, armas, medios de comunicación) verificar si requieren habilitación especial o autorización previa de otro organismo.<br><br>';
+  html+='<strong style="color:var(--text)">Derivación por complejidad:</strong> Si surge alguno de estos elementos, el caso sale del Nivel 1 y debe evaluarse antes de continuar: socio extranjero (persona física o jurídica), aportes en especie de valor elevado, actividad regulada, conflicto entre socios en la etapa constitutiva, necesidad de estructura de gobierno compleja.';
+  html+='</div>';
+  return html;
+}
+
 function initApp() {
   setFecha();
   var ts = fmt(today);
