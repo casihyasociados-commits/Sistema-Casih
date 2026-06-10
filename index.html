@@ -605,17 +605,18 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="page-header">
     <div>
       <div class="page-title">Sociedades</div>
-      <div class="page-sub">Constitución y modificación · Nivel 1 · LGS · Ley 27.349 · IGJ · DPPJ</div>
+      <div class="page-sub">Constitución y modificación · Nivel 1 · LGS · Ley 27.349 · IPJ Córdoba</div>
     </div>
   </div>
 
   <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
-    ⚠️ <strong>Borrador para revisión profesional.</strong> Los requisitos registrales (formularios, montos de capital, documentación) son fijados por resolución de IGJ o DPPJ y se modifican con frecuencia. Verificar el estado actual ante el organismo antes de cada presentación.
+    ⚠️ <strong>Borrador para revisión profesional.</strong> Los requisitos registrales (formularios, montos de capital, documentación) son fijados por resolución de la IPJ Córdoba y se modifican con frecuencia. Verificar el estado actual en tramitesipj.cba.gov.ar antes de cada presentación.
   </div>
 
   <!-- TABS PRINCIPALES -->
   <div class="tabs" id="soc-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
-    <button class="tab active" onclick="socMostrar('sas')">SAS</button>
+    <button class="tab active" onclick="socMostrar('intro')">📖 Introducción</button>
+    <button class="tab" onclick="socMostrar('sas')">SAS</button>
     <button class="tab" onclick="socMostrar('srl')">SRL</button>
     <button class="tab" onclick="socMostrar('sa')">SA</button>
     <button class="tab" onclick="socMostrar('mod')">Modificaciones</button>
@@ -890,7 +891,7 @@ function goTo(s){
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
   if(s==='capacitacion'){setTimeout(function(){capMostrar('intro');},50);}
-  if(s==='sociedades'){setTimeout(function(){socMostrar('sas');},50);}
+  if(s==='sociedades'){setTimeout(function(){socMostrar('intro');},50);}
 }
 
 // ─── FECHA ───
@@ -2433,13 +2434,13 @@ function sectorTab(key, tab) {
 // ─── MÓDULO SOCIEDADES ───
 
 function socMostrar(tab) {
-  // Actualizar tabs
   document.querySelectorAll('#soc-tabs .tab').forEach(function(b,i){
-    b.className='tab'+(['sas','srl','sa','mod','alertas'][i]===tab?' active':'');
+    b.className='tab'+(['intro','sas','srl','sa','mod','alertas'][i]===tab?' active':'');
   });
   var el=document.getElementById('soc-contenido');
   if(!el)return;
-  if(tab==='sas')el.innerHTML=socRenderSAS();
+  if(tab==='intro')el.innerHTML=socRenderIntro();
+  else if(tab==='sas')el.innerHTML=socRenderSAS();
   else if(tab==='srl')el.innerHTML=socRenderSRL();
   else if(tab==='sa')el.innerHTML=socRenderSA();
   else if(tab==='mod')el.innerHTML=socRenderMod();
@@ -2452,65 +2453,235 @@ function socStep(num,titulo,desc,norma,alert,tip){
   html+='<div class="soc-step-desc">'+desc+'</div>';
   if(norma)html+='<div class="soc-norma"><strong>Normativa:</strong> '+norma+'</div>';
   if(alert)html+='<div class="soc-alert">⚠️ '+alert+'</div>';
-  if(tip)html+='<div class="soc-tip">ℹ️ '+tip+'</div>';
+  if(tip)html+='<div class="soc-tip">✔ '+tip+'</div>';
   html+='</div></div>';
   return html;
 }
 
+function socCard(titulo,html,color){
+  color=color||'var(--border)';
+  return '<div class="card" style="margin-bottom:12px;border-left:3px solid '+color+'"><div class="card-title">'+titulo+'</div>'+html+'</div>';
+}
+
 function socPlataformas(){
-  return '<div class="grid2" style="margin-bottom:16px">'+
-    '<div class="soc-plat"><div class="soc-plat-title">IGJ — Ciudad Autónoma de Buenos Aires</div>'+
-    '<a class="soc-plat-link" href="https://tramitesadistancia.gob.ar" target="_blank">→ tramitesadistancia.gob.ar (TAD)</a>'+
-    '<a class="soc-plat-link" href="https://www.argentina.gob.ar/justicia/igj" target="_blank">→ argentina.gob.ar/justicia/igj</a>'+
-    '<a class="soc-plat-link" href="https://www.argentina.gob.ar/justicia/igj/tad" target="_blank">→ Trámites IGJ en TAD</a>'+
-    '<div style="font-size:11px;color:var(--text3);margin-top:6px">RG IGJ 15/2024 (reemplaza RG IGJ 7/2015)</div></div>'+
-    '<div class="soc-plat"><div class="soc-plat-title">DPPJ — Provincia de Buenos Aires</div>'+
-    '<a class="soc-plat-link" href="https://www.gba.gob.ar/dppj" target="_blank">→ gba.gob.ar/dppj</a>'+
-    '<a class="soc-plat-link" href="https://www.gba.gob.ar/dppj/tramites_digitales" target="_blank">→ Trámites digitales DPPJ</a>'+
-    '<div style="font-size:11px;color:var(--text3);margin-top:6px">Desde 01/08/2025 todos los trámites ingresan exclusivamente digital (Disp. DPPJ 306/25)</div></div>'+
+  return '<div class="card" style="margin-bottom:16px;border-left:3px solid var(--blue)">'+
+    '<div class="card-title">Plataformas IPJ Córdoba</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">'+
+    '<div class="soc-plat"><div class="soc-plat-title">Portal IPJ — Trámites</div><a class="soc-plat-link" href="https://tramitesipj.cba.gov.ar" target="_blank">→ tramitesipj.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Constitución, modificaciones, consultas, tasas</div></div>'+
+    '<div class="soc-plat"><div class="soc-plat-title">CiDi — Acceso</div><a class="soc-plat-link" href="https://cidi.cba.gov.ar" target="_blank">→ cidi.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Requiere Nivel 2 + clave fiscal ARCA Nivel 3</div></div>'+
+    '<div class="soc-plat"><div class="soc-plat-title">IPJ — Normativa</div><a class="soc-plat-link" href="https://ipj.cba.gov.ar" target="_blank">→ ipj.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Resoluciones, modelos aprobados, novedades</div></div>'+
+    '<div class="soc-plat"><div class="soc-plat-title">Boletín Oficial Córdoba</div><a class="soc-plat-link" href="https://boletinoficial.cba.gov.ar" target="_blank">→ boletinoficial.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Publicación de edictos de constitución</div></div>'+
+    '<div class="soc-plat"><div class="soc-plat-title">Rentas Córdoba</div><a class="soc-plat-link" href="https://rentascordoba.cba.gov.ar" target="_blank">→ rentascordoba.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Inscripción en Ingresos Brutos provincial</div></div>'+
+    '<div class="soc-plat"><div class="soc-plat-title">ARCA (ex AFIP)</div><a class="soc-plat-link" href="https://afip.gob.ar" target="_blank">→ afip.gob.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">CUIT, clave fiscal Nivel 3</div></div>'+
+    '</div>'+
+    '<div style="margin-top:10px;background:var(--green-bg);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--green)">✔ Todos los trámites de constitución ante IPJ Córdoba son 100% digitales y remotos. No requieren presencialidad.</div>'+
   '</div>';
 }
 
+// ─── INTRO ───
+function socRenderIntro(){
+  var html='';
+
+  // Sub-tabs de intro
+  html+='<div class="cap-tabs-inner" id="soc-intro-tabs">'+
+    '<button class="cap-tab-inner active" onclick="socIntroTab(\'concepto\')">1. ¿Qué es una sociedad?</button>'+
+    '<button class="cap-tab-inner" onclick="socIntroTab(\'marco\')">2. Marco normativo</button>'+
+    '<button class="cap-tab-inner" onclick="socIntroTab(\'ipj\')">3. IPJ y fuero judicial</button>'+
+    '<button class="cap-tab-inner" onclick="socIntroTab(\'comparativo\')">4. Comparativo de tipos</button>'+
+    '<button class="cap-tab-inner" onclick="socIntroTab(\'gobierno\')">5. Gobierno societario</button>'+
+    '<button class="cap-tab-inner" onclick="socIntroTab(\'plataformas\')">6. Plataformas</button>'+
+    '<button class="cap-tab-inner" onclick="socIntroTab(\'alcance\')">7. Alcance del módulo</button>'+
+  '</div>';
+  html+='<div id="soc-intro-content"></div>';
+  setTimeout(function(){socIntroTab('concepto');},50);
+  return html;
+}
+
+function socIntroTab(key){
+  document.querySelectorAll('#soc-intro-tabs .cap-tab-inner').forEach(function(b,i){
+    b.className='cap-tab-inner'+(['concepto','marco','ipj','comparativo','gobierno','plataformas','alcance'][i]===key?' active':'');
+  });
+  var el=document.getElementById('soc-intro-content');
+  if(!el)return;
+  var html='';
+
+  if(key==='concepto'){
+    html+=socCard('¿Qué es una sociedad comercial?',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Una sociedad comercial es una <strong style="color:var(--text)">persona jurídica</strong>: un sujeto de derecho distinto de las personas que la integran, con patrimonio propio, capacidad para contratar, ser titular de bienes, demandar y ser demandada. Sus socios, en los tipos más usados, responden solo hasta el capital aportado.</p>'+
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7"><strong style="color:var(--text3)">Base legal:</strong> art. 2 LGS — hay sociedad cuando una o más personas se obligan a realizar aportes para aplicarlos a la producción o intercambio de bienes o servicios, participando de los beneficios y soportando las pérdidas.</p>',
+      'var(--blue)');
+    html+=socCard('¿Por qué los clientes constituyen una sociedad?',
+      '<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text2)">'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span><strong style="color:var(--text)">Limitar la responsabilidad personal:</strong> el patrimonio del socio queda al margen de las deudas de la sociedad (arts. 163, 146 y Ley 27.349 LGS).</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Separar el patrimonio del negocio del patrimonio personal.</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Acceder a crédito, participar en licitaciones y emitir facturación institucional.</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Incorporar socios o inversores en el futuro con estructura jurídica clara.</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Organizar la sucesión de un negocio familiar.</span></div>'+
+      '</div>'+
+      '<div class="soc-alert" style="margin-top:10px">La separación patrimonial no es absoluta. El <strong>art. 54, tercer párrafo LGS</strong> (inoponibilidad de la personalidad jurídica) permite que un juez responsabilice a los socios con su patrimonio personal cuando la sociedad fue usada para violar la ley, el orden público o la buena fe, o para frustrar derechos de terceros.</div>',
+      'var(--blue)');
+  }
+
+  else if(key==='marco'){
+    html+=socCard('LGS — Ley General de Sociedades (Ley 19.550)',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Norma central. Regula SA, SRL y todos los tipos societarios clásicos. Artículos más relevantes: arts. 1–2 (concepto), art. 10 (publicidad), arts. 54 y 274 (responsabilidad), arts. 146–162 (SRL), arts. 163–307 (SA), arts. 94–112 (disolución).</p>',
+      'var(--blue)');
+    html+=socCard('Ley 27.349 — Sociedad por Acciones Simplificada (SAS)',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Sancionada en 2017. Crea un tipo societario digital, con trámite íntegramente online, objeto amplio, admite socio único y no requiere escritura pública. Es el tipo más ágil disponible hoy en Córdoba.</p>',
+      'var(--green)');
+    html+=socCard('Resoluciones de la IPJ Córdoba',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">La Inspección de Personas Jurídicas reglamenta los requisitos de inscripción para la Provincia de Córdoba. Normativa clave vigente:</p>'+
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px">'+
+      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;color:var(--text2)"><strong style="color:var(--text)">RG conjunta 5020/21</strong> — Trámite integrado SRL</div>'+
+      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;color:var(--text2)"><strong style="color:var(--text)">RG 3T/23</strong> — Sociedades y Registro Público</div>'+
+      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;color:var(--text2)"><strong style="color:var(--text)">Res. 49T/25</strong> — Firma digital CiDi, firma mixta ológrafa/digital</div>'+
+      '</div>'+
+      '<div class="soc-alert" style="margin-top:10px">La IGJ (CABA) y la DPPJ (PBA) son organismos de otras jurisdicciones. Sus resoluciones <strong>NO aplican en Córdoba</strong>. El organismo de contralor en esta provincia es exclusivamente la <strong>IPJ</strong>.</div>',
+      'var(--orange)');
+  }
+
+  else if(key==='ipj'){
+    html+=socCard('Inspección de Personas Jurídicas — IPJ Córdoba',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">Organismo provincial que inscribe y fiscaliza a las personas jurídicas con domicilio legal en la Provincia de Córdoba. Actúa bajo la órbita del Ministerio de Finanzas de la Provincia. En el Coloquio IDEA 2025, la IPJ fue reconocida públicamente como el sistema de registración societaria más ágil y moderno de Argentina.</p>'+
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Portal de trámites: <a href="https://tramitesipj.cba.gov.ar" target="_blank" style="color:var(--blue)">tramitesipj.cba.gov.ar</a></span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Acceso: CiDi Nivel 2 — <a href="https://cidi.cba.gov.ar" target="_blank" style="color:var(--blue)">cidi.cba.gov.ar</a></span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Web institucional: <a href="https://ipj.cba.gov.ar" target="_blank" style="color:var(--blue)">ipj.cba.gov.ar</a></span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Todos los trámites de constitución son 100% digitales. No requieren presencialidad.</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Integrada con ARCA (CUIT), Bancor (aportes), Boletín Oficial Córdoba y Rentas Córdoba.</span></div>'+
+      '</div>',
+      'var(--green)');
+    html+=socCard('Fuero judicial en Córdoba Capital',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">En Córdoba no existe un fuero comercial separado. Los conflictos societarios tramitan ante los <strong style="color:var(--text)">Juzgados Civiles y Comerciales de la Primera Circunscripción Judicial</strong> (Córdoba Capital). La alzada es la Cámara de Apelaciones en lo Civil y Comercial correspondiente por nominación. El Tribunal Superior de Justicia de Córdoba actúa como instancia extraordinaria provincial.</p>'+
+      '<div class="soc-alert">A diferencia de CABA (donde existe la CNACOM — Cámara Nacional de Apelaciones en lo Comercial), en Córdoba la jurisprudencia societaria de referencia la producen las Cámaras Civiles y Comerciales. Al citar doctrina judicial, verificar que sea de Córdoba o de la CSJN, no de CNACOM.</div>',
+      'var(--purple)');
+  }
+
+  else if(key==='comparativo'){
+    html+=socCard('SAS · SRL · SA cerrada — Diferencias clave',
+      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">El 95% de las nuevas constituciones en Córdoba corresponde a estos tres tipos. La elección depende del perfil del cliente, la actividad, la cantidad de socios y los objetivos de largo plazo.</p>'+
+      '<div style="overflow-x:auto"><table style="font-size:11px;min-width:560px">'+
+      '<tr><th>Criterio</th><th style="color:var(--green)">SAS</th><th style="color:var(--purple)">SRL</th><th style="color:var(--red)">SA cerrada</th></tr>'+
+      '<tr><td>Normativa</td><td>Ley 27.349</td><td>Arts. 146–162 LGS</td><td>Arts. 163–307 LGS</td></tr>'+
+      '<tr><td>Socios mínimos</td><td>1</td><td>2</td><td>1</td></tr>'+
+      '<tr><td>Socios máximos</td><td>Sin límite</td><td>50</td><td>Sin límite</td></tr>'+
+      '<tr><td>Capital</td><td>Cuotas (mín. 2 SMVM)</td><td>Cuotas</td><td>Acciones</td></tr>'+
+      '<tr><td>Instrumento</td><td>Privado / digital (CiDi)</td><td>Privado o escritura</td><td>Escritura pública</td></tr>'+
+      '<tr><td>Administración</td><td>Administrador(es)</td><td>Gerencia</td><td>Directorio</td></tr>'+
+      '<tr><td>Sindicatura</td><td>No requerida</td><td>Opcional (según capital)</td><td>Según capital — verificar umbral IPJ</td></tr>'+
+      '<tr><td>Velocidad IPJ Cba.</td><td style="color:var(--green)">Más ágil (100% digital)</td><td>Ágil (100% digital)</td><td>Digital (plazo variable)</td></tr>'+
+      '</table></div>'+
+      '<div class="soc-alert" style="margin-top:12px">Capital mínimo SAS = 2 SMVM (se actualiza con cada variación del salario mínimo). Umbral de sindicatura SA y SRL: verificar resolución IPJ vigente antes de cada constitución.</div>',
+      'var(--blue)');
+    html+=socCard('Guía rápida de recomendación',
+      '<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text2)">'+
+      '<div style="background:var(--green-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--green)">→ SAS:</strong> Socio único o hasta 2 socios, negocio digital o startup, necesita arrancar rápido.</div>'+
+      '<div style="background:var(--purple-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--purple)">→ SRL:</strong> Dos o más socios, PyME o empresa familiar, no se prevé recibir inversión externa.</div>'+
+      '<div style="background:var(--red-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--red)">→ SA cerrada:</strong> Múltiples accionistas, estructura más formal, puede necesitar financiamiento.</div>'+
+      '<div style="background:var(--orange-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--orange)">→ Actividad regulada</strong> (seguros, salud, financiero): verificar tipo requerido por el organismo regulador antes de recomendar.</div>'+
+      '</div>'+
+      '<div class="soc-alert" style="margin-top:10px">La elección del tipo societario tiene consecuencias impositivas (Ganancias, IVA, Ingresos Brutos provinciales). Coordinar siempre con el contador del cliente antes de tomar la decisión final.</div>',
+      'var(--orange)');
+  }
+
+  else if(key==='gobierno'){
+    html+=socCard('Conceptos clave del gobierno societario',
+      [
+        {titulo:'Objeto social',desc:'Descripción de las actividades que la sociedad puede realizar. Define el límite de su capacidad jurídica. Debe ser preciso pero no excesivamente restrictivo. Para actividades reguladas, verificar si el objeto requiere habilitación especial de otro organismo.'},
+        {titulo:'Capital social y cuotas / acciones',desc:'Es el aporte comprometido por los socios. En SRL y SAS: cuotas. En SA: acciones. La responsabilidad del socio queda, en principio, limitada al capital suscripto. La integración puede ser total (en el acto) o parcial (con saldo en plazo legal de 2 años).'},
+        {titulo:'Órgano de administración',desc:'Dirige la operación cotidiana. En SAS: administrador. En SRL: gerente. En SA: directorio (mandato máx. 3 ejercicios — art. 257 LGS). Quien administra tiene deberes de lealtad y diligencia (art. 59 LGS) y puede responder con su patrimonio personal ante actuación dolosa o negligente (art. 274 LGS).'},
+        {titulo:'Asamblea / Reunión de socios',desc:'Es el órgano de gobierno. En SA: asamblea ordinaria (estados contables, autoridades, dividendos — art. 234 LGS) o extraordinaria (reforma de estatuto, fusión, disolución — art. 235 LGS). En SRL: reunión de socios con mayorías según contrato.'},
+        {titulo:'Libros societarios obligatorios',desc:'SA: libro de actas de directorio, libro de actas de asamblea, registro de acciones. SRL: libro de actas de reuniones de socios, registro de cuotas. SAS: libros digitales (obligatorios dentro de los 180 días de la inscripción). Si habrá empleados: libro especial art. 52 LCT.'}
+      ].map(function(item){
+        return '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">'+item.titulo+'</div><div style="font-size:12px;color:var(--text2);line-height:1.65">'+item.desc+'</div></div>';
+      }).join('')+
+      '<div class="soc-alert">El abogado no reemplaza al contador. Toda constitución societaria debe coordinarse con el asesor impositivo del cliente.</div>',
+      'var(--purple)');
+  }
+
+  else if(key==='plataformas'){
+    html+=socPlataformas();
+    html+=socCard('Recursos de referencia adicionales',
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px">'+
+      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Infoleg — texto oficial LGS, Ley 27.349, CCCN</span><a href="https://infoleg.gob.ar" target="_blank" style="color:var(--blue);font-size:11px;text-decoration:none">infoleg.gob.ar →</a></div>'+
+      '</div>',
+      'var(--blue)');
+  }
+
+  else if(key==='alcance'){
+    html+=socCard('Nivel 1 — Servicios completos (este módulo)',
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Constitución de SAS ante IPJ Córdoba — Ley 27.349</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Constitución de SRL ante IPJ Córdoba — arts. 146–162 LGS</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Constitución de SA cerrada ante IPJ Córdoba — arts. 163–307 LGS</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Modificaciones estatutarias simples: sede, denominación, objeto, designación/remoción de autoridades</span></div>'+
+      '</div>',
+      'var(--green)');
+    html+=socCard('Nivel 2 — Aceptar con análisis previo interno',
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Pactos de socios con cláusulas de salida, preferencia o antidilución</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Transformación de tipo societario (arts. 74–81 LGS)</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Disolución y liquidación voluntaria (arts. 94–112 LGS)</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Cesión simple de cuotas o acciones entre partes de acuerdo</span></div>'+
+      '</div>',
+      'var(--orange)');
+    html+=socCard('Nivel 3 — Fuera del alcance actual (derivar o declinar)',
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Fusión y escisión (arts. 82–88 LGS)</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Compraventa de cuotas/acciones con due diligence</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Sociedades con socios o capital extranjero (arts. 118/123 LGS — trámite ante IPJ mediante RG 3/23 y RG 22/25)</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Responsabilidad de administradores y acciones societarias (arts. 274–279 LGS)</span></div>'+
+      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Sociedades bajo fiscalización CNV</span></div>'+
+      '</div>'+
+      '<div class="soc-tip" style="margin-top:10px">La frontera entre niveles no es rígida: se corre a medida que el estudio acumula experiencia. Un caso de Nivel 2 bien resuelto es la antesala para encarar los de Nivel 3.</div>',
+      'var(--red)');
+  }
+
+  el.innerHTML=html;
+}
+
+// ─── SAS ───
 function socRenderSAS(){
   var html='';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
   html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SAS</span>';
   html+='<span class="soc-header-badge" style="background:var(--blue-bg);color:var(--blue)">Ley 27.349</span>';
   html+='<span class="soc-header-badge" style="background:var(--green-bg);color:var(--green)">Admite socio único</span>';
-  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Inscripción digital</span>';
+  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">100% digital</span>';
   html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad por Acciones Simplificada · Sin tope de socios · Trámite 100% online · Sin escritura pública obligatoria.</p>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad por Acciones Simplificada · IPJ Córdoba · Sin escritura pública obligatoria · Sin presencialidad.</p>';
   html+=socPlataformas();
   html+='<div class="card" style="margin-bottom:0">';
   html+=socStep(1,'Diagnóstico inicial con el cliente',
-    'Cantidad de socios (mínimo 1, sin tope). Actividad a desarrollar. Distribución del capital. Domicilio social. Confirmar que ningún socio sea otra SAS o SA (restricción vigente). Verificar que el objeto no corresponda a una actividad regulada.',
-    'Art. 33 Ley 27.349 — objeto: toda actividad lícita',
-    'Verificar resoluciones actuales sobre restricción de socios SAS/SA.',null);
-  html+=socStep(2,'Redacción del instrumento constitutivo',
-    'Se puede usar el estatuto modelo aprobado por la IGJ (proceso más ágil) o redactar uno propio. Contemplar: denominación social (debe incluir "SAS"), domicilio, objeto, capital, cuotas, órgano de administración, representación y plazo de duración.',
-    'Arts. 36–38 Ley 27.349 — contenido del instrumento constitutivo',
-    null,
-    'Ventaja clave: se admite instrumento privado con firma digital o firma certificada por escribano, sin escritura pública obligatoria.');
-  html+=socStep(3,'Integración de capital',
-    'El capital mínimo equivale a dos salarios mínimos vitales y móviles (SMVM) al momento de la constitución. Los aportes dinerarios se acreditan mediante CBU o comprobante de transferencia bancaria. Los aportes en especie requieren valuación.',
+    'Cantidad de socios (mínimo 1, sin tope). Actividad. Distribución de capital. Domicilio social en Córdoba. Confirmar que ningún socio sea otra SAS o SA (restricción vigente — verificar resoluciones IPJ actuales). Verificar que el objeto no requiera habilitación especial.',
+    'Art. 33 Ley 27.349 — objeto: toda actividad lícita',null,null);
+  html+=socStep(2,'Reserva de denominación en Portal IPJ',
+    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2. Verificar disponibilidad del nombre (homonimia). La denominación debe incluir "SAS". La reserva tiene plazo determinado: avanzar con el trámite dentro de ese plazo.',
+    'Portal IPJ: tramitesipj.cba.gov.ar',null,
+    'La denominación reservada no queda disponible para terceros mientras está vigente la reserva. No demorar la presentación del trámite.');
+  html+=socStep(3,'Redacción del instrumento constitutivo',
+    'Dos opciones: (a) Modelo aprobado por IPJ — más ágil, la fiscalización del organismo se limita al objeto social; o (b) instrumento redactado por el abogado — mayor flexibilidad pero puede generar observaciones. Contemplar: denominación, domicilio en Córdoba, objeto, capital, cuotas, órgano de administración, representación, plazo.',
+    'Arts. 36–38 Ley 27.349 · Modelo IPJ disponible en tramitesipj.cba.gov.ar',null,
+    'No requiere escritura pública. Se acepta instrumento privado con firma digital CiDi o firma mixta ológrafa + digital (Res. IPJ 49T/25).');
+  html+=socStep(4,'Integración de capital',
+    'Capital mínimo: equivalente a 2 SMVM al momento de la constitución. Aportes dinerarios: acreditar mediante depósito en Bancor (integración online desde la plataforma IPJ) u otra institución bancaria. Aportes en especie: valuación y entrega en el acto.',
     'Art. 41 Ley 27.349 — integración de aportes',
-    'Verificar monto vigente del SMVM ante DPPJ o IGJ según jurisdicción — el capital mínimo se actualiza con cada variación del salario mínimo.',null);
-  html+=socStep(4,'Presentación digital ante IGJ (CABA) o DPPJ (PBA)',
-    'Trámite íntegramente online. Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ) con CUIT y clave fiscal. Adjuntar instrumento constitutivo, comprobante de integración de capital, datos de los socios y del administrador designado. Pago de tasa registral online.',
-    'Arts. 46–48 Ley 27.349 — trámite registral simplificado · RG IGJ vigente · Disposición DPPJ 306/25',
-    'Los requisitos de documentación se actualizan por resolución. Verificar la lista actual en el portal del organismo antes de iniciar el trámite.',null);
-  html+=socStep(5,'Inscripción y obtención de CUIT',
-    'Plazo estimado: 3 a 8 días hábiles sin observaciones. La IGJ o DPPJ notifica por el mismo sistema digital. El CUIT se gestiona ante ARCA (ex AFIP) — en el trámite urgente de IGJ puede obtenerse simultáneamente a la inscripción. Con el CUIT habilitado se puede abrir cuenta bancaria e iniciar actividades.',
-    'Resolución General ARCA vigente — tramitación del CUIT persona jurídica',
-    null,null);
-  html+=socStep(6,'Apertura de libros digitales y entrega al cliente',
-    'Las SAS llevan libros digitales. Dentro de los 180 días de la inscripción deben acreditar la apertura de todos los libros digitales contables y societarios obligatorios. Entregar al cliente: instrumento inscripto, constancia registral, CUIT, y guía básica de funcionamiento.',
-    'Resolución IGJ vigente sobre libros digitales en SAS',
-    null,null);
+    'Verificar el valor vigente del SMVM antes de cada constitución. El monto en pesos cambia con cada actualización del salario mínimo.',null);
+  html+=socStep(5,'Presentación digital ante IPJ Córdoba',
+    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2 y clave fiscal ARCA Nivel 3. Adjuntar instrumento constitutivo firmado, comprobante de integración de capital, datos de socios y administrador. Abonar Tasa Retributiva de Servicios online. La plataforma genera automáticamente el aviso para el Boletín Oficial si se usa modelo IPJ.',
+    'Arts. 46–48 Ley 27.349 · Res. IPJ vigentes',
+    'Verificar la lista de documentación requerida en tramitesipj.cba.gov.ar antes de iniciar. Los requisitos se actualizan por resolución.',null);
+  html+=socStep(6,'Obtención de CUIT y apertura de libros digitales',
+    'La IPJ tramita el CUIT ante ARCA en forma integrada: el número se envía al domicilio electrónico constituido en el trámite. Las SAS llevan libros digitales — dentro de los 180 días de la inscripción deben acreditarse la apertura de todos los libros obligatorios. Registrar la sociedad en Rentas Córdoba (Ingresos Brutos).',
+    'Resolución General conjunta IPJ-ARCA vigente · Res. IPJ sobre libros digitales',null,null);
+  html+=socStep(7,'Entrega al cliente',
+    'Instrumento inscripto, constancia registral digital firmada por IPJ, CUIT, y guía básica de funcionamiento: funcionamiento de la administración, obligación de libros digitales, actualización de datos ante IPJ ante cualquier cambio.',
+    null,null,null);
   html+='</div>';
   return html;
 }
 
+// ─── SRL ───
 function socRenderSRL(){
   var html='';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
@@ -2519,45 +2690,42 @@ function socRenderSRL(){
   html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Máx. 50 socios</span>';
   html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Capital en cuotas</span>';
   html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad de Responsabilidad Limitada · Mínimo 2 socios · Máximo 50 · Requiere publicación en Boletín Oficial.</p>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad de Responsabilidad Limitada · IPJ Córdoba · Mínimo 2 socios · Requiere publicación en Boletín Oficial de Córdoba.</p>';
   html+=socPlataformas();
   html+='<div class="card" style="margin-bottom:0">';
   html+=socStep(1,'Diagnóstico inicial con el cliente',
-    'Cantidad de socios (mínimo 2, máximo 50 — art. 146 LGS). Actividad a desarrollar. Distribución de cuotas. Designación del gerente (puede ser socio o no). Domicilio social. Verificar si algún socio es persona jurídica (requiere documentación adicional del ente). Confirmar que el objeto no requiera habilitación especial.',
-    'Art. 146 LGS — límite de socios · Art. 147 LGS — denominación',
-    null,null);
-  html+=socStep(2,'Redacción del contrato social',
-    'La denominación debe incluir "SRL" o "Sociedad de Responsabilidad Limitada". El contrato debe contemplar: domicilio, objeto, capital dividido en cuotas iguales, aportaciones de cada socio, gerencia (designación, facultades, retribución), mayorías para resoluciones sociales, plazo de duración y cláusula de restricción a la transmisión de cuotas si los socios lo acuerdan.',
-    'Arts. 147–151 LGS — contenido del contrato social · Art. 153 LGS — transmisión de cuotas',
-    null,
+    'Cantidad de socios (mínimo 2, máximo 50 — art. 146 LGS). Actividad. Distribución de cuotas. Designación del gerente (socio o no). Domicilio social en Córdoba. Verificar si algún socio es persona jurídica (requiere documentación adicional). Confirmar que el objeto no requiera habilitación especial.',
+    'Art. 146 LGS — límite de socios',null,null);
+  html+=socStep(2,'Reserva de denominación en Portal IPJ',
+    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2. Verificar disponibilidad del nombre. La denominación debe incluir "SRL" o "Sociedad de Responsabilidad Limitada". Avanzar con el trámite dentro del plazo de vigencia de la reserva.',
+    'Art. 147 LGS — denominación social',null,null);
+  html+=socStep(3,'Redacción del contrato social',
+    'Dos opciones: (a) Modelo aprobado por IPJ (más ágil) o (b) instrumento redactado por el abogado. Contemplar: denominación, domicilio en Córdoba, objeto, capital dividido en cuotas iguales, aportaciones de cada socio, gerencia (designación, facultades, retribución), mayorías para resoluciones sociales, plazo. Incluir o excluir expresamente el régimen de transmisión de cuotas.',
+    'Arts. 147–151 LGS · Art. 153 LGS — transmisión de cuotas',null,
     'La transmisión de cuotas está sujeta por ley al derecho de preferencia de los restantes socios (art. 153 LGS). Si los socios quieren modificar ese régimen, debe constar expresamente en el contrato.');
-  html+=socStep(3,'Integración de capital',
-    'Los aportes dinerarios deben integrarse al 25% en el acto constitutivo; el saldo restante en un plazo máximo de 2 años. Los aportes en especie se integran íntegramente en el acto. Acreditar mediante depósito bancario o transferencia a nombre de la sociedad en formación.',
+  html+=socStep(4,'Integración de capital',
+    'Aportes dinerarios: integrar al menos el 25% en el acto constitutivo; saldo en hasta 2 años (art. 149 LGS). Acreditar mediante depósito bancario en Bancor (integración online desde plataforma IPJ) u otra entidad. Aportes en especie: integrar íntegramente en el acto.',
     'Art. 149 LGS — integración de aportes · Art. 150 LGS — aportes en especie',
-    'Verificar monto mínimo de capital vigente ante IGJ o DPPJ — se modifica por resolución.',null);
-  html+=socStep(4,'Reserva de denominación',
-    'Antes de redactar el contrato definitivo, verificar disponibilidad de la denominación en el organismo de contralor. En IGJ se realiza a través de TAD. En DPPJ a través de gba.gob.ar/dppj. La reserva tiene un plazo determinado — verificar vigencia.',
-    'Resolución IGJ vigente sobre reserva de denominaciones · DPPJ: trámite digital',
-    null,null);
-  html+=socStep(5,'Publicación en el Boletín Oficial',
-    'Publicar el aviso de constitución en el Boletín Oficial (nacional para IGJ, provincial para DPPJ). El aviso debe contener los datos del art. 10 LGS. Conservar el comprobante de publicación para adjuntar a la presentación registral.',
+    'Verificar capital mínimo vigente ante IPJ Córdoba. Se modifica por resolución.',null);
+  html+=socStep(5,'Publicación de edictos en el Boletín Oficial de Córdoba',
+    'Publicar el aviso de constitución en el Boletín Oficial de la Provincia de Córdoba. Si se usa modelo IPJ, la plataforma genera y envía el aviso automáticamente. Si el instrumento es redactado por el abogado, la publicación debe gestionarse por separado en boletinoficial.cba.gov.ar. Conservar comprobante.',
     'Art. 10 LGS — publicidad de la constitución',
-    'Verificar contenido exacto del aviso y el plazo requerido ante IGJ o DPPJ. Los requisitos pueden diferir entre organismos.',null);
-  html+=socStep(6,'Presentación ante IGJ o DPPJ',
-    'Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ) con CUIT y clave fiscal. Adjuntar: contrato social con firmas certificadas, comprobante de publicación, comprobante de integración de capital, datos de socios y gerentes. Pago de tasas registrales.',
-    'RG IGJ vigente · Disposición DPPJ 306/25 — presentación exclusivamente digital desde 01/08/2025',
-    'Verificar la lista de documentación actualizada antes de presentar. Una observación por documentación incorrecta reinicia el plazo del trámite.',null);
-  html+=socStep(7,'Inscripción, CUIT y libros obligatorios',
-    'Obtener CUIT ante ARCA (ex AFIP) una vez inscripta la sociedad. Rubricar libros societarios obligatorios: libro de actas de reuniones de socios y libro de registro de cuotas partes. Si tendrá empleados: libro especial del art. 52 LCT. Los libros pueden ser digitales si el organismo lo admite — verificar modalidad vigente.',
-    'Art. 162 LGS — libros societarios · Art. 52 LCT — libro de sueldos y jornales',
-    null,null);
+    'Verificar el contenido mínimo del aviso requerido por IPJ Córdoba. Requisito previo a la inscripción.',null);
+  html+=socStep(6,'Presentación digital ante IPJ Córdoba',
+    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2 y clave fiscal ARCA Nivel 3. Adjuntar contrato social firmado (instrumento privado con firma digital o mixta — Res. IPJ 49T/25), comprobante de publicación, comprobante de integración. Abonar Tasa Retributiva de Servicios online.',
+    'RG conjunta 5020/21 (trámite integrado SRL) · RG 3T/23 · Res. IPJ 49T/25',
+    'Verificar la lista actualizada de documentación en tramitesipj.cba.gov.ar antes de cada presentación. Una observación reinicia el plazo del trámite.',null);
+  html+=socStep(7,'Inscripción, CUIT y libros',
+    'La IPJ tramita el CUIT ante ARCA en forma integrada. Rubricar libros societarios: libro de actas de reuniones de socios y libro de registro de cuotas. Si habrá empleados: libro especial art. 52 LCT. Inscripción en Rentas Córdoba (rentascordoba.cba.gov.ar).',
+    'RG conjunta IPJ-ARCA · Art. 52 LCT',null,null);
   html+=socStep(8,'Entrega al cliente',
-    'Contrato social inscripto, constancia registral, CUIT, libros rubricados, y guía básica de funcionamiento: mayorías aplicables para resoluciones ordinarias y extraordinarias, restricciones a la cesión de cuotas (art. 153 LGS), funcionamiento de la gerencia, obligación de llevar estados contables anuales.',
+    'Contrato social inscripto, constancia registral digital, CUIT, libros rubricados, y guía básica de funcionamiento: mayorías aplicables, restricciones a la cesión de cuotas (art. 153 LGS), funcionamiento de la gerencia, obligación de estados contables anuales.',
     null,null,null);
   html+='</div>';
   return html;
 }
 
+// ─── SA ───
 function socRenderSA(){
   var html='';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
@@ -2566,92 +2734,89 @@ function socRenderSA(){
   html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Capital en acciones</span>';
   html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Sin oferta pública</span>';
   html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Sociedad Anónima cerrada (sin oferta pública) · Directorio · Requiere escritura pública.</p>';
-  html+='<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--red)">⚠️ Este proceso requiere escritura pública ante escribano como paso previo a la presentación registral. Coordinar con el escribano actuante antes de iniciar el trámite.</div>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Sociedad Anónima cerrada · IPJ Córdoba · Directorio · Requiere escritura pública.</p>';
+  html+='<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--red)">⚠️ La SA requiere escritura pública ante escribano como paso previo a la presentación registral. Coordinar con el escribano actuante antes de iniciar el trámite.</div>';
   html+=socPlataformas();
   html+='<div class="card" style="margin-bottom:0">';
   html+=socStep(1,'Diagnóstico inicial con el cliente',
-    'Cantidad de accionistas y distribución accionaria. Estructura del directorio: unipersonal o colegiado; duración del mandato (máximo 3 ejercicios — art. 257 LGS). Necesidad de sindicatura (depende del capital — verificar umbral vigente). Domicilio social. Confirmar expresamente que la sociedad no realizará oferta pública de sus acciones.',
-    'Arts. 163–165 LGS — constitución · Art. 257 LGS — duración del directorio',
-    'La sindicatura es obligatoria cuando el capital supera determinado monto fijado por resolución del organismo de contralor. Verificar el umbral vigente ante IGJ o DPPJ antes de asesorar al cliente sobre la estructura.',null);
-  html+=socStep(2,'Redacción del estatuto',
-    'La denominación debe incluir "SA" o "Sociedad Anónima". El estatuto debe contemplar: domicilio, objeto, capital y clases de acciones, directorio (cantidad de miembros, duración del mandato, remuneración con el límite del art. 261 LGS), asamblea ordinaria y extraordinaria, sindicatura si corresponde, representación legal, y plazo de duración.',
-    'Art. 166 LGS — contenido del estatuto · Art. 261 LGS — límite de remuneración de directores',
-    'La remuneración de directores tiene un límite legal de orden público (art. 261 LGS). Toda remuneración que supere ese límite sin decisión asamblearia puede ser impugnada. Contemplarlo en la redacción del estatuto.',null);
-  html+=socStep(3,'Escritura pública ante escribano',
-    'El estatuto de la SA se otorga mediante escritura pública (art. 165 LGS). Coordinar con el escribano actuante la redacción final del estatuto, la designación de los primeros directores y síndico si corresponde. La escritura debe contener todos los datos del art. 166 LGS.',
-    'Art. 165 LGS — escritura pública obligatoria para SA',
-    null,null);
+    'Cantidad de accionistas y distribución accionaria. Estructura del directorio: unipersonal o colegiado; duración del mandato (máximo 3 ejercicios — art. 257 LGS). Necesidad de sindicatura (verificar umbral de capital vigente ante IPJ Córdoba). Domicilio social en Córdoba. Confirmar que la sociedad no realizará oferta pública.',
+    'Arts. 163–165 LGS · Art. 257 LGS',
+    'La sindicatura es obligatoria cuando el capital supera el monto fijado por resolución IPJ. Verificar el umbral vigente antes de asesorar al cliente sobre la estructura.',null);
+  html+=socStep(2,'Reserva de denominación en Portal IPJ',
+    'Ingresar a tramitesipj.cba.gov.ar. Verificar disponibilidad del nombre. La denominación debe incluir "SA" o "Sociedad Anónima". Avanzar dentro del plazo de vigencia de la reserva.',
+    'Art. 164 LGS — denominación SA',null,null);
+  html+=socStep(3,'Redacción del estatuto y escritura pública',
+    'El estatuto de la SA se otorga mediante escritura pública (art. 165 LGS). Coordinar con el escribano actuante. El estatuto debe contemplar: denominación, domicilio en Córdoba, objeto, capital y clases de acciones, directorio (cantidad, mandato — art. 257 LGS, remuneración — límite art. 261 LGS), asamblea, sindicatura si corresponde, representación legal, plazo.',
+    'Art. 165 LGS — escritura pública obligatoria · Art. 166 LGS — contenido del estatuto',
+    'La remuneración de directores tiene un límite legal de orden público (art. 261 LGS). Toda remuneración que lo supere sin decisión asamblearia puede ser impugnada. Contemplarlo en la redacción del estatuto.',null);
   html+=socStep(4,'Integración de capital',
-    'Los aportes dinerarios se integran al 25% en el acto constitutivo; el saldo en un plazo máximo de 2 años. Los aportes en especie se integran íntegramente. Acreditar mediante depósito en banco oficial o privado a nombre de la sociedad en formación.',
-    'Art. 187 LGS — integración de aportes en SA',
-    null,null);
-  html+=socStep(5,'Publicación en el Boletín Oficial',
-    'Publicar el aviso de constitución en el Boletín Oficial con los datos del art. 10 LGS. Para IGJ: Boletín Oficial de la Nación. Para DPPJ: Boletín Oficial de la Provincia de Buenos Aires. Conservar el comprobante de publicación.',
-    'Art. 10 LGS — publicidad · Art. 165 LGS',
-    'Verificar el contenido mínimo del aviso exigido por el organismo. Hay diferencias entre los requisitos de IGJ y DPPJ.',null);
-  html+=socStep(6,'Presentación ante IGJ o DPPJ',
-    'Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ) con CUIT y clave fiscal. Adjuntar: primer testimonio de la escritura de constitución, comprobante de publicación en Boletín Oficial, comprobante de integración de capital, datos y documentación de directores y síndico si corresponde. Pago de tasas registrales.',
-    'RG IGJ 15/2024 (reemplaza RG IGJ 7/2015) · Disposición DPPJ vigente',
-    'IGJ puede observar el trámite y requerir subsanaciones. Las observaciones reinician el plazo. Verificar la lista de documentación actualizada en argentina.gob.ar/justicia/igj antes de presentar.',null);
+    'Aportes dinerarios: integrar al menos el 25% en el acto; saldo en hasta 2 años (art. 187 LGS). Acreditar mediante depósito bancario (Bancor u otra entidad) a nombre de la sociedad en formación. Aportes en especie: integrar íntegramente en el acto.',
+    'Art. 187 LGS — integración de aportes SA',null,null);
+  html+=socStep(5,'Publicación de edictos en el Boletín Oficial de Córdoba',
+    'Publicar el aviso de constitución en el Boletín Oficial de la Provincia de Córdoba con los datos del art. 10 LGS. Conservar comprobante de publicación para adjuntar a la presentación registral.',
+    'Art. 10 LGS · Art. 165 LGS',
+    'Verificar el contenido mínimo exigido por IPJ Córdoba. Requisito previo a la inscripción.',null);
+  html+=socStep(6,'Presentación digital ante IPJ Córdoba',
+    'Ingresar a tramitesipj.cba.gov.ar. Adjuntar: primer testimonio de la escritura de constitución (digitalizado y firmado digitalmente), comprobante de publicación, comprobante de integración, datos de directores y síndico si corresponde. Abonar Tasa Retributiva de Servicios. La IPJ puede observar el trámite y requerir subsanaciones.',
+    'RG 3T/23 IPJ · Res. IPJ 49T/25',
+    'Verificar la lista de documentación actualizada en tramitesipj.cba.gov.ar antes de cada presentación. La SA es el tipo con mayor probabilidad de observaciones por la complejidad del estatuto.',null);
   html+=socStep(7,'Inscripción, CUIT y libros obligatorios',
-    'Obtener CUIT ante ARCA una vez inscripta la sociedad. Rubricar libros societarios obligatorios: libro de actas de directorio, libro de actas de asamblea, libro de registro de acciones. Si hay sindicatura: libro de informes de síndico. Si tendrá empleados: libro especial del art. 52 LCT.',
-    'Arts. 213 y 238 LGS — libros societarios SA · Art. 52 LCT',
-    null,null);
+    'La IPJ tramita el CUIT ante ARCA en forma integrada. Rubricar libros: libro de actas de directorio, libro de actas de asamblea, libro de registro de acciones. Si hay sindicatura: libro de informes de síndico. Si habrá empleados: libro especial art. 52 LCT. Inscripción en Rentas Córdoba.',
+    'Arts. 213 y 238 LGS — libros SA · Art. 52 LCT',null,null);
   html+=socStep(8,'Entrega al cliente',
-    'Estatuto inscripto, constancia registral, CUIT, libros rubricados, y guía básica de funcionamiento: tipos de asamblea y su temario (arts. 234–235 LGS), quórum y mayorías, límite de remuneración de directores (art. 261 LGS), obligación de presentar estados contables anuales ante el organismo de contralor.',
+    'Estatuto inscripto, constancia registral digital, CUIT, libros rubricados, y guía de funcionamiento: tipos de asamblea (arts. 234–235 LGS), quórum y mayorías, límite de remuneración de directores (art. 261 LGS), obligación de estados contables anuales ante IPJ.',
     null,null,null);
   html+='</div>';
   return html;
 }
 
+// ─── MODIFICACIONES ───
 function socRenderMod(){
   var html='';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
   html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Modificaciones estatutarias</span>';
   html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Cambio de sede social · Cambio de denominación · Ampliación del objeto · Designación o remoción de autoridades.</p>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sede · Denominación · Objeto · Autoridades · IPJ Córdoba.</p>';
   html+=socPlataformas();
   html+='<div class="card" style="margin-bottom:0">';
   html+=socStep(1,'Identificar el tipo de modificación y el órgano competente',
-    'El órgano competente y las mayorías requeridas dependen del tipo societario: en SA, asamblea ordinaria o extraordinaria según el caso (arts. 234–235 LGS); en SRL, reunión de socios con mayorías del contrato; en SAS, según lo que disponga el estatuto.',
-    'SA: arts. 234–235 LGS — competencia de asambleas · SRL: arts. 159–160 LGS — mayorías · SAS: Ley 27.349',
-    'Un error en la determinación del quórum o las mayorías requeridas invalida la asamblea o reunión, y con ella la modificación aprobada. Verificar antes de convocar.',null);
+    'Tipos más frecuentes: cambio de sede social, cambio de denominación, ampliación del objeto, designación o remoción de autoridades. SA → asamblea ordinaria o extraordinaria según el caso (arts. 234–235 LGS); SRL → reunión de socios con mayorías del contrato; SAS → según el estatuto.',
+    'SA: arts. 234–235 LGS / SRL: arts. 159–160 LGS / SAS: Ley 27.349',
+    'Un error en el quórum o las mayorías requeridas invalida la asamblea y, con ella, la modificación aprobada. Verificar antes de convocar.',null);
   html+=socStep(2,'Convocatoria al órgano correspondiente',
-    'Respetar los plazos de convocatoria y el orden del día establecido en el estatuto o contrato. Para SA: publicación de la convocatoria en el Boletín Oficial y en un diario de publicaciones legales, con los plazos del art. 237 LGS. Para SRL y SAS: seguir los mecanismos previstos en el contrato o estatuto.',
-    'Art. 237 LGS — convocatoria a asambleas de SA',
-    'El orden del día de la asamblea es cerrado en la SA. Solo se pueden tratar los puntos incluidos en él. Una modificación no incluida en el orden del día no puede aprobarse válidamente, salvo las excepciones del art. 246 LGS.',null);
+    'Respetar plazos y orden del día. SA: publicar convocatoria en Boletín Oficial de Córdoba y en diario de publicaciones legales, con los plazos del art. 237 LGS. SRL y SAS: mecanismo previsto en el contrato o estatuto. El orden del día de la asamblea SA es cerrado: solo se pueden tratar los puntos incluidos en él (salvo excepciones del art. 246 LGS).',
+    'Art. 237 LGS — convocatoria SA',null,null);
   html+=socStep(3,'Celebración de la reunión y labramiento del acta',
-    'Labrar el acta con todos los requisitos formales: fecha y lugar, quórum verificado, socios o accionistas presentes, mayorías con que se aprobó cada punto, resolución adoptada, y texto completo de la modificación aprobada. El acta debe asentarse en el libro correspondiente y estar firmada por los asistentes o por el presidente y secretario según el tipo societario.',
-    'Art. 73 LGS — libros de actas y su valor probatorio',
-    null,null);
-  html+=socStep(4,'Publicación en el Boletín Oficial (si corresponde)',
-    'Ciertas modificaciones estatutarias requieren publicación previa a la inscripción. En general: cambio de sede, modificación del objeto y cambio de denominación requieren publicación. La renovación de autoridades puede no requerirla en algunos tipos societarios — verificar en cada caso.',
+    'Labrar el acta con: fecha y lugar, quórum verificado, socios o accionistas presentes, mayorías con que se aprobó cada punto, resolución adoptada y texto completo de la modificación. Asentar en el libro de actas correspondiente. Firmar según el tipo societario.',
+    'Art. 73 LGS — libros de actas',null,null);
+  html+=socStep(4,'Publicación en el Boletín Oficial de Córdoba (si corresponde)',
+    'Ciertas modificaciones exigen publicación previa a la inscripción: cambio de sede, de objeto y de denominación generalmente la requieren. Renovación de autoridades puede no requerirla en algunos tipos. Verificar en cada caso ante IPJ Córdoba antes de asumir que no es necesaria.',
     'Art. 10 LGS — publicidad de modificaciones',
-    'No asumir que la publicación no es necesaria sin verificarlo. Una inscripción sin la publicación previa requerida puede ser observada por el organismo.',null);
-  html+=socStep(5,'Presentación ante IGJ o DPPJ',
-    'Ingresar a tramitesadistancia.gob.ar (IGJ) o gba.gob.ar/dppj (DPPJ). Adjuntar: acta certificada o testimonio de escritura según tipo societario, comprobante de publicación si corresponde, formularios del organismo, pago de tasas. Para SA: el acta de asamblea debe estar certificada por escribano o con firmas certificadas.',
-    'RG IGJ vigente (RG IGJ 15/2024) · Disposición DPPJ 306/25',
-    'Los requisitos documentales por tipo de modificación varían entre IGJ y DPPJ, y dentro de cada organismo según el tipo societario. Verificar la lista actualizada antes de cada presentación.',null);
+    'No asumir que la publicación no es necesaria sin verificarlo. Una inscripción sin la publicación requerida puede ser observada por la IPJ.',null);
+  html+=socStep(5,'Presentación digital ante IPJ Córdoba',
+    'Ingresar a tramitesipj.cba.gov.ar. Adjuntar: acta certificada o testimonio de escritura (según tipo societario), comprobante de publicación si corresponde, formularios del Portal IPJ, pago de Tasa Retributiva de Servicios. El acta de asamblea SA debe estar certificada o con firmas según Res. IPJ 49T/25.',
+    'RG 3T/23 IPJ · Res. IPJ 49T/25',
+    'Los requisitos documentales varían según el tipo de modificación y el tipo societario. Verificar la lista actualizada en tramitesipj.cba.gov.ar antes de cada presentación.',null);
   html+=socStep(6,'Inscripción y entrega al cliente',
-    'Una vez inscripta la modificación, entregar al cliente la constancia registral y el estatuto o contrato actualizado con la modificación incorporada. Si el cambio afecta el domicilio fiscal o la actividad declarada ante ARCA, recordar al cliente actualizar los datos en el sistema impositivo.',
-    'Resolución General ARCA vigente — actualización de datos de persona jurídica',
-    null,null);
+    'Una vez inscripta la modificación, entregar constancia registral digital y estatuto/contrato actualizado. Si el cambio afecta el domicilio fiscal o la actividad, recordar al cliente actualizar los datos en ARCA (afip.gob.ar) y en Rentas Córdoba (rentascordoba.cba.gov.ar).',
+    null,null,null);
   html+='</div>';
   return html;
 }
 
+// ─── ALERTAS ───
 function socRenderAlertas(){
   var html='';
-  html+='<div style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text);margin-bottom:16px">Alertas normativas vigentes — junio 2026</div>';
+  html+='<div style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text);margin-bottom:16px">Alertas normativas vigentes — IPJ Córdoba · Junio 2026</div>';
   var alertas=[
-    {titulo:'RG IGJ 15/2024',desc:'Nuevo marco normativo general de IGJ, reemplaza a la RG IGJ 7/2015. Los contenidos del sitio de Argentina.gob.ar se encuentran en proceso de actualización.',link:'https://www.argentina.gob.ar/justicia/igj'},
-    {titulo:'Disposición DPPJ 306/25',desc:'Desde el 01/08/2025, todos los trámites de constitución ante la DPPJ ingresan exclusivamente por vía digital.',link:'https://www.gba.gob.ar/dppj'},
-    {titulo:'Disposición DPPJ 303/25',desc:'Introduce obligación de adjuntar Certificado de Libre Deuda Alimentaria por cada integrante de los órganos de administración, fiscalización o gobierno.',link:null},
-    {titulo:'Capital mínimo SAS',desc:'Equivalente a 2 SMVM. El monto en pesos se actualiza con cada modificación del salario mínimo — verificar valor vigente antes de cada constitución.',link:null},
-    {titulo:'Capital mínimo SRL y SA',desc:'Fijado por resolución del organismo de contralor — verificar ante IGJ o DPPJ antes de cada constitución.',link:null}
+    {titulo:'RG conjunta 5020/21 (IPJ-ARCA)',desc:'Trámite integrado para SRL — permite obtención de CUIT en forma simultánea a la inscripción, con integración Bancor y publicación automática en Boletín Oficial.',link:'https://tramitesipj.cba.gov.ar'},
+    {titulo:'RG 3T/23 IPJ',desc:'Marco general para sociedades y Registro Público en Córdoba.',link:'https://ipj.cba.gov.ar'},
+    {titulo:'Res. IPJ 49T/25',desc:'Habilita firma mixta (ológrafa + digital) en documentos societarios, flexibilizando los requisitos formales. Permite operar desde cualquier punto del país.',link:null},
+    {titulo:'Capital mínimo SAS',desc:'Equivalente a 2 SMVM. Se actualiza con cada variación del salario mínimo — verificar valor vigente antes de cada constitución.',link:null},
+    {titulo:'Capital mínimo SRL y SA + umbral sindicatura',desc:'Fijados por resolución IPJ — verificar ante tramitesipj.cba.gov.ar antes de cada constitución.',link:'https://tramitesipj.cba.gov.ar'},
+    {titulo:'Trámites 100% digitales y remotos',desc:'Todos los trámites de constitución ante IPJ Córdoba son 100% digitales. No requieren presencialidad.',link:null}
   ];
-  html+='<div style="display:flex;flex-direction:column;gap:10px">';
+  html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">';
   alertas.forEach(function(a){
     html+='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px">';
     html+='<div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:5px">'+a.titulo+'</div>';
@@ -2660,14 +2825,15 @@ function socRenderAlertas(){
     html+='</div>';
   });
   html+='</div>';
-  html+='<div style="margin-top:16px;background:var(--bg3);border-radius:var(--radius);padding:14px 16px;font-size:12px;color:var(--text3);line-height:1.6">';
+  html+='<div style="background:var(--bg3);border-radius:var(--radius);padding:14px 16px;font-size:12px;color:var(--text3);line-height:1.8">';
   html+='<strong style="color:var(--text2)">Consideraciones transversales a todos los servicios</strong><br><br>';
-  html+='<strong style="color:var(--text)">Trámite registral:</strong> El punto más sensible en constituciones es siempre el trámite ante el organismo de contralor. Antes de cada presentación, verificar en la web oficial los formularios vigentes y los montos de tasas actualizados. Una presentación con documentación incorrecta genera observaciones que demoran el trámite.<br><br>';
-  html+='<strong style="color:var(--text)">Objeto social:</strong> Un objeto demasiado restrictivo limita la operatoria; uno demasiado genérico puede generar observaciones en la IGJ o DPPJ. Para actividades reguladas (sector financiero, seguros, salud, agroquímicos, armas, medios de comunicación) verificar si requieren habilitación especial o autorización previa de otro organismo.<br><br>';
-  html+='<strong style="color:var(--text)">Derivación por complejidad:</strong> Si surge alguno de estos elementos, el caso sale del Nivel 1 y debe evaluarse antes de continuar: socio extranjero (persona física o jurídica), aportes en especie de valor elevado, actividad regulada, conflicto entre socios en la etapa constitutiva, necesidad de estructura de gobierno compleja.';
+  html+='<strong style="color:var(--text)">Trámite registral:</strong> Los requisitos documentales de la IPJ cambian por resolución. Verificar en tramitesipj.cba.gov.ar antes de cada presentación.<br>';
+  html+='<strong style="color:var(--text)">Objeto social:</strong> Para actividades reguladas, verificar habilitación especial antes de avanzar.<br>';
+  html+='<strong style="color:var(--text)">Derivación:</strong> Si surge socio extranjero, actividad regulada, conflicto entre socios o necesidad de estructura compleja, el caso sale del Nivel 1. Comunicar al cliente antes de continuar.';
   html+='</div>';
   return html;
 }
+
 
 function initApp() {
   setFecha();
