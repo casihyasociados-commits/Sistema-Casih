@@ -269,9 +269,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
-    <button class="nav-btn" onclick="goTo('documentos')">Modelos</button>
-    <button class="nav-btn" onclick="goTo('capacitacion')">Der. Consumidor</button>
-    <button class="nav-btn" onclick="goTo('sociedades')">Sociedades</button>
+    <button class="nav-btn" onclick="goTo('nuevosservicios')">Nuevos Servicios</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -544,86 +542,62 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
-<!-- DOCUMENTOS -->
-<div class="section" id="sec-documentos">
+<!-- NUEVOS SERVICIOS -->
+<div class="section" id="sec-nuevosservicios">
   <div class="page-header">
-    <div><div class="page-title">Modelos</div><div class="page-sub">Seleccioná el modelo y el cliente · Se copiará a la carpeta Drive del cliente</div></div>
+    <div>
+      <div class="page-title">Nuevos Servicios</div>
+      <div class="page-sub">Derecho del Consumidor · Derecho Societario · Material de uso interno del equipo</div>
+    </div>
   </div>
-  <div class="grid2" style="margin-bottom:16px">
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title">Generar documento</div>
-      <div class="fg"><div class="fl">Modelo *</div><select class="fs" id="doc-modelo" onchange="previewDocInfo()"><option value="">— Cargando modelos... —</option></select></div>
-      <div class="fg"><div class="fl">Cliente *</div>
-        <div style="position:relative">
-          <input class="fi" id="doc-cliente-search" placeholder="Escribí para buscar cliente..." oninput="filtrarClientes('doc-cliente-search','doc-cliente-dropdown')" onfocus="filtrarClientes('doc-cliente-search','doc-cliente-dropdown')" autocomplete="off">
-          <input type="hidden" id="doc-cliente-id" value="">
-          <div id="doc-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
-        </div>
+
+  <!-- SELECTOR PRINCIPAL -->
+  <div style="display:flex;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap">
+    <button id="ns-btn-consumidor" onclick="nuevosServiciosMostrar('consumidor')" style="flex:1;min-width:200px;padding:16px 20px;border-radius:12px;border:2px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;transition:all 0.15s">
+      <div style="font-size:18px;margin-bottom:4px">⚖️</div>
+      <div style="font-size:14px;font-weight:700">Defensa del Consumidor</div>
+      <div style="font-size:11px;opacity:0.8;margin-top:2px">Planes de ahorro · Medicina prepaga · Bancos y tarjetas</div>
+    </button>
+    <button id="ns-btn-sociedades" onclick="nuevosServiciosMostrar('sociedades')" style="flex:1;min-width:200px;padding:16px 20px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;transition:all 0.15s">
+      <div style="font-size:18px;margin-bottom:4px">🏛️</div>
+      <div style="font-size:14px;font-weight:700">Derecho Societario</div>
+      <div style="font-size:11px;opacity:0.8;margin-top:2px">SAS · SRL · SA · Modificaciones · IPJ Córdoba</div>
+    </button>
+  </div>
+
+  <!-- CONTENEDOR CONSUMIDOR -->
+  <div id="ns-consumidor">
+    <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
+      ⚠️ <strong>Uso interno.</strong> Los montos y estimaciones de daño moral y punitivo son orientativos. Verificar siempre jurisprudencia local actualizada antes de cuantificar en cualquier demanda.
+    </div>
+    <div class="cap-layout">
+      <div class="cap-sidebar">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Introducción</div>
+        <button class="cap-sector-btn active" id="capbtn-intro" onclick="capMostrar('intro')">📖 Marco general</button>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:14px">Sectores</div>
+        <button class="cap-sector-btn s1" id="capbtn-s1" onclick="capMostrar('s1')">🚗 Planes de ahorro</button>
+        <button class="cap-sector-btn s2" id="capbtn-s2" onclick="capMostrar('s2')">🏥 Medicina prepaga</button>
+        <button class="cap-sector-btn s3" id="capbtn-s3" onclick="capMostrar('s3')">🏦 Bancos y tarjetas</button>
       </div>
-      <div id="doc-info-box" style="display:none;background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px"><div id="doc-info-content"></div></div>
-      <button class="btn-primary" style="width:100%" onclick="abrirModeloEnDrive()">⚡ Copiar modelo a carpeta del cliente y abrir</button>
-      <div style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center">Se copia el modelo a la carpeta Drive del cliente y se abre para editar</div>
-    </div>
-    <div class="card" style="margin-bottom:0" id="doc-cliente-info-card">
-      <div class="card-title">Datos del cliente</div>
-      <div style="font-size:13px;color:var(--text3)">Seleccioná un cliente para ver sus datos.</div>
-    </div>
-  </div>
-</div>
-
-<!-- CAPACITACIÓN - NUEVA VERSIÓN -->
-<div class="section" id="sec-capacitacion">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Derecho del Consumidor</div>
-      <div class="page-sub">Material de uso interno del equipo · Planes de ahorro · Medicina prepaga · Bancos y tarjetas · 2026</div>
+      <div id="cap-contenido"></div>
     </div>
   </div>
 
-  <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
-    ⚠️ <strong>Uso interno.</strong> Los montos y estimaciones de daño moral y punitivo son orientativos. Verificar siempre jurisprudencia local actualizada antes de cuantificar en cualquier demanda.
-  </div>
-
-  <div class="cap-layout">
-    <!-- SIDEBAR -->
-    <div class="cap-sidebar">
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Introducción</div>
-      <button class="cap-sector-btn active" id="capbtn-intro" onclick="capMostrar('intro')">📖 Marco general</button>
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:14px">Sectores</div>
-      <button class="cap-sector-btn s1" id="capbtn-s1" onclick="capMostrar('s1')">🚗 Planes de ahorro</button>
-      <button class="cap-sector-btn s2" id="capbtn-s2" onclick="capMostrar('s2')">🏥 Medicina prepaga</button>
-      <button class="cap-sector-btn s3" id="capbtn-s3" onclick="capMostrar('s3')">🏦 Bancos y tarjetas</button>
+  <!-- CONTENEDOR SOCIEDADES -->
+  <div id="ns-sociedades" style="display:none">
+    <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
+      ⚠️ <strong>Borrador para revisión profesional.</strong> Los requisitos registrales son fijados por resolución de la IPJ Córdoba y se modifican con frecuencia. Verificar el estado actual en tramitesipj.cba.gov.ar antes de cada presentación.
     </div>
-
-    <!-- CONTENIDO -->
-    <div id="cap-contenido"></div>
-  </div>
-</div>
-
-<!-- SOCIEDADES -->
-<div class="section" id="sec-sociedades">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Sociedades</div>
-      <div class="page-sub">Constitución y modificación · Nivel 1 · LGS · Ley 27.349 · IPJ Córdoba</div>
+    <div class="tabs" id="soc-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
+      <button class="tab active" onclick="socMostrar('intro')">📖 Introducción</button>
+      <button class="tab" onclick="socMostrar('sas')">SAS</button>
+      <button class="tab" onclick="socMostrar('srl')">SRL</button>
+      <button class="tab" onclick="socMostrar('sa')">SA</button>
+      <button class="tab" onclick="socMostrar('mod')">Modificaciones</button>
+      <button class="tab" onclick="socMostrar('alertas')">⚠ Alertas normativas</button>
     </div>
+    <div id="soc-contenido"></div>
   </div>
-
-  <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
-    ⚠️ <strong>Borrador para revisión profesional.</strong> Los requisitos registrales (formularios, montos de capital, documentación) son fijados por resolución de la IPJ Córdoba y se modifican con frecuencia. Verificar el estado actual en tramitesipj.cba.gov.ar antes de cada presentación.
-  </div>
-
-  <!-- TABS PRINCIPALES -->
-  <div class="tabs" id="soc-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
-    <button class="tab active" onclick="socMostrar('intro')">📖 Introducción</button>
-    <button class="tab" onclick="socMostrar('sas')">SAS</button>
-    <button class="tab" onclick="socMostrar('srl')">SRL</button>
-    <button class="tab" onclick="socMostrar('sa')">SA</button>
-    <button class="tab" onclick="socMostrar('mod')">Modificaciones</button>
-    <button class="tab" onclick="socMostrar('alertas')">⚠ Alertas normativas</button>
-  </div>
-
-  <div id="soc-contenido"></div>
 </div>
 
 </div><!-- end main -->
@@ -882,16 +856,14 @@ function closeModal(id){document.getElementById(id).className='modal-bg';}
 function goTo(s){
   document.querySelectorAll('.section').forEach(function(x){x.className='section';});
   document.getElementById('sec-'+s).className='section active';
-  ['dashboard','clientes','tareas','agenda','admin','documentos','capacitacion','sociedades'].forEach(function(n,i){
+  ['dashboard','clientes','tareas','agenda','admin','nuevosservicios'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes')renderClientes();
-  if(s==='documentos'){cargarModelosDesideDrive();var el=document.getElementById('doc-editor-card');if(el)el.style.display='none';}
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
-  if(s==='capacitacion'){setTimeout(function(){capMostrar('intro');},50);}
-  if(s==='sociedades'){setTimeout(function(){socMostrar('intro');},50);}
+  if(s==='nuevosservicios'){setTimeout(function(){nuevosServiciosMostrar('consumidor');},50);}
 }
 
 // ─── FECHA ───
@@ -1785,7 +1757,19 @@ function renderAnalisis(){
 }
 
 
-// ─── CAPACITACIÓN - NUEVA VERSIÓN ───
+// ─── NUEVOS SERVICIOS ───
+function nuevosServiciosMostrar(cual){
+  var isConsumidor=cual==='consumidor';
+  document.getElementById('ns-consumidor').style.display=isConsumidor?'block':'none';
+  document.getElementById('ns-sociedades').style.display=isConsumidor?'none':'block';
+  var btnC=document.getElementById('ns-btn-consumidor'),btnS=document.getElementById('ns-btn-sociedades');
+  if(btnC){btnC.style.border=isConsumidor?'2px solid var(--blue)':'1px solid var(--border)';btnC.style.background=isConsumidor?'var(--blue-bg)':'var(--bg2)';btnC.style.color=isConsumidor?'var(--blue)':'var(--text2)';}
+  if(btnS){btnS.style.border=isConsumidor?'1px solid var(--border)':'2px solid var(--purple)';btnS.style.background=isConsumidor?'var(--bg2)':'var(--purple-bg)';btnS.style.color=isConsumidor?'var(--text2)':'var(--purple)';}
+  if(isConsumidor){setTimeout(function(){capMostrar('intro');},50);}
+  else{setTimeout(function(){socMostrar('intro');},50);}
+}
+
+// ─── CAPACITACIÓN ───
 
 function capMostrar(seccion) {
   // Actualizar botones sidebar
