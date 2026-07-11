@@ -393,10 +393,10 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- CLIENTES -->
 <div class="section" id="sec-clientes">
   <div class="page-header">
-    <div><div class="page-title">Clientes</div><div class="page-sub">Del estudio · Publicidad · Posibles</div></div>
+    <div><div class="page-title">Clientes</div><div class="page-sub">Del estudio · Publicidad · Posibles · Defensa del Consumidor</div></div>
     <div style="display:flex;gap:8px">
       <button class="btn-sm" onclick="crearCarpetasClientesExistentes()" style="border-color:var(--blue);color:var(--blue)">📁 Crear carpetas Drive</button>
-      <button class="btn-primary" onclick="openModal('m-cliente')">+ Nuevo cliente</button>
+      <button id="btn-nuevo-cliente" class="btn-primary" onclick="abrirModalNuevoCliente()">+ Nuevo cliente</button>
     </div>
   </div>
   <div class="metrics" style="grid-template-columns:repeat(5,minmax(0,1fr))">
@@ -594,50 +594,33 @@ input.currency-input{letter-spacing:0.5px;}
 
 <!-- MODALES -->
 <div class="modal-bg" id="m-cliente" onclick="if(event.target===this)closeModal('m-cliente')">
-  <div class="modal" style="width:560px"><h3 id="m-cliente-titulo">Nuevo cliente</h3>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px">Datos básicos</div>
+  <div class="modal" style="width:520px"><h3 id="m-cliente-titulo">Nuevo cliente — Derecho Laboral</h3>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px">Datos del cliente</div>
     <div class="g2">
-      <div class="fg"><div class="fl">Fecha *</div><input class="fi" id="cn-f" type="date"></div>
-      <div class="fg"><div class="fl">Tipo de cliente</div><select class="fs" id="cn-tipo"><option value="posible">Posible cliente</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option><option value="consumidor">Defensa del Consumidor</option></select></div>
+      <div class="fg"><div class="fl">Nombre *</div><input class="fi" id="cn-n" placeholder="Nombre"></div>
+      <div class="fg"><div class="fl">Apellido *</div><input class="fi" id="cn-apellido" placeholder="Apellido"></div>
     </div>
     <div class="g2">
-      <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="cn-n" placeholder="Apellido, Nombre"></div>
-      <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="cn-t" placeholder="351 6 123456"></div>
-    </div>
-    <div class="g2">
-      <div class="fg"><div class="fl">DNI</div><input class="fi" id="cn-dni" placeholder="Ej: 30.123.456"></div>
-      <div class="fg"><div class="fl">CUIL</div><input class="fi" id="cn-cuil" placeholder="Ej: 20-30123456-1"></div>
-    </div>
-    <div class="g2">
-      <div class="fg"><div class="fl">Fecha de nacimiento</div><input class="fi" id="cn-fnac" type="date"></div>
       <div class="fg"><div class="fl">Edad</div><input class="fi" id="cn-edad" placeholder="Ej: 35" type="number"></div>
-    </div>
-    <div class="g2">
-      <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="cn-nac" placeholder="Ej: Argentina"></div>
-      <div class="fg"><div class="fl">Estado civil</div><select class="fs" id="cn-ecivil"><option value="">— Seleccionar —</option><option value="soltero">Soltero/a</option><option value="casado">Casado/a</option><option value="divorciado">Divorciado/a</option><option value="viudo">Viudo/a</option><option value="union">Unión convivencial</option></select></div>
+      <div class="fg"><div class="fl">CUIT</div><input class="fi" id="cn-cuil" placeholder="Ej: 20-30123456-1"></div>
     </div>
     <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="cn-dom" placeholder="Calle, número, ciudad"></div>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Datos laborales <span style="font-weight:400;text-transform:none;font-size:10px">(opcionales)</span></div>
     <div class="g2">
-      <div class="fg"><div class="fl">Fecha de ingreso</div><input class="fi" id="cn-fingreso" type="date"></div>
-      <div class="fg"><div class="fl">Fecha de egreso</div><input class="fi" id="cn-fegreso" type="date"></div>
+      <div class="fg"><div class="fl">Empresa / Empleador</div><input class="fi" id="cn-empleador" placeholder="Nombre de la empresa"></div>
+      <div class="fg"><div class="fl">Antigüedad</div><input class="fi" id="cn-antiguedad" placeholder="Ej: 3 años y 2 meses"></div>
     </div>
-    <div class="g2">
-      <div class="fg"><div class="fl">Categoría</div><input class="fi" id="cn-cat" placeholder="Ej: Oficial, Peón, etc."></div>
-      <div class="fg"><div class="fl">Empleador</div><input class="fi" id="cn-empleador" placeholder="Nombre de la empresa"></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Servicio</div>
+    <div class="fg">
+      <select class="fs" id="cn-m">
+        <option value="Despido">Despido</option>
+        <option value="Accidente laboral">Accidente laboral</option>
+        <option value="Enfermedades profesionales">Enfermedades profesionales</option>
+        <option value="Jubilacion">Jubilaciones</option>
+      </select>
     </div>
-    <div class="g2">
-      <div class="fg"><div class="fl">Jornada</div><input class="fi" id="cn-jornada" placeholder="Ej: 8hs, part-time"></div>
-      <div class="fg"><div class="fl">Tareas</div><input class="fi" id="cn-tareas-lab" placeholder="Ej: Albañil, electricista"></div>
-    </div>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Caso</div>
-    <div class="g2">
-      <div class="fg"><div class="fl">Motivo</div><select class="fs" id="cn-m"><option value="Art">ART</option><option value="Despidos">Despidos</option><option value="Enfermedades profesionales">Enf. profesionales</option><option value="Accidente de trabajo">Accidente de trabajo</option><option value="Jubilacion">Jubilación</option><option value="Otro">Otro</option></select></div>
-      <div class="fg"><div class="fl">Etapa</div><select class="fs" id="cn-e"><option value="Cita">Cita</option><option value="Tramite">Trámite</option><option value="Examemes medicos">Exáms. médicos</option><option value="Telegrama">Telegrama</option></select></div>
-    </div>
-    <div class="fg"><div class="fl">N° de expediente</div><input class="fi" id="cn-exp" placeholder="Ej: 45.231/2025"></div>
+    <div class="fg"><div class="fl">Tipo de cliente</div><select class="fs" id="cn-tipo"><option value="posible">Posible cliente</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
     <div class="fg"><div class="fl">Observaciones</div><textarea class="fta" id="cn-no" placeholder="Notas, estado actual, observaciones..."></textarea></div>
-    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar el cliente.</div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
   </div>
 </div>
@@ -753,9 +736,12 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal" style="width:560px">
     <h3 id="m-consumidor-titulo">Nuevo cliente — Defensa del Consumidor</h3>
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Datos del cliente</div>
-    <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="co-nombre" placeholder="Apellido, Nombre"></div>
     <div class="g2">
+      <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="co-nombre" placeholder="Apellido, Nombre"></div>
       <div class="fg"><div class="fl">DNI</div><input class="fi" id="co-dni" placeholder="Ej: 30.123.456"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">CUIT</div><input class="fi" id="co-cuit" placeholder="Ej: 20-30123456-1"></div>
       <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="co-tel" placeholder="351 6 123456"></div>
     </div>
     <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="co-domicilio" placeholder="Calle, número, ciudad"></div>
@@ -767,12 +753,13 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="banco">🏦 Bancos y tarjetas de crédito</option>
       </select>
     </div>
+    <div class="fg"><div class="fl">Quién causó el perjuicio *</div><input class="fi" id="co-proveedor" placeholder="Ej: Banco Macro, Obra Social GEA, Plan Fiat, OSDE..."></div>
     <div class="fg"><div class="fl">Descripción del problema *</div><textarea class="fta" id="co-descripcion" placeholder="Describí el problema del cliente con el mayor detalle posible: qué pasó, cuándo, montos involucrados, qué gestiones hizo el cliente hasta ahora..." style="min-height:100px"></textarea></div>
     <div class="fg"><div class="fl">Cómo se resolvió <span style="font-weight:400;text-transform:none;font-size:10px">(completar cuando cierre el caso)</span></div><textarea class="fta" id="co-resolucion" placeholder="Describí cómo se resolvió el caso, resultado obtenido, monto recuperado, etc." style="min-height:60px"></textarea></div>
-    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar. Desde la ficha del cliente podés subir archivos directamente.</div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar. Desde la ficha del cliente podés subir archivos directamente a la carpeta de Defensa del Consumidor.</div>
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('m-consumidor')">Cancelar</button>
-      <button class="btn-primary" id="btn-exportar-consumidor" onclick="exportarFichaConsumidor()" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border2)">📋 Exportar para Claude</button>
+      <button class="btn-primary" onclick="exportarFichaConsumidor()" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border2)">📋 Exportar para Claude</button>
       <button class="btn-primary" onclick="saveClienteConsumidor()">Guardar</button>
     </div>
   </div>
@@ -1135,7 +1122,8 @@ function renderConsumidorGrid(){
         '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:'+bg+';color:'+color+'">'+lbl+'</span>'+
       '</div>'+
       (c.tel?'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📞 '+c.tel+'</div>':'')+
-      (c.domicilio?'<div style="font-size:11px;color:var(--text3);margin-bottom:8px">📍 '+c.domicilio+'</div>':'')+
+      (c.domicilio?'<div style="font-size:11px;color:var(--text3);margin-bottom:4px">📍 '+c.domicilio+'</div>':'')+
+      (c.proveedor?'<div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:8px">🏢 '+c.proveedor+'</div>':'')+
       (c.descripcion?'<div style="font-size:11px;color:var(--text2);background:var(--bg3);border-radius:6px;padding:7px 9px;line-height:1.5;margin-bottom:8px;max-height:80px;overflow:hidden">'+c.descripcion+'</div>':'')+
       (tieneResolucion?'<div style="font-size:11px;color:var(--green);background:var(--green-bg);border-radius:6px;padding:5px 8px;margin-bottom:8px">✓ Resuelto: '+c.resolucion.substring(0,80)+(c.resolucion.length>80?'...':'')+'</div>':'')+
       '<div style="font-size:10px;color:var(--text3);margin-bottom:10px">'+fechaStr+'</div>'+
@@ -1156,15 +1144,37 @@ function renderConsumidorGrid(){
   '</div>'+html;
 }
 
+var DRIVE_CONSUMIDOR_FOLDER_ID='1ohQ1JKiR45EEWdThn9hhMxbmSApL0bLn';
+
+function crearCarpetaConsumidor(nombreCliente,callback){
+  function _hacer(){
+    gapi.client.drive.files.list({q:"name='"+nombreCliente+"' and '"+DRIVE_CONSUMIDOR_FOLDER_ID+"' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",fields:'files(id,webViewLink,name)'}).then(function(resp){
+      if(resp.result.files&&resp.result.files.length>0){var f=resp.result.files[0];callback(f.id,f.webViewLink);}
+      else{gapi.client.drive.files.create({resource:{name:nombreCliente,mimeType:'application/vnd.google-apps.folder',parents:[DRIVE_CONSUMIDOR_FOLDER_ID]},fields:'id,webViewLink'}).then(function(r){callback(r.result.id,r.result.webViewLink);}).catch(function(){callback(null,null);});}
+    }).catch(function(){callback(null,null);});
+  }
+  if(calConnected&&gapi.client.getToken()){_hacer();}
+  else{
+    gapi.load('client',function(){
+      gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
+        var tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:function(resp){if(resp.error){callback(null,null);return;}calConnected=true;setCalStatus(true);_hacer();}});
+        tc.requestAccessToken({prompt:''});
+      }).catch(function(){callback(null,null);});
+    });
+  }
+}
+
 function saveClienteConsumidor(){
   var nombre=document.getElementById('co-nombre').value.trim();
   if(!nombre){alert('El nombre es obligatorio.');return;}
   var data={
     nombre:nombre,
     dni:document.getElementById('co-dni').value.trim(),
+    cuit:document.getElementById('co-cuit').value.trim(),
     tel:document.getElementById('co-tel').value.trim(),
     domicilio:document.getElementById('co-domicilio').value.trim(),
     sector:document.getElementById('co-sector').value,
+    proveedor:document.getElementById('co-proveedor').value.trim(),
     descripcion:document.getElementById('co-descripcion').value.trim(),
     resolucion:document.getElementById('co-resolucion').value.trim(),
     tipo:'consumidor',drive:'',driveFolderId:'',
@@ -1172,7 +1182,7 @@ function saveClienteConsumidor(){
   };
   db.collection('clientes_consumidor').add(data).then(function(docRef){
     closeModal('m-consumidor');showToast('Cliente guardado ✓');
-    crearCarpetaCliente(nombre,function(folderId,folderLink){
+    crearCarpetaConsumidor(nombre,function(folderId,folderLink){
       if(folderId){docRef.update({drive:folderLink,driveFolderId:folderId});showToast('✓ Cliente guardado y carpeta Drive creada');}
     });
     limpiarModalConsumidor();
@@ -1182,18 +1192,19 @@ function saveClienteConsumidor(){
 function editConsumidor(id){
   var c=CONSUMIDOR_CACHE.find(function(x){return x.id===id;});if(!c)return;
   var setVal=function(eid,v){var el=document.getElementById(eid);if(el)el.value=v||'';};
-  setVal('co-nombre',c.nombre);setVal('co-dni',c.dni);setVal('co-tel',c.tel);
-  setVal('co-domicilio',c.domicilio);setVal('co-sector',c.sector);
-  setVal('co-descripcion',c.descripcion);setVal('co-resolucion',c.resolucion);
-  document.getElementById('m-consumidor-titulo').textContent='Editar cliente — '+c.nombre;
-  var saveBtn=document.querySelector('#m-consumidor .btn-primary:last-child');
+  setVal('co-nombre',c.nombre);setVal('co-dni',c.dni);setVal('co-cuit',c.cuit);
+  setVal('co-tel',c.tel);setVal('co-domicilio',c.domicilio);setVal('co-sector',c.sector);
+  setVal('co-proveedor',c.proveedor);setVal('co-descripcion',c.descripcion);setVal('co-resolucion',c.resolucion);
+  document.getElementById('m-consumidor-titulo').textContent='Editar — '+c.nombre;
+  var saveBtn=document.querySelector('#m-consumidor .modal-footer .btn-primary:last-child');
   if(saveBtn){
     saveBtn.textContent='Actualizar';
     saveBtn.onclick=function(){
       var nombre=document.getElementById('co-nombre').value.trim();if(!nombre){alert('El nombre es obligatorio.');return;}
       db.collection('clientes_consumidor').doc(id).update({
-        nombre:nombre,dni:document.getElementById('co-dni').value.trim(),tel:document.getElementById('co-tel').value.trim(),
-        domicilio:document.getElementById('co-domicilio').value.trim(),sector:document.getElementById('co-sector').value,
+        nombre:nombre,dni:document.getElementById('co-dni').value.trim(),cuit:document.getElementById('co-cuit').value.trim(),
+        tel:document.getElementById('co-tel').value.trim(),domicilio:document.getElementById('co-domicilio').value.trim(),
+        sector:document.getElementById('co-sector').value,proveedor:document.getElementById('co-proveedor').value.trim(),
         descripcion:document.getElementById('co-descripcion').value.trim(),resolucion:document.getElementById('co-resolucion').value.trim()
       }).then(function(){closeModal('m-consumidor');showToast('Cliente actualizado ✓');document.getElementById('m-consumidor-titulo').textContent='Nuevo cliente — Defensa del Consumidor';saveBtn.textContent='Guardar';saveBtn.onclick=saveClienteConsumidor;limpiarModalConsumidor();});
     };
@@ -1208,23 +1219,19 @@ function eliminarConsumidor(id){
 
 function vincularCarpetaConsumidor(id,nombre){
   showToast('Conectando con Google Drive...');
-  crearCarpetaCliente(nombre,function(folderId,folderLink){
+  crearCarpetaConsumidor(nombre,function(folderId,folderLink){
     if(folderId){db.collection('clientes_consumidor').doc(id).update({drive:folderLink,driveFolderId:folderId});showToast('✓ Carpeta Drive vinculada');}
     else{showToast('No se pudo vincular. Verificá la conexión con Google.');}
   });
-}
-
-function exportarFichaConsumidorById(id){
-  var c=CONSUMIDOR_CACHE.find(function(x){return x.id===id;});if(!c)return;
-  _copiarFichaConsumidor(c);
 }
 
 function exportarFichaConsumidor(){
   var nombre=document.getElementById('co-nombre').value.trim();
   if(!nombre){alert('Completá al menos el nombre antes de exportar.');return;}
   var c={
-    nombre:nombre,dni:document.getElementById('co-dni').value.trim(),tel:document.getElementById('co-tel').value.trim(),
-    domicilio:document.getElementById('co-domicilio').value.trim(),sector:document.getElementById('co-sector').value,
+    nombre:nombre,dni:document.getElementById('co-dni').value.trim(),cuit:document.getElementById('co-cuit').value.trim(),
+    tel:document.getElementById('co-tel').value.trim(),domicilio:document.getElementById('co-domicilio').value.trim(),
+    sector:document.getElementById('co-sector').value,proveedor:document.getElementById('co-proveedor').value.trim(),
     descripcion:document.getElementById('co-descripcion').value.trim(),resolucion:document.getElementById('co-resolucion').value.trim()
   };
   _copiarFichaConsumidor(c);
@@ -1235,19 +1242,21 @@ function _copiarFichaConsumidor(c){
   txt+='DATOS DEL CLIENTE\n';
   txt+='Nombre: '+c.nombre+'\n';
   if(c.dni)txt+='DNI: '+c.dni+'\n';
+  if(c.cuit)txt+='CUIT: '+c.cuit+'\n';
   if(c.tel)txt+='Teléfono: '+c.tel+'\n';
   if(c.domicilio)txt+='Domicilio: '+c.domicilio+'\n';
   txt+='\nSECTOR DEL RECLAMO\n';
   txt+=(sectorLbl[c.sector]||c.sector)+'\n';
+  if(c.proveedor)txt+='\nPROVEEDOR / RESPONSABLE\n'+c.proveedor+'\n';
   txt+='\nDESCRIPCIÓN DEL PROBLEMA\n';
   txt+=(c.descripcion||'Sin descripción cargada.')+'\n';
   if(c.resolucion){txt+='\nRESOLUCIÓN\n';txt+=c.resolucion+'\n';}
   txt+='\n===============================================\n';
-  navigator.clipboard.writeText(txt).then(function(){showToast('✓ Ficha copiada al portapapeles — podés pegarla en Claude');}).catch(function(){alert('No se pudo copiar automáticamente. Copiá el texto manualmente.');});
+  navigator.clipboard.writeText(txt).then(function(){showToast('✓ Ficha copiada — pegala en Claude');}).catch(function(){alert('No se pudo copiar automáticamente.');});
 }
 
 function limpiarModalConsumidor(){
-  ['co-nombre','co-dni','co-tel','co-domicilio','co-descripcion','co-resolucion'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['co-nombre','co-dni','co-cuit','co-tel','co-domicilio','co-proveedor','co-descripcion','co-resolucion'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var sel=document.getElementById('co-sector');if(sel)sel.selectedIndex=0;
 }
 
@@ -1335,15 +1344,35 @@ function reactivarCliente(id){
 
 function convC(id,t){db.collection('clientes').doc(id).update({tipo:t}).then(function(){showToast('Cliente actualizado ✓');});}
 
+function abrirModalNuevoCliente(){
+  if(curCtab==='consumidor'){openModal('m-consumidor');}
+  else{openModal('m-cliente');}
+}
+
 function saveCliente(){
   var n=document.getElementById('cn-n').value.trim();
+  var ap=document.getElementById('cn-apellido')?document.getElementById('cn-apellido').value.trim():'';
+  var nombreCompleto=ap?n+' '+ap:n;
   if(!n){alert('El nombre es obligatorio.');return;}
-  var data={nombre:n,tel:document.getElementById('cn-t').value.trim(),tipo:document.getElementById('cn-tipo').value,motivo:document.getElementById('cn-m').value,etapa:document.getElementById('cn-e').value,fecha:document.getElementById('cn-f').value,notas:document.getElementById('cn-no').value.trim(),expte:document.getElementById('cn-exp').value.trim(),drive:'',driveFolderId:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()};
+  var data={
+    nombre:nombreCompleto,
+    apellido:ap,
+    edad:document.getElementById('cn-edad').value.trim(),
+    cuil:document.getElementById('cn-cuil').value.trim(),
+    domicilio:document.getElementById('cn-dom').value.trim(),
+    empleador:document.getElementById('cn-empleador').value.trim(),
+    antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',
+    motivo:document.getElementById('cn-m').value,
+    tipo:document.getElementById('cn-tipo').value,
+    notas:document.getElementById('cn-no').value.trim(),
+    tel:'',dni:'',expte:'',etapa:'Cita',fecha:fmt(today),
+    drive:'',driveFolderId:'',
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  };
   db.collection('clientes').add(data).then(function(docRef){
     closeModal('m-cliente');showToast('Cliente guardado ✓');
-    crearCarpetaCliente(n,function(folderId,folderLink){
+    crearCarpetaCliente(nombreCompleto,function(folderId,folderLink){
       if(folderId&&folderLink){docRef.update({drive:folderLink,driveFolderId:folderId});showToast('✓ Cliente guardado y carpeta Drive creada');}
-      else{showToast('Cliente guardado — carpeta Drive se creará al conectar Google');}
     });
   });
 }
@@ -1352,20 +1381,30 @@ function editCliente(id){
   var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
   if(!c)return;
   var setVal=function(eid,v){var el=document.getElementById(eid);if(el)el.value=v||'';};
-  setVal('cn-n',c.nombre);setVal('cn-t',c.tel);setVal('cn-tipo',c.tipo||'posible');setVal('cn-m',c.motivo||'Art');setVal('cn-e',c.etapa||'Cita');setVal('cn-f',c.fecha);
-  setVal('cn-dni',c.dni);setVal('cn-cuil',c.cuil);setVal('cn-fnac',c.fechaNac);setVal('cn-edad',c.edad);setVal('cn-nac',c.nacionalidad);setVal('cn-ecivil',c.estadoCivil);setVal('cn-dom',c.domicilio);
-  setVal('cn-fingreso',c.fechaIngreso);setVal('cn-fegreso',c.fechaEgreso);setVal('cn-cat',c.categoria);setVal('cn-empleador',c.empleador);setVal('cn-jornada',c.jornada);setVal('cn-tareas-lab',c.tareasLab);
-  setVal('cn-exp',c.expte);setVal('cn-no',c.notas);
-  document.querySelector('#m-cliente .btn-primary').onclick=function(){
-    var n=document.getElementById('cn-n').value.trim();if(!n){alert('El nombre es obligatorio.');return;}
-    var data={nombre:n,tel:document.getElementById('cn-t').value.trim(),tipo:document.getElementById('cn-tipo').value,motivo:document.getElementById('cn-m').value,etapa:document.getElementById('cn-e').value,fecha:document.getElementById('cn-f').value,notas:document.getElementById('cn-no').value.trim(),expte:document.getElementById('cn-exp').value.trim()};
-    db.collection('clientes').doc(id).update(data).then(function(){
-      closeModal('m-cliente');showToast('Cliente actualizado ✓');
-      document.querySelector('#m-cliente .btn-primary').onclick=saveCliente;
-      var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
-      if(!existing||!existing.driveFolderId){crearCarpetaCliente(data.nombre,function(folderId,folderLink){if(folderId)db.collection('clientes').doc(id).update({drive:folderLink,driveFolderId:folderId});});}
-    });
-  };
+  // Separar nombre y apellido si están juntos
+  var partes=(c.nombre||'').trim().split(' ');
+  setVal('cn-n',c.apellido||partes[0]||c.nombre);
+  setVal('cn-apellido',c.apellido||(partes.length>1?partes.slice(1).join(' '):''));
+  setVal('cn-edad',c.edad);setVal('cn-cuil',c.cuil);setVal('cn-dom',c.domicilio);
+  setVal('cn-empleador',c.empleador);setVal('cn-antiguedad',c.antiguedad);
+  setVal('cn-m',c.motivo||'Despido');setVal('cn-tipo',c.tipo||'posible');setVal('cn-no',c.notas);
+  var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
+  if(saveBtn){
+    saveBtn.textContent='Actualizar';
+    saveBtn.onclick=function(){
+      var n=document.getElementById('cn-n').value.trim();
+      var ap=document.getElementById('cn-apellido')?document.getElementById('cn-apellido').value.trim():'';
+      var nombreCompleto=ap?n+' '+ap:n;
+      if(!n){alert('El nombre es obligatorio.');return;}
+      var data={nombre:nombreCompleto,apellido:ap,edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',motivo:document.getElementById('cn-m').value,tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
+      db.collection('clientes').doc(id).update(data).then(function(){
+        closeModal('m-cliente');showToast('Cliente actualizado ✓');
+        saveBtn.textContent='Guardar';saveBtn.onclick=saveCliente;
+        var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
+        if(!existing||!existing.driveFolderId){crearCarpetaCliente(data.nombre,function(folderId,folderLink){if(folderId)db.collection('clientes').doc(id).update({drive:folderLink,driveFolderId:folderId});});}
+      });
+    };
+  }
   openModal('m-cliente');
 }
 
