@@ -754,13 +754,60 @@ input.currency-input{letter-spacing:0.5px;}
       </select>
     </div>
     <div class="fg"><div class="fl">Quién causó el perjuicio *</div><input class="fi" id="co-proveedor" placeholder="Ej: Banco Macro, Obra Social GEA, Plan Fiat, OSDE..."></div>
-    <div class="fg"><div class="fl">Descripción del problema *</div><textarea class="fta" id="co-descripcion" placeholder="Describí el problema del cliente con el mayor detalle posible: qué pasó, cuándo, montos involucrados, qué gestiones hizo el cliente hasta ahora..." style="min-height:100px"></textarea></div>
-    <div class="fg"><div class="fl">Cómo se resolvió <span style="font-weight:400;text-transform:none;font-size:10px">(completar cuando cierre el caso)</span></div><textarea class="fta" id="co-resolucion" placeholder="Describí cómo se resolvió el caso, resultado obtenido, monto recuperado, etc." style="min-height:60px"></textarea></div>
-    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar. Desde la ficha del cliente podés subir archivos directamente a la carpeta de Defensa del Consumidor.</div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar. Desde la ficha del cliente podés subir archivos y completar la descripción del caso.</div>
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('m-consumidor')">Cancelar</button>
-      <button class="btn-primary" onclick="exportarFichaConsumidor()" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border2)">📋 Exportar para Claude</button>
       <button class="btn-primary" onclick="saveClienteConsumidor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FICHA COMPLETA CONSUMIDOR -->
+<div class="modal-bg" id="m-ficha-consumidor" onclick="if(event.target===this)closeModal('m-ficha-consumidor')">
+  <div class="modal" style="width:600px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem">
+      <h3 id="ficha-titulo" style="margin-bottom:0">Ficha del cliente</h3>
+      <span id="ficha-sector-badge" class="badge b-blue"></span>
+    </div>
+
+    <!-- Datos básicos (solo lectura) -->
+    <div style="background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><span style="color:var(--text3)">DNI:</span> <span id="ficha-dni" style="color:var(--text)">—</span></div>
+        <div><span style="color:var(--text3)">CUIT:</span> <span id="ficha-cuit" style="color:var(--text)">—</span></div>
+        <div><span style="color:var(--text3)">Teléfono:</span> <span id="ficha-tel" style="color:var(--text)">—</span></div>
+        <div><span style="color:var(--text3)">Domicilio:</span> <span id="ficha-dom" style="color:var(--text)">—</span></div>
+        <div colspan="2"><span style="color:var(--text3)">Proveedor:</span> <span id="ficha-proveedor" style="color:var(--text);font-weight:600">—</span></div>
+      </div>
+    </div>
+
+    <!-- Descripción del problema -->
+    <div class="fg">
+      <div class="fl">Descripción del problema</div>
+      <textarea class="fta" id="ficha-descripcion" placeholder="Describí el problema del cliente: qué pasó, cuándo, montos involucrados, gestiones previas..." style="min-height:120px"></textarea>
+    </div>
+
+    <!-- Adjuntar archivos -->
+    <div class="fg">
+      <div class="fl">Adjuntar archivos</div>
+      <div style="background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius);padding:12px">
+        <input type="file" id="ficha-files" multiple style="font-size:12px;color:var(--text2);width:100%">
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Escritos, capturas, documentación del caso → se suben a la carpeta Drive del cliente</div>
+        <button onclick="subirArchivosDesdeiFicha()" style="margin-top:8px;font-size:12px;padding:6px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">⬆ Subir a Drive</button>
+        <div id="ficha-upload-status" style="font-size:11px;color:var(--green);margin-top:6px;display:none"></div>
+      </div>
+    </div>
+
+    <!-- Cómo se resolvió -->
+    <div class="fg">
+      <div class="fl">Cómo se resolvió <span style="font-weight:400;text-transform:none;font-size:10px;color:var(--text3)">(completar cuando cierre el caso)</span></div>
+      <textarea class="fta" id="ficha-resolucion" placeholder="Resultado obtenido, monto recuperado, vía utilizada..." style="min-height:70px"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('m-ficha-consumidor')">Cerrar</button>
+      <button onclick="exportarFichaConsumidorActual()" style="font-size:12px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">📋 Exportar para Claude</button>
+      <button class="btn-primary" onclick="guardarFichaConsumidor()">Guardar ficha</button>
     </div>
   </div>
 </div>
@@ -1101,11 +1148,14 @@ function initConsumidor(){
 
 function renderConsumidorGrid(){
   var el=document.getElementById('sec-consumidor-grid');if(!el)return;
+  var headerBtn='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'+
+    '<button onclick="openModal(\'m-consumidor\')" class="btn-primary">+ Nuevo cliente</button>'+
+  '</div>';
   if(CONSUMIDOR_CACHE.length===0){
-    el.innerHTML='<div style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px">No hay clientes de Defensa del Consumidor todavía.</div>';
+    el.innerHTML=headerBtn+'<div style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px">No hay clientes de Defensa del Consumidor todavía.</div>';
     return;
   }
-  var html='<div class="client-grid">';
+  var html=headerBtn+'<div class="client-grid">';
   CONSUMIDOR_CACHE.forEach(function(c){
     var color=sectorColor[c.sector]||'var(--blue)';
     var bg=sectorBg[c.sector]||'var(--blue-bg)';
@@ -1128,11 +1178,10 @@ function renderConsumidorGrid(){
       (tieneResolucion?'<div style="font-size:11px;color:var(--green);background:var(--green-bg);border-radius:6px;padding:5px 8px;margin-bottom:8px">✓ Resuelto: '+c.resolucion.substring(0,80)+(c.resolucion.length>80?'...':'')+'</div>':'')+
       '<div style="font-size:10px;color:var(--text3);margin-bottom:10px">'+fechaStr+'</div>'+
       '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
-        (c.drive&&c.driveFolderId?'<a href="'+c.drive+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 9px;border:1px solid var(--blue-bg);border-radius:6px">📁 Drive</a>'+
-        '<button onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+c.nombre.replace(/'/g,"\\'")+'\')" style="font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">⬆ Subir</button>'
+        (c.drive&&c.driveFolderId?'<a href="'+c.drive+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 9px;border:1px solid var(--blue-bg);border-radius:6px">📁 Drive</a>'
         :'<button onclick="vincularCarpetaConsumidor(\''+c.id+'\',\''+c.nombre.replace(/'/g,"\\'")+'\')" style="font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--orange-bg);background:transparent;color:var(--orange);cursor:pointer">📁 Vincular Drive</button>')+
+        '<button onclick="abrirFichaConsumidor(\''+c.id+'\')" style="font-size:11px;padding:5px 9px;border-radius:6px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-weight:600">Ver ficha</button>'+
         '<button onclick="editConsumidor(\''+c.id+'\')" style="font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">Editar</button>'+
-        '<button onclick="exportarFichaConsumidorById(\''+c.id+'\')" style="font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">📋 Exportar</button>'+
         '<button onclick="eliminarConsumidor(\''+c.id+'\')" style="font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">Eliminar</button>'+
       '</div>'+
     '</div>';
@@ -1144,7 +1193,93 @@ function renderConsumidorGrid(){
   '</div>'+html;
 }
 
-var DRIVE_CONSUMIDOR_FOLDER_ID='1ohQ1JKiR45EEWdThn9hhMxbmSApL0bLn';
+var _fichaClienteActual=null;
+
+function abrirFichaConsumidor(id){
+  var c=CONSUMIDOR_CACHE.find(function(x){return x.id===id;});if(!c)return;
+  _fichaClienteActual=c;
+  document.getElementById('ficha-titulo').textContent=c.nombre;
+  document.getElementById('ficha-sector-badge').textContent=sectorLbl[c.sector]||c.sector;
+  document.getElementById('ficha-sector-badge').className='badge '+(c.sector==='planes'?'b-orange':c.sector==='prepaga'?'b-green':'b-purple');
+  document.getElementById('ficha-dni').textContent=c.dni||'—';
+  document.getElementById('ficha-cuit').textContent=c.cuit||'—';
+  document.getElementById('ficha-tel').textContent=c.tel||'—';
+  document.getElementById('ficha-dom').textContent=c.domicilio||'—';
+  document.getElementById('ficha-proveedor').textContent=c.proveedor||'—';
+  document.getElementById('ficha-descripcion').value=c.descripcion||'';
+  document.getElementById('ficha-resolucion').value=c.resolucion||'';
+  document.getElementById('ficha-files').value='';
+  var st=document.getElementById('ficha-upload-status');if(st){st.style.display='none';st.textContent='';}
+  openModal('m-ficha-consumidor');
+}
+
+function guardarFichaConsumidor(){
+  if(!_fichaClienteActual)return;
+  var desc=document.getElementById('ficha-descripcion').value.trim();
+  var res=document.getElementById('ficha-resolucion').value.trim();
+  db.collection('clientes_consumidor').doc(_fichaClienteActual.id).update({
+    descripcion:desc,resolucion:res
+  }).then(function(){
+    showToast('Ficha guardada ✓');
+    // Subir archivos si hay seleccionados
+    var files=document.getElementById('ficha-files').files;
+    if(files&&files.length>0)subirArchivosDesdeiFicha();
+  });
+}
+
+function subirArchivosDesdeiFicha(){
+  if(!_fichaClienteActual){showToast('Guardá el cliente primero.');return;}
+  var files=document.getElementById('ficha-files').files;
+  if(!files||files.length===0){showToast('Seleccioná al menos un archivo.');return;}
+  var st=document.getElementById('ficha-upload-status');
+  if(!_fichaClienteActual.driveFolderId){
+    st.style.display='block';st.textContent='Creando carpeta Drive...';st.style.color='var(--orange)';
+    crearCarpetaConsumidor(_fichaClienteActual.nombre,function(folderId,folderLink){
+      if(!folderId){st.textContent='No se pudo crear la carpeta Drive.';st.style.color='var(--red)';return;}
+      db.collection('clientes_consumidor').doc(_fichaClienteActual.id).update({drive:folderLink,driveFolderId:folderId});
+      _fichaClienteActual.driveFolderId=folderId;_fichaClienteActual.drive=folderLink;
+      _doSubirArchivosFicha(files,folderId,st);
+    });
+  } else {
+    _doSubirArchivosFicha(files,_fichaClienteActual.driveFolderId,st);
+  }
+}
+
+function _doSubirArchivosFicha(files,folderId,st){
+  if(!calConnected||!gapi.client.getToken()){
+    crearCarpetaConsumidor(_fichaClienteActual.nombre,function(){_doSubirArchivosFicha(files,folderId,st);});return;
+  }
+  st.style.display='block';st.style.color='var(--text2)';
+  var total=files.length,done=0,errors=0;
+  for(var i=0;i<files.length;i++){(function(file){
+    st.textContent='Subiendo '+file.name+'...';
+    subirArchivoADrive(file,folderId,_fichaClienteActual.nombre,function(){
+      done++;
+      if(done+errors===total){
+        st.textContent='✓ '+done+' archivo(s) subido(s)';st.style.color='var(--green)';
+        document.getElementById('ficha-files').value='';
+        showToast(done+' archivo(s) subido(s) a Drive ✓');
+      }
+    },function(){
+      errors++;
+      if(done+errors===total){st.textContent=done+' subidos, '+errors+' con error';st.style.color='var(--red)';}
+    });
+  })(files[i]);}
+}
+
+function exportarFichaConsumidorActual(){
+  if(!_fichaClienteActual)return;
+  var c=Object.assign({},_fichaClienteActual,{
+    descripcion:document.getElementById('ficha-descripcion').value.trim()||_fichaClienteActual.descripcion,
+    resolucion:document.getElementById('ficha-resolucion').value.trim()||_fichaClienteActual.resolucion
+  });
+  _copiarFichaConsumidor(c);
+}
+
+function exportarFichaConsumidorById(id){
+  var c=CONSUMIDOR_CACHE.find(function(x){return x.id===id;});if(!c)return;
+  _copiarFichaConsumidor(c);
+}
 
 function crearCarpetaConsumidor(nombreCliente,callback){
   function _hacer(){
@@ -1175,8 +1310,7 @@ function saveClienteConsumidor(){
     domicilio:document.getElementById('co-domicilio').value.trim(),
     sector:document.getElementById('co-sector').value,
     proveedor:document.getElementById('co-proveedor').value.trim(),
-    descripcion:document.getElementById('co-descripcion').value.trim(),
-    resolucion:document.getElementById('co-resolucion').value.trim(),
+    descripcion:'',resolucion:'',
     tipo:'consumidor',drive:'',driveFolderId:'',
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -1256,7 +1390,7 @@ function _copiarFichaConsumidor(c){
 }
 
 function limpiarModalConsumidor(){
-  ['co-nombre','co-dni','co-cuit','co-tel','co-domicilio','co-proveedor','co-descripcion','co-resolucion'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['co-nombre','co-dni','co-cuit','co-tel','co-domicilio','co-proveedor'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var sel=document.getElementById('co-sector');if(sel)sel.selectedIndex=0;
 }
 
