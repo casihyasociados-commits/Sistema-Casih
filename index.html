@@ -1148,14 +1148,11 @@ function initConsumidor(){
 
 function renderConsumidorGrid(){
   var el=document.getElementById('sec-consumidor-grid');if(!el)return;
-  var headerBtn='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'+
-    '<button onclick="openModal(\'m-consumidor\')" class="btn-primary">+ Nuevo cliente</button>'+
-  '</div>';
   if(CONSUMIDOR_CACHE.length===0){
-    el.innerHTML=headerBtn+'<div style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px">No hay clientes de Defensa del Consumidor todavía.</div>';
+    el.innerHTML='<div style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px">No hay clientes de Defensa del Consumidor todavía.</div>';
     return;
   }
-  var html=headerBtn+'<div class="client-grid">';
+  var html='<div class="client-grid">';
   CONSUMIDOR_CACHE.forEach(function(c){
     var color=sectorColor[c.sector]||'var(--blue)';
     var bg=sectorBg[c.sector]||'var(--blue-bg)';
@@ -1187,12 +1184,10 @@ function renderConsumidorGrid(){
     '</div>';
   });
   html+='</div>';
-  // Botón agregar arriba
-  el.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'+
-    '<button onclick="openModal(\'m-consumidor\')" class="btn-primary">+ Nuevo cliente</button>'+
-  '</div>'+html;
+  el.innerHTML=html;
 }
 
+var DRIVE_CONSUMIDOR_FOLDER_ID='1ohQ1JKiR45EEWdThn9hhMxbmSApL0bLn';
 var _fichaClienteActual=null;
 
 function abrirFichaConsumidor(id){
