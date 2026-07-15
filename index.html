@@ -497,10 +497,17 @@ input.currency-input{letter-spacing:0.5px;}
         <button class="tab active" onclick="setAdmTab('ingresos')">Ingresos</button>
         <button class="tab" onclick="setAdmTab('gastos')">Gastos</button>
         <button class="tab" onclick="setAdmTab('analisis')">Análisis</button>
+        <button class="tab" onclick="setAdmTab('check')">✓ Check mensual</button>
       </div>
       <select class="fs" id="adm-mes" onchange="updateAdm()" style="width:auto;padding:6px 10px;font-size:12px">
         <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
       </select>
+      <select class="fs" id="adm-anio" onchange="updateAdm()" style="width:auto;padding:6px 10px;font-size:12px">
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+        <option value="2026" selected>2026</option>
+      </select>
+      <button onclick="descargarResumenPDF()" style="font-size:12px;padding:6px 14px;border-radius:var(--radius);border:none;background:var(--red);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">⬇ PDF</button>
     </div>
     <div id="adm-ingresos">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Ingresos del mes</div><button class="btn-primary" onclick="openModal('m-ingreso')">+ Agregar ingreso</button></div>
@@ -512,7 +519,7 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div id="adm-analisis" style="display:none">
       <div class="card" style="margin-bottom:12px">
-        <div class="card-title">Resultado mensual 2026</div>
+        <div class="card-title">Resultado mensual</div>
         <canvas id="chart-mensual" style="max-height:280px"></canvas>
       </div>
       <div class="grid2">
@@ -524,6 +531,15 @@ input.currency-input{letter-spacing:0.5px;}
           <div class="card-title">Resumen mensual</div>
           <table><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th></tr><tbody id="anual-table"></tbody></table>
         </div>
+      </div>
+    </div>
+    <div id="adm-check" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:13px;color:var(--text2)">Gastos fijos del mes — tachá los que ya cargaste</div>
+        <button onclick="resetCheck()" class="btn-sm">Reiniciar</button>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="check-list"></div>
       </div>
     </div>
   </div>
@@ -651,7 +667,14 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-ingreso" onclick="if(event.target===this)closeModal('m-ingreso')">
   <div class="modal"><h3>Agregar ingreso</h3>
-    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="in-fe" type="date"></div><div class="fg"><div class="fl">Monto *</div><input class="fi" id="in-mo" type="number" placeholder="0"></div></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="in-fe" type="date"></div>
+      <div class="fg"><div class="fl">Monto *</div><input class="fi" id="in-mo" type="number" placeholder="0"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Mes</div><select class="fs" id="in-mes"><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
+      <div class="fg"><div class="fl">Año</div><select class="fs" id="in-anio"><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
+    </div>
     <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="in-co" placeholder="Ej: Cobro honorarios García 1° cuota"></div>
     <div class="fg"><div class="fl">Cliente</div><input class="fi" id="in-cl" placeholder="Apellido, Nombre"></div>
     <div class="fg"><div class="fl">Categoría</div><select class="fs" id="in-cat"><option value="honorarios">Cobro de honorarios</option><option value="anticipo">Anticipo</option><option value="reintegro">Reintegro</option><option value="otro">Otro</option></select></div>
@@ -661,7 +684,14 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-gasto" onclick="if(event.target===this)closeModal('m-gasto')">
   <div class="modal"><h3>Agregar gasto</h3>
-    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="ga-fe" type="date"></div><div class="fg"><div class="fl">Monto *</div><input class="fi" id="ga-mo" type="number" placeholder="0"></div></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="ga-fe" type="date"></div>
+      <div class="fg"><div class="fl">Monto *</div><input class="fi" id="ga-mo" type="number" placeholder="0"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Mes</div><select class="fs" id="ga-mes"><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
+      <div class="fg"><div class="fl">Año</div><select class="fs" id="ga-anio"><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
+    </div>
     <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="ga-co" placeholder="Ej: Alquiler oficina"></div>
     <div class="fg"><div class="fl">Categoría</div><select class="fs" id="ga-cat"><option value="servicios">Servicios</option><option value="oficina">Gastos de oficina</option><option value="procesales">Gastos procesales</option><option value="varios">Gastos varios</option><option value="fijo">Fijo (alquiler, sueldos)</option><option value="impuesto">Impuestos</option></select></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-gasto')">Cancelar</button><button class="btn-primary" onclick="saveGasto()">Guardar</button></div>
@@ -977,42 +1007,70 @@ var catLbl={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',vari
 var catCls={servicios:'b-blue',oficina:'b-purple',procesales:'b-orange',varios:'b-gray',fijo:'b-blue',impuesto:'b-red',honorarios:'b-green',anticipo:'b-green'};
 
 function setAdmTab(t){
-  ['ingresos','gastos','analisis'].forEach(function(x){var el=document.getElementById('adm-'+x);if(el)el.style.display=x===t?'block':'none';});
-  document.querySelectorAll('#adm-tabs .tab').forEach(function(b,i){b.className='tab'+(['ingresos','gastos','analisis'][i]===t?' active':'');});
+  ['ingresos','gastos','analisis','check'].forEach(function(x){var el=document.getElementById('adm-'+x);if(el)el.style.display=x===t?'block':'none';});
+  document.querySelectorAll('#adm-tabs .tab').forEach(function(b,i){b.className='tab'+(['ingresos','gastos','analisis','check'][i]===t?' active':'');});
   if(t==='analisis')renderAnalisis();
+  if(t==='check')renderCheck();
 }
 
 function updateAdm(){
   var mes=document.getElementById('adm-mes').value;
-  var lbl=mesesNombre[mes]+' 2026';
+  var anio=(document.getElementById('adm-anio')?document.getElementById('adm-anio').value:'2026');
+  var lbl=mesesNombre[mes]+' '+anio;
   document.getElementById('adm-mes-lbl').textContent=lbl;
   document.getElementById('adm-mes-lbl2').textContent=lbl;
-  db.collection('ingresos').where('mes','==',mes).get().then(function(snap){
+  var mesKey=anio+'-'+mes;
+  db.collection('ingresos').where('mesKey','==',mesKey).get().then(function(snap){
+    // fallback para registros viejos sin mesKey
     var ing=0,list=[];
     snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);ing+=x.monto||0;});
-    document.getElementById('adm-ing').textContent=fmtARS(ing);
-    renderIngTable(list);
-    db.collection('gastos').where('mes','==',mes).get().then(function(snap2){
-      var gas=0,list2=[];
-      snap2.forEach(function(d){var x=d.data();x.id=d.id;list2.push(x);gas+=x.monto||0;});
-      document.getElementById('adm-gas').textContent=fmtARS(gas);
-      var neto=ing-gas;
-      document.getElementById('adm-neto').textContent=fmtARS(neto);
-      document.getElementById('adm-neto').style.color=neto>=0?'var(--green)':'var(--red)';
-      document.getElementById('adm-neto-sub').textContent=neto>=0?'superávit':'déficit';
-      var max=Math.max(ing,gas,1);
-      document.getElementById('bar-ing').style.width=Math.round(ing/max*100)+'%';
-      document.getElementById('bar-gas').style.width=Math.round(gas/max*100)+'%';
-      renderGasTable(list2);
+    if(list.length===0&&anio==='2026'){
+      // intentar con campo mes viejo
+      db.collection('ingresos').where('mes','==',mes).get().then(function(snap2){
+        var list2=[];var ing2=0;
+        snap2.forEach(function(d){var x=d.data();x.id=d.id;if(!x.mesKey)list2.push(x),ing2+=x.monto||0;});
+        list=list.concat(list2);ing+=ing2;
+        document.getElementById('adm-ing').textContent=fmtARS(ing);
+        renderIngTable(list);
+      });
+    } else {
+      document.getElementById('adm-ing').textContent=fmtARS(ing);
+      renderIngTable(list);
+    }
+    db.collection('gastos').where('mesKey','==',mesKey).get().then(function(snap3){
+      var gas=0,list3=[];
+      snap3.forEach(function(d){var x=d.data();x.id=d.id;list3.push(x);gas+=x.monto||0;});
+      if(list3.length===0&&anio==='2026'){
+        db.collection('gastos').where('mes','==',mes).get().then(function(snap4){
+          var list4=[];var gas2=0;
+          snap4.forEach(function(d){var x=d.data();x.id=d.id;if(!x.mesKey)list4.push(x),gas2+=x.monto||0;});
+          list3=list3.concat(list4);gas+=gas2;
+          _updateAdmTotales(ing,gas,list3);
+        });
+      } else {
+        _updateAdmTotales(ing,gas,list3);
+      }
     });
   });
   db.collection('honorarios').get().then(function(snap){
-    var ph=0,pc=0,list=[];
-    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);if(x.estado!=='cobrado'){var mc=x.montoCuota||x.total||0;var ct=x.cuotas||1;var cc=x.cuotasCobradas||0;ph+=mc*(ct-cc);pc++;}});
+    var ph=0,pc=0;
+    snap.forEach(function(d){var x=d.data();x.id=d.id;if(x.estado!=='cobrado'){var mc=x.montoCuota||x.total||0;var ct=x.cuotas||1;var cc=x.cuotasCobradas||0;ph+=mc*(ct-cc);pc++;}});
     document.getElementById('adm-honor').textContent=fmtARS(ph);
     document.getElementById('adm-honor-sub').textContent=pc+' causas sin cobrar';
-    renderHonTable(list);
+    var el=document.getElementById('hon-table');if(el){renderHonTable([]);}
   });
+}
+
+function _updateAdmTotales(ing,gas,list3){
+  document.getElementById('adm-gas').textContent=fmtARS(gas);
+  var neto=ing-gas;
+  document.getElementById('adm-neto').textContent=fmtARS(neto);
+  document.getElementById('adm-neto').style.color=neto>=0?'var(--green)':'var(--red)';
+  document.getElementById('adm-neto-sub').textContent=neto>=0?'superávit':'déficit';
+  var max=Math.max(ing,gas,1);
+  document.getElementById('bar-ing').style.width=Math.round(ing/max*100)+'%';
+  document.getElementById('bar-gas').style.width=Math.round(gas/max*100)+'%';
+  renderGasTable(list3);
 }
 
 function renderIngTable(list){
@@ -1034,13 +1092,19 @@ function saveIngreso(){
   var co=document.getElementById('in-co').value.trim(),mo=getCurrencyValue(document.getElementById('in-mo'));
   if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
   var fe=document.getElementById('in-fe').value;
-  db.collection('ingresos').add({fecha:fe,concepto:co,cliente:document.getElementById('in-cl').value.trim(),cat:document.getElementById('in-cat').value,monto:mo,mes:fe.slice(5,7),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-ingreso');updateAdm();showToast('Ingreso guardado ✓');});
+  var mes=document.getElementById('in-mes')?document.getElementById('in-mes').value:fe.slice(5,7);
+  var anio=document.getElementById('in-anio')?document.getElementById('in-anio').value:fe.slice(0,4);
+  var mesKey=anio+'-'+mes;
+  db.collection('ingresos').add({fecha:fe,concepto:co,cliente:document.getElementById('in-cl').value.trim(),cat:document.getElementById('in-cat').value,monto:mo,mes:mes,anio:anio,mesKey:mesKey,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-ingreso');updateAdm();showToast('Ingreso guardado ✓');});
 }
 function saveGasto(){
   var co=document.getElementById('ga-co').value.trim(),mo=getCurrencyValue(document.getElementById('ga-mo'));
   if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
   var fe=document.getElementById('ga-fe').value;
-  db.collection('gastos').add({fecha:fe,concepto:co,cat:document.getElementById('ga-cat').value,cargadoPor:currentUserData.nombre,monto:mo,mes:fe.slice(5,7),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-gasto');updateAdm();showToast('Gasto guardado ✓');});
+  var mes=document.getElementById('ga-mes')?document.getElementById('ga-mes').value:fe.slice(5,7);
+  var anio=document.getElementById('ga-anio')?document.getElementById('ga-anio').value:fe.slice(0,4);
+  var mesKey=anio+'-'+mes;
+  db.collection('gastos').add({fecha:fe,concepto:co,cat:document.getElementById('ga-cat').value,cargadoPor:currentUserData.nombre,monto:mo,mes:mes,anio:anio,mesKey:mesKey,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-gasto');updateAdm();showToast('Gasto guardado ✓');});
 }
 function delDoc(col,id){if(!confirm('¿Eliminar?'))return;db.collection(col).doc(id).delete().then(function(){updateAdm();showToast('Eliminado ✓');});}
 
@@ -3171,6 +3235,104 @@ function socRenderAlertas(){
   return html;
 }
 
+
+// ─── CHECK MENSUAL ───
+var GASTOS_FIJOS=['Sueldos','Expensas','Cochera','Expensas cochera','Luz','Agua','Limpieza'];
+
+function renderCheck(){
+  var mes=document.getElementById('adm-mes').value;
+  var anio=document.getElementById('adm-anio')?document.getElementById('adm-anio').value:'2026';
+  var checkKey='check-'+anio+'-'+mes;
+  db.collection('checks_mensuales').doc(checkKey).get().then(function(doc){
+    var estado=doc.exists?doc.data():{};
+    var el=document.getElementById('check-list');if(!el)return;
+    var pendientes=GASTOS_FIJOS.filter(function(g){return !estado[g];});
+    var html='';
+    if(pendientes.length===0){
+      html='<div style="text-align:center;padding:1.5rem;color:var(--green);font-size:14px;font-weight:600">✓ Todos los gastos fijos del mes están cargados</div>';
+    } else {
+      html='<div style="font-size:11px;color:var(--text3);margin-bottom:10px">'+pendientes.length+' pendientes de '+GASTOS_FIJOS.length+'</div>';
+    }
+    html+=GASTOS_FIJOS.map(function(g){
+      var done=!!estado[g];
+      return '<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleCheck(\''+checkKey+'\',\''+g+'\','+!done+')">'
+        +'<div style="width:22px;height:22px;border-radius:50%;border:2px solid '+(done?'var(--green)':'var(--border2)')+';background:'+(done?'var(--green)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:#000;transition:all .15s">'+(done?'✓':'')+'</div>'
+        +'<span style="font-size:13px;color:'+(done?'var(--text3)':'var(--text)')+';text-decoration:'+(done?'line-through':'none')+'">'+g+'</span>'
+      +'</div>';
+    }).join('');
+    el.innerHTML=html;
+  }).catch(function(){
+    var el=document.getElementById('check-list');
+    if(el)el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px">Error al cargar el check.</div>';
+  });
+}
+
+function toggleCheck(checkKey,gasto,valor){
+  var update={};update[gasto]=valor;
+  db.collection('checks_mensuales').doc(checkKey).set(update,{merge:true}).then(function(){renderCheck();});
+}
+
+function resetCheck(){
+  var mes=document.getElementById('adm-mes').value;
+  var anio=document.getElementById('adm-anio')?document.getElementById('adm-anio').value:'2026';
+  var checkKey='check-'+anio+'-'+mes;
+  if(!confirm('¿Reiniciar el check de '+mesesNombre[mes]+' '+anio+'?'))return;
+  db.collection('checks_mensuales').doc(checkKey).delete().then(function(){renderCheck();showToast('Check reiniciado ✓');});
+}
+
+// ─── PDF RESUMEN ───
+function descargarResumenPDF(){
+  var mes=document.getElementById('adm-mes').value;
+  var anio=document.getElementById('adm-anio')?document.getElementById('adm-anio').value:'2026';
+  var mesKey=anio+'-'+mes;
+  var mesNombrePDF=mesesNombre[mes]+' '+anio;
+  Promise.all([
+    db.collection('ingresos').where('mesKey','==',mesKey).get(),
+    db.collection('gastos').where('mesKey','==',mesKey).get()
+  ]).then(function(results){
+    var ingresos=[],gastos=[],totalIng=0,totalGas=0;
+    results[0].forEach(function(d){var x=d.data();ingresos.push(x);totalIng+=x.monto||0;});
+    results[1].forEach(function(d){var x=d.data();gastos.push(x);totalGas+=x.monto||0;});
+    if(ingresos.length===0&&anio==='2026'){
+      Promise.all([db.collection('ingresos').where('mes','==',mes).get(),db.collection('gastos').where('mes','==',mes).get()]).then(function(r2){
+        r2[0].forEach(function(d){var x=d.data();if(!x.mesKey){ingresos.push(x);totalIng+=x.monto||0;}});
+        r2[1].forEach(function(d){var x=d.data();if(!x.mesKey){gastos.push(x);totalGas+=x.monto||0;}});
+        _generarPDF(mesNombrePDF,ingresos,gastos,totalIng,totalGas);
+      });
+    } else {_generarPDF(mesNombrePDF,ingresos,gastos,totalIng,totalGas);}
+  });
+}
+
+function _generarPDF(mesNombre,ingresos,gastos,totalIng,totalGas){
+  var neto=totalIng-totalGas;
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>';
+  html+='body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:30px;max-width:800px;margin:0 auto}';
+  html+='h1{font-size:20px;margin-bottom:4px}h2{font-size:14px;color:#444;margin:22px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}';
+  html+='.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}.metric{background:#f5f5f5;border-radius:8px;padding:12px}.metric-label{font-size:10px;color:#888;text-transform:uppercase;margin-bottom:3px}.metric-val{font-size:20px;font-weight:700}';
+  html+='table{width:100%;border-collapse:collapse}th{font-size:10px;font-weight:600;color:#888;text-align:left;padding:5px 6px;border-bottom:2px solid #ddd;text-transform:uppercase}td{padding:6px 6px;border-bottom:1px solid #eee;font-size:12px}.total-row td{font-weight:700;border-top:2px solid #ddd;border-bottom:none}';
+  html+='</style></head><body>';
+  html+='<h1>Resumen Contable — Casih & Asociados</h1><p style="color:#888;margin:0 0 16px">'+mesNombre+'</p>';
+  html+='<div class="metrics"><div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val" style="color:#1a8a4a">'+fmtARS(totalIng)+'</div></div>';
+  html+='<div class="metric"><div class="metric-label">Gastos</div><div class="metric-val" style="color:#c0392b">'+fmtARS(totalGas)+'</div></div>';
+  html+='<div class="metric"><div class="metric-label">Resultado neto</div><div class="metric-val" style="color:'+(neto>=0?'#1a8a4a':'#c0392b')+'">'+fmtARS(neto)+'</div></div></div>';
+  html+='<h2>Ingresos</h2>';
+  if(!ingresos.length){html+='<p style="color:#aaa">Sin ingresos.</p>';}
+  else{html+='<table><tr><th>Fecha</th><th>Concepto</th><th>Cliente</th><th>Categoría</th><th style="text-align:right">Monto</th></tr>';
+    ingresos.forEach(function(i){html+='<tr><td>'+(i.fecha||'')+'</td><td>'+i.concepto+'</td><td>'+(i.cliente||'')+'</td><td>'+(catLbl[i.cat]||i.cat||'')+'</td><td style="text-align:right;color:#1a8a4a;font-weight:600">'+fmtARS(i.monto||0)+'</td></tr>';});
+    html+='<tr class="total-row"><td colspan="4">Total ingresos</td><td style="text-align:right;color:#1a8a4a">'+fmtARS(totalIng)+'</td></tr></table>';}
+  html+='<h2>Gastos</h2>';
+  if(!gastos.length){html+='<p style="color:#aaa">Sin gastos.</p>';}
+  else{html+='<table><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Cargado por</th><th style="text-align:right">Monto</th></tr>';
+    gastos.forEach(function(g){html+='<tr><td>'+(g.fecha||'')+'</td><td>'+g.concepto+'</td><td>'+(catLbl[g.cat]||g.cat||'')+'</td><td>'+(g.cargadoPor||'')+'</td><td style="text-align:right;color:#c0392b;font-weight:600">'+fmtARS(g.monto||0)+'</td></tr>';});
+    html+='<tr class="total-row"><td colspan="4">Total gastos</td><td style="text-align:right;color:#c0392b">'+fmtARS(totalGas)+'</td></tr></table>';}
+  html+='<div style="margin-top:20px;padding:12px 14px;border-radius:8px;background:'+(neto>=0?'#e8f7ef':'#fde8e8')+'">';
+  html+='<strong style="font-size:15px;color:'+(neto>=0?'#1a8a4a':'#c0392b')+'">Resultado neto: '+fmtARS(neto)+'</strong> <span style="color:#888;font-size:12px">'+(neto>=0?'Superávit':'Déficit')+'</span></div>';
+  html+='<p style="color:#bbb;font-size:11px;margin-top:24px;text-align:center">Generado el '+new Date().toLocaleDateString('es-AR')+' · Casih & Asociados</p></body></html>';
+  var blob=new Blob([html],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='Resumen-'+mesNombre.replace(' ','-')+'.html';a.click();URL.revokeObjectURL(url);
+  showToast('Descargado ✓ — Abrilo en Chrome y usá Ctrl+P → Guardar como PDF');
+}
 
 function initApp() {
   setFecha();
