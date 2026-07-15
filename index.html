@@ -1020,44 +1020,32 @@ function updateAdm(){
   document.getElementById('adm-mes-lbl').textContent=lbl;
   document.getElementById('adm-mes-lbl2').textContent=lbl;
   var mesKey=anio+'-'+mes;
-  db.collection('ingresos').where('mesKey','==',mesKey).get().then(function(snap){
-    // fallback para registros viejos sin mesKey
-    var ing=0,list=[];
-    snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);ing+=x.monto||0;});
-    if(list.length===0&&anio==='2026'){
-      // intentar con campo mes viejo
-      db.collection('ingresos').where('mes','==',mes).get().then(function(snap2){
-        var list2=[];var ing2=0;
-        snap2.forEach(function(d){var x=d.data();x.id=d.id;if(!x.mesKey)list2.push(x),ing2+=x.monto||0;});
-        list=list.concat(list2);ing+=ing2;
-        document.getElementById('adm-ing').textContent=fmtARS(ing);
-        renderIngTable(list);
-      });
-    } else {
-      document.getElementById('adm-ing').textContent=fmtARS(ing);
-      renderIngTable(list);
-    }
-    db.collection('gastos').where('mesKey','==',mesKey).get().then(function(snap3){
-      var gas=0,list3=[];
-      snap3.forEach(function(d){var x=d.data();x.id=d.id;list3.push(x);gas+=x.monto||0;});
-      if(list3.length===0&&anio==='2026'){
-        db.collection('gastos').where('mes','==',mes).get().then(function(snap4){
-          var list4=[];var gas2=0;
-          snap4.forEach(function(d){var x=d.data();x.id=d.id;if(!x.mesKey)list4.push(x),gas2+=x.monto||0;});
-          list3=list3.concat(list4);gas+=gas2;
-          _updateAdmTotales(ing,gas,list3);
-        });
-      } else {
-        _updateAdmTotales(ing,gas,list3);
-      }
-    });
+
+  // Siempre buscar en ambos: registros nuevos (mesKey) y viejos (mes solo, sin mesKey)
+  var pIngNew=db.collection('ingresos').where('mesKey','==',mesKey).get();
+  var pIngOld=anio==='2026'?db.collection('ingresos').where('mes','==',mes).get():Promise.resolve({forEach:function(){}});
+  var pGasNew=db.collection('gastos').where('mesKey','==',mesKey).get();
+  var pGasOld=anio==='2026'?db.collection('gastos').where('mes','==',mes).get():Promise.resolve({forEach:function(){}});
+
+  Promise.all([pIngNew,pIngOld,pGasNew,pGasOld]).then(function(results){
+    var idsIng={},ing=0,listIng=[];
+    results[0].forEach(function(d){var x=d.data();x.id=d.id;idsIng[d.id]=true;listIng.push(x);ing+=x.monto||0;});
+    results[1].forEach(function(d){if(!idsIng[d.id]&&!d.data().mesKey){var x=d.data();x.id=d.id;listIng.push(x);ing+=x.monto||0;}});
+
+    var idsGas={},gas=0,listGas=[];
+    results[2].forEach(function(d){var x=d.data();x.id=d.id;idsGas[d.id]=true;listGas.push(x);gas+=x.monto||0;});
+    results[3].forEach(function(d){if(!idsGas[d.id]&&!d.data().mesKey){var x=d.data();x.id=d.id;listGas.push(x);gas+=x.monto||0;}});
+
+    document.getElementById('adm-ing').textContent=fmtARS(ing);
+    renderIngTable(listIng);
+    _updateAdmTotales(ing,gas,listGas);
   });
+
   db.collection('honorarios').get().then(function(snap){
     var ph=0,pc=0;
     snap.forEach(function(d){var x=d.data();x.id=d.id;if(x.estado!=='cobrado'){var mc=x.montoCuota||x.total||0;var ct=x.cuotas||1;var cc=x.cuotasCobradas||0;ph+=mc*(ct-cc);pc++;}});
     document.getElementById('adm-honor').textContent=fmtARS(ph);
     document.getElementById('adm-honor-sub').textContent=pc+' causas sin cobrar';
-    var el=document.getElementById('hon-table');if(el){renderHonTable([]);}
   });
 }
 
