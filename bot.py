@@ -12,8 +12,12 @@ import requests
 
 app = Flask(__name__)
 
-# --- CONFIGURACIÓN Y CATEGORÍAS ---
-CATEGORIA_DEFECTO = 'varios'
+# --- NOMBRES DE MESES EN ESPAÑOL PARA TU SISTEMA ---
+MESES_ESP = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
 
 # --- INICIALIZAR FIREBASE ---
 firebase_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
@@ -23,46 +27,35 @@ if firebase_json:
     firebase_admin.initialize_app(cred)
     db = firestore.client()
 
-# --- FUNCION INTELIGENTE PARA CALCULAR LA FECHA DEL EVENTO ---
+# --- FUNCION PARA CALCULOS DE FECHA Y HORA DE EVENTOS ---
 def parsear_fecha_hora(texto):
     tz = pytz.timezone('America/Argentina/Buenos_Aires')
     ahora = datetime.now(tz)
-    fecha_evento = ahora
+    fecha_evento = None
     txt = texto.lower()
 
-    # 1. Detección por texto relativo
     if 'pasado mañana' in txt:
         fecha_evento = ahora + timedelta(days=2)
     elif 'mañana' in txt:
         fecha_evento = ahora + timedelta(days=1)
+    elif 'hoy' in txt:
+        fecha_evento = ahora
     else:
-        # 2. Buscar fechas numéricas (ej: 15/08 o 15/08/2026)
         match_fecha = re.search(r'\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b', txt)
         if match_fecha:
             dia = int(match_fecha.group(1))
             mes = int(match_fecha.group(2))
-            
-            if match_fecha.group(3):
-                anio = int(match_fecha.group(3))
-                if anio < 100:
-                    anio += 2000
-            else:
-                # Si solo se pone DD/MM, se asume el año actual
-                anio = ahora.year
-                try:
-                    # Si la fecha de este año ya pasó, asume el año siguiente
-                    fecha_temp = tz.localize(datetime(anio, mes, dia))
-                    if fecha_temp.date() < ahora.date():
-                        anio += 1
-                except ValueError:
-                    pass
-
+            anio = int(match_fecha.group(3)) if match_fecha.group(3) else ahora.year
+            if anio < 100:
+                anio += 2000
             try:
+                fecha_temp = tz.localize(datetime(anio, mes, dia))
+                if not match_fecha.group(3) and fecha_temp.date() < ahora.date():
+                    anio += 1
                 fecha_evento = tz.localize(datetime(anio, mes, dia))
             except ValueError:
-                pass
+                fecha_evento = None
         else:
-            # 3. Buscar días de la semana (ej: "el viernes")
             dias_semana = {
                 'lunes': 0, 'martes': 1, 'miercoles': 2, 'miércoles': 2,
                 'jueves': 3, 'viernes': 4, 'sabado': 5, 'sábado': 5, 'domingo': 6
@@ -71,20 +64,24 @@ def parsear_fecha_hora(texto):
                 if dia_nombre in txt:
                     dias_hasta = (dia_num - ahora.weekday() + 7) % 7
                     if dias_hasta == 0:
-                        dias_hasta = 7  # Si es hoy, refiere al mismo día de la próxima semana
+                        dias_hasta = 7
                     fecha_evento = ahora + timedelta(days=dias_hasta)
                     break
 
-    # Detección de hora (ej: 16:30 o 9:00)
     match_hora = re.search(r'\b(\d{1,2}):(\d{2})\b', txt)
-    if match_hora:
+    hora_str = None
+    inicio = None
+    fin = None
+
+    if match_hora and fecha_evento:
         horas = int(match_hora.group(1))
         minutos = int(match_hora.group(2))
-        inicio = fecha_evento.replace(hour=horas, minute=minutos, second=0, microsecond=0)
-        fin = inicio + timedelta(hours=1)
-        return inicio, fin, match_hora.group(0)
-    
-    return None, None, None
+        if 0 <= horas <= 23 and 0 <= minutos <= 59:
+            inicio = fecha_evento.replace(hour=horas, minute=minutos, second=0, microsecond=0)
+            fin = inicio + timedelta(hours=1)
+            hora_str = match_hora.group(0)
+
+    return inicio, fin, hora_str, fecha_evento
 
 # --- CREAR EVENTO EN GOOGLE CALENDAR ---
 def agregar_evento_calendar(resumen, inicio, fin):
@@ -134,60 +131,108 @@ def webhook():
 
             text_lower = text_message.lower()
             tz = pytz.timezone('America/Argentina/Buenos_Aires')
-            fecha_hoy_str = datetime.now(tz).strftime("%Y-%m-%d")
+            ahora = datetime.now(tz)
+            
+            fecha_hoy_str = ahora.strftime("%Y-%m-%d")
+            mes_nombre = MESES_ESP[ahora.month]
+            anio_str = str(ahora.year)
 
             # 1. COMANDO: GASTO
             if text_lower.startswith('gasto'):
-                match = re.search(r'\d+', text_message)
-                if match:
-                    monto = float(match.group())
-                    descripcion = re.sub(r'gasto|\d+', '', text_message, flags=re.IGNORECASE).strip()
-                    if not descripcion:
-                        descripcion = "Gasto WhatsApp"
+                match_monto = re.search(r'\d+(\.\d+)?', text_message)
+                concepto = re.sub(r'gasto|\d+(\.\d+)?', '', text_message, flags=re.IGNORECASE).strip()
+                
+                if not match_monto:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `gasto 12000 librería`")
+                elif not concepto:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *concepto o detalle*.\n\n💡 *Ejemplo:* `gasto 12000 resma de hojas`")
+                else:
+                    monto = float(match_monto.group())
                     
+                    # Estructura idéntica al formulario "Agregar gasto"
                     db.collection('gastos').add({
-                        'monto': monto,
-                        'descripcion': descripcion,
-                        'categoria': CATEGORIA_DEFECTO,
                         'fecha': fecha_hoy_str,
+                        'mes': mes_nombre,
+                        'anio': anio_str,
+                        'monto': monto,
+                        'concepto': concepto,
+                        'descripcion': concepto,
+                        'categoria': 'Gastos varios',
+                        'tipo': 'varios',
                         'timestamp': firestore.SERVER_TIMESTAMP
                     })
-                    
-                    responder_whatsapp(chat_id, f"✅ *Gasto registrado:* ${monto:.2f}\n📂 *Categoría:* Gastos varios\n📝 *Detalle:* {descripcion}")
+                    responder_whatsapp(chat_id, f"✅ *Gasto registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n📝 *Concepto:* {concepto}\n📅 *Fecha:* {fecha_hoy_str}")
 
             # 2. COMANDO: INGRESO / HONORARIOS
             elif text_lower.startswith('ingreso') or text_lower.startswith('honorario'):
-                match = re.search(r'\d+', text_message)
-                if match:
-                    monto = float(match.group())
-                    # Elimina el comando y el monto para aislar el cliente/detalle
-                    detalle = re.sub(r'ingreso|honorarios|honorario|\d+', '', text_message, flags=re.IGNORECASE).strip()
-                    
-                    cliente = detalle if detalle else "General"
-                    descripcion = f"Honorarios - {cliente}" if cliente != "General" else "Ingreso Honorarios"
+                match_monto = re.search(r'\d+(\.\d+)?', text_message)
+                cliente = re.sub(r'ingreso|honorarios|honorario|\d+(\.\d+)?', '', text_message, flags=re.IGNORECASE).strip()
+                
+                if not match_monto:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
+                elif not cliente:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *cliente*.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
+                else:
+                    monto = float(match_monto.group())
+                    concepto_txt = f"Cobro honorarios {cliente}"
 
+                    # Estructura idéntica al formulario "Agregar ingreso"
                     db.collection('ingresos').add({
-                        'monto': monto,
-                        'descripcion': descripcion,
-                        'cliente': cliente,
                         'fecha': fecha_hoy_str,
+                        'mes': mes_nombre,
+                        'anio': anio_str,
+                        'monto': monto,
+                        'concepto': concepto_txt,
+                        'cliente': cliente,
+                        'categoria': 'Cobro de honorarios',
                         'timestamp': firestore.SERVER_TIMESTAMP
                     })
-                    
-                    responder_whatsapp(chat_id, f"💵 *Ingreso registrado:* ${monto:.2f}\n👤 *Cliente/Detalle:* {cliente}\n📅 *Fecha:* {fecha_hoy_str}")
+                    responder_whatsapp(chat_id, f"💵 *Ingreso registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n👤 *Cliente:* {cliente}\n📝 *Concepto:* {concepto_txt}\n📅 *Fecha:* {fecha_hoy_str}")
 
             # 3. COMANDO: EVENTO
             elif text_lower.startswith('evento'):
-                inicio, fin, hora_str = parsear_fecha_hora(text_message)
-                if inicio and fin:
-                    # Quitar palabras clave y fechas del resumen del evento
-                    resumen = re.sub(r'evento|mañana|pasado mañana|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado|domingo|\b\d{1,2}:\d{2}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b', '', text_message, flags=re.IGNORECASE).strip()
-                    if not resumen:
-                        resumen = "Reunión / Evento"
-                    
-                    if agregar_evento_calendar(resumen, inicio, fin):
-                        fecha_formateada = inicio.strftime("%d/%m/%Y")
-                        responder_whatsapp(chat_id, f"📅 *Evento agendado en Google Calendar:*\n📆 *Fecha:* {fecha_formateada}\n⏰ *Hora:* {hora_str} hs\n📌 *Título:* {resumen}")
+                inicio, fin, hora_str, fecha_detectada = parsear_fecha_hora(text_message)
+                
+                resumen = re.sub(
+                    r'evento|mañana|pasado mañana|hoy|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado|domingo|\b\d{1,2}:\d{2}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b', 
+                    '', 
+                    text_message, 
+                    flags=re.IGNORECASE
+                ).strip()
+
+                if not fecha_detectada:
+                    responder_whatsapp(
+                        chat_id, 
+                        "⚠️ *Error al crear evento:*\nNo se detectó el *día o fecha*.\n\n"
+                        "💡 *Ejemplo:* `evento miercoles 17:00 cita cliente Walter Figueroa`"
+                    )
+                elif not hora_str:
+                    responder_whatsapp(
+                        chat_id, 
+                        "⚠️ *Error al crear evento:*\nNo se especificó la *hora* (formato HH:MM).\n\n"
+                        "💡 *Ejemplo:* `evento miercoles 17:00 cita cliente Walter Figueroa`"
+                    )
+                elif not resumen:
+                    responder_whatsapp(
+                        chat_id, 
+                        "⚠️ *Error al crear evento:*\nFalta indicar el *motivo o título*.\n\n"
+                        "💡 *Ejemplo:* `evento mañana 16:30 Reunion con Cliente`"
+                    )
+                else:
+                    try:
+                        if agregar_evento_calendar(resumen, inicio, fin):
+                            fecha_formateada = inicio.strftime("%d/%m/%Y")
+                            responder_whatsapp(
+                                chat_id, 
+                                f"📅 *Evento agendado en Google Calendar:*\n"
+                                f"📆 *Fecha:* {fecha_formateada}\n"
+                                f"⏰ *Hora:* {hora_str} hs\n"
+                                f"📌 *Título:* {resumen}"
+                            )
+                        else:
+                            responder_whatsapp(chat_id, "❌ *Error:* No se pudo conectar con Google Calendar.")
+                    except Exception as err:
+                        responder_whatsapp(chat_id, f"❌ *Error al crear evento:* {str(err)}")
 
     except Exception as e:
         print("Error procesando Webhook:", str(e))
