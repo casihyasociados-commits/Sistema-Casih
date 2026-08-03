@@ -1,83 +1,262 @@
 import os
 import json
+import re
+import pytz
+from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 import requests
 
 app = Flask(__name__)
 
-# Inicializar Firebase
-if not firebase_admin._apps:
-    cred_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
-    if cred_json:
-        cred_dict = json.loads(cred_json)
-        cred = credentials.Certificate(cred_dict)
-        firebase_admin.initialize_app(cred)
+# --- NOMBRES DE MESES EN ESPAÑOL ---
+MESES_ESP = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
+
+# --- INICIALIZAR FIREBASE ---
+firebase_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+if firebase_json:
+    cred_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+
+# --- FUNCION PARA CALCULOS DE FECHA Y HORA DE EVENTOS ---
+def parsear_fecha_hora(texto):
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    ahora = datetime.now(tz)
+    fecha_evento = None
+    txt = texto.lower()
+
+    if 'pasado mañana' in txt:
+        fecha_evento = ahora + timedelta(days=2)
+    elif 'mañana' in txt:
+        fecha_evento = ahora + timedelta(days=1)
+    elif 'hoy' in txt:
+        fecha_evento = ahora
     else:
-        firebase_admin.initialize_app()
+        match_fecha = re.search(r'\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b', txt)
+        if match_fecha:
+            dia = int(match_fecha.group(1))
+            mes = int(match_fecha.group(2))
+            anio = int(match_fecha.group(3)) if match_fecha.group(3) else ahora.year
+            if anio < 100:
+                anio += 2000
+            try:
+                fecha_temp = tz.localize(datetime(anio, mes, dia))
+                if not match_fecha.group(3) and fecha_temp.date() < ahora.date():
+                    anio += 1
+                fecha_evento = tz.localize(datetime(anio, mes, dia))
+            except ValueError:
+                fecha_evento = None
+        else:
+            dias_semana = {
+                'lunes': 0, 'martes': 1, 'miercoles': 2, 'miércoles': 2,
+                'jueves': 3, 'viernes': 4, 'sabado': 5, 'sábado': 5, 'domingo': 6
+            }
+            for dia_nombre, dia_num in dias_semana.items():
+                if dia_nombre in txt:
+                    dias_hasta = (dia_num - ahora.weekday() + 7) % 7
+                    if dias_hasta == 0:
+                        dias_hasta = 7
+                    fecha_evento = ahora + timedelta(days=dias_hasta)
+                    break
 
-db = firestore.client()
+    match_hora = re.search(r'\b(\d{1,2}):(\d{2})\b', txt)
+    hora_str = None
+    inicio = None
+    fin = None
 
-GREEN_API_INSTANCE = os.environ.get('GREEN_API_INSTANCE')
-GREEN_API_TOKEN = os.environ.get('GREEN_API_TOKEN')
+    if match_hora and fecha_evento:
+        horas = int(match_hora.group(1))
+        minutos = int(match_hora.group(2))
+        if 0 <= horas <= 23 and 0 <= minutos <= 59:
+            inicio = fecha_evento.replace(hour=horas, minute=minutos, second=0, microsecond=0)
+            fin = inicio + timedelta(hours=1)
+            hora_str = match_hora.group(0)
 
+    return inicio, fin, hora_str, fecha_evento
+
+# --- CREAR EVENTO EN GOOGLE CALENDAR ---
+def agregar_evento_calendar(resumen, inicio, fin):
+    gcal_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not gcal_json:
+        return False
+    
+    info = json.loads(gcal_json)
+    scopes = ['https://www.googleapis.com/auth/calendar']
+    creds = Credentials.from_service_account_info(info, scopes=scopes)
+    service = build('calendar', 'v3', credentials=creds)
+    
+    evento = {
+        'summary': resumen,
+        'start': {'dateTime': inicio.isoformat()},
+        'end': {'dateTime': fin.isoformat()},
+    }
+    
+    service.events().insert(calendarId='casihyasociados@gmail.com', body=evento).execute()
+    return True
+
+# --- RESPONDER POR WHATSAPP ---
 def responder_whatsapp(chat_id, texto):
-    if not GREEN_API_INSTANCE or not GREEN_API_TOKEN:
-        return
-    url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-    payload = {"chatId": chat_id, "message": texto}
-    headers = {'Content-Type': 'application/json'}
-    requests.post(url, json=payload, headers=headers)
+    instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
+    token = os.environ.get("GREEN_API_TOKEN")
+    url = f"https://api.green-api.com/waInstance{instance_id}/sendMessage/{token}"
+    requests.post(url, json={"chatId": chat_id, "message": texto})
 
+# --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.get_json() or {}
-    
-    # Extraer mensaje y sender
-    message_data = data.get('messageData', {})
-    text_message_data = message_data.get('textMessageData', {})
-    mensaje = text_message_data.get('textMessage', '').strip()
-    sender_data = data.get('senderData', {})
-    chat_id = sender_data.get('chatId')
-
-    if not mensaje or not chat_id:
-        return jsonify({"status": "ignored"}), 200
-
-    # Normalizar texto (ej: "Gasto 1500 taxi" -> ["gasto", "1500", "taxi"])
-    partes = mensaje.split(' ', 2)
-    comando = partes[0].lower()
-
-    if comando in ['gasto', 'ingreso'] and len(partes) >= 2:
-        try:
-            # Limpiar el monto de caracteres como '$' o ','
-            monto_raw = partes[1].replace('$', '').replace(',', '.')
-            monto = float(monto_raw)
-            concepto = partes[2] if len(partes) > 2 else 'Sin concepto'
-
-            coleccion = 'gastos' if comando == 'gasto' else 'ingresos'
+    data = request.json
+    try:
+        type_webhook = data.get('typeWebhook')
+        if type_webhook == 'incomingMessageReceived':
+            message_data = data.get('messageData', {})
+            chat_id = data.get('senderData', {}).get('chatId')
             
-            # Guardar en Firestore
-            db.collection(coleccion).add({
-                'monto': monto,
-                'concepto': concepto,
-                'fecha': firestore.SERVER_TIMESTAMP,
-                'origen': 'WhatsApp'
-            })
+            text_message = ""
+            if 'textMessageData' in message_data:
+                text_message = message_data['textMessageData'].get('textMessage', '').strip()
+            elif 'extendedTextMessageData' in message_data:
+                text_message = message_data['extendedTextMessageData'].get('text', '').strip()
 
-            respuesta = f"✅ *{comando.capitalize()} registrado:* ${monto:.2f}\n📝 *Concepto:* {concepto}"
-            responder_whatsapp(chat_id, respuesta)
-            return jsonify({"status": "success"}), 200
+            if not text_message:
+                return jsonify({"status": "ignored"}), 200
 
-        except ValueError:
-            responder_whatsapp(chat_id, "❌ Error: El monto ingresado no es un número válido. Ejemplo: `gasto 1500 taxi`")
-            return jsonify({"status": "error", "message": "Monto invalido"}), 400
-        except Exception as e:
-            responder_whatsapp(chat_id, f"❌ Error al guardar en la base de datos: {str(e)}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            text_lower = text_message.lower()
+            tz = pytz.timezone('America/Argentina/Buenos_Aires')
+            ahora = datetime.now(tz)
+            
+            fecha_hoy_str = ahora.strftime("%Y-%m-%d")
+            mes_num = ahora.month
+            mes_nombre = MESES_ESP[mes_num]
+            anio_num = ahora.year
+            anio_str = str(anio_num)
 
-    return jsonify({"status": "ignored"}), 200
+            # 1. COMANDO: GASTO
+            if text_lower.startswith('gasto'):
+                match_monto = re.search(r'\d+(\.\d+)?', text_message)
+                concepto = re.sub(r'gasto|\d+(\.\d+)?', '', text_message, flags=re.IGNORECASE).strip()
+                
+                if not match_monto:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `gasto 12000 librería`")
+                elif not concepto:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *concepto o detalle*.\n\n💡 *Ejemplo:* `gasto 12000 resma de hojas`")
+                else:
+                    monto = float(match_monto.group())
+                    
+                    doc_gasto = {
+                        'fecha': fecha_hoy_str,
+                        'mes': mes_nombre,
+                        'mesNumero': mes_num,
+                        'anio': anio_str,
+                        'anioNumero': anio_num,
+                        'monto': monto,
+                        'concepto': concepto,
+                        'descripcion': concepto,
+                        'categoria': 'Gastos varios',
+                        'tipo': 'varios',
+                        'cargadoPor': 'Bot WhatsApp',
+                        'usuario': 'Bot WhatsApp',
+                        'timestamp': firestore.SERVER_TIMESTAMP
+                    }
+
+                    db.collection('gastos').add(doc_gasto)
+
+                    responder_whatsapp(chat_id, f"✅ *Gasto registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n📝 *Concepto:* {concepto}\n📅 *Fecha:* {fecha_hoy_str}")
+
+            # 2. COMANDO: INGRESO / HONORARIOS
+            elif text_lower.startswith('ingreso') or text_lower.startswith('honorario'):
+                match_monto = re.search(r'\d+(\.\d+)?', text_message)
+                cliente = re.sub(r'ingreso|honorarios|honorario|\d+(\.\d+)?', '', text_message, flags=re.IGNORECASE).strip()
+                
+                if not match_monto:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
+                elif not cliente:
+                    responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *cliente*.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
+                else:
+                    monto = float(match_monto.group())
+                    concepto_txt = f"Cobro honorarios {cliente}"
+
+                    doc_ingreso = {
+                        'fecha': fecha_hoy_str,
+                        'mes': mes_nombre,
+                        'mesNumero': mes_num,
+                        'anio': anio_str,
+                        'anioNumero': anio_num,
+                        'monto': monto,
+                        'concepto': concepto_txt,
+                        'cliente': cliente,
+                        'categoria': 'Cobro de honorarios',
+                        'cargadoPor': 'Bot WhatsApp',
+                        'usuario': 'Bot WhatsApp',
+                        'timestamp': firestore.SERVER_TIMESTAMP
+                    }
+
+                    db.collection('ingresos').add(doc_ingreso)
+
+                    responder_whatsapp(chat_id, f"💵 *Ingreso registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n👤 *Cliente:* {cliente}\n📝 *Concepto:* {concepto_txt}\n📅 *Fecha:* {fecha_hoy_str}")
+
+            # 3. COMANDO: EVENTO
+            elif text_lower.startswith('evento'):
+                inicio, fin, hora_str, fecha_detectada = parsear_fecha_hora(text_message)
+                
+                resumen = re.sub(
+                    r'evento|mañana|pasado mañana|hoy|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado|domingo|\b\d{1,2}:\d{2}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b', 
+                    '', 
+                    text_message, 
+                    flags=re.IGNORECASE
+                ).strip()
+
+                if not fecha_detectada:
+                    responder_whatsapp(
+                        chat_id, 
+                        "⚠️ *Error al crear evento:*\nNo se detectó el *día o fecha*.\n\n"
+                        "💡 *Ejemplo:* `evento miercoles 17:00 cita cliente Walter Figueroa`"
+                    )
+                elif not hora_str:
+                    responder_whatsapp(
+                        chat_id, 
+                        "⚠️ *Error al crear evento:*\nNo se especificó la *hora* (formato HH:MM).\n\n"
+                        "💡 *Ejemplo:* `evento miercoles 17:00 cita cliente Walter Figueroa`"
+                    )
+                elif not resumen:
+                    responder_whatsapp(
+                        chat_id, 
+                        "⚠️ *Error al crear evento:*\nFalta indicar el *motivo o título*.\n\n"
+                        "💡 *Ejemplo:* `evento mañana 16:30 Reunion with Client`"
+                    )
+                else:
+                    try:
+                        if agregar_evento_calendar(resumen, inicio, fin):
+                            fecha_formateada = inicio.strftime("%d/%m/%Y")
+                            responder_whatsapp(
+                                chat_id, 
+                                f"📅 *Evento agendado en Google Calendar:*\n"
+                                f"📆 *Fecha:* {fecha_formateada}\n"
+                                f"⏰ *Hora:* {hora_str} hs\n"
+                                f"📌 *Título:* {resumen}"
+                            )
+                        else:
+                            responder_whatsapp(chat_id, "❌ *Error:* No se pudo conectar con Google Calendar.")
+                    except Exception as err:
+                        responder_whatsapp(chat_id, f"❌ *Error al crear evento:* {str(err)}")
+
+    except Exception as e:
+        print("Error procesando Webhook:", str(e))
+        
+    return jsonify({"status": "success"}), 200
+
+@app.route('/', methods=['GET'])
+def health():
+    return "Servidor del Bot activo y funcionando correctamente.", 200
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
