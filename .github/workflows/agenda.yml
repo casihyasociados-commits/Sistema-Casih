@@ -1,0 +1,33 @@
+name: Enviar Agenda Diaria a WhatsApp
+
+on:
+  schedule:
+    # Se ejecuta automáticamente todos los días a las 8:00 AM Argentina (11:00 UTC)
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Permite probarlo manualmente cuando quieras
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          pip install google-api-python-client google-auth requests pytz
+
+      - name: Ejecutar script de agenda
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GREEN_API_INSTANCE_ID: ${{ secrets.GREEN_API_INSTANCE_ID }}
+          GREEN_API_TOKEN: ${{ secrets.GREEN_API_TOKEN }}
+          GREEN_API_GROUP_ID: ${{ secrets.GREEN_API_GROUP_ID }}
+        run: |
+          python enviar_agenda_diaria.py
