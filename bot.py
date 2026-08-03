@@ -12,7 +12,7 @@ import requests
 
 app = Flask(__name__)
 
-# --- NOMBRES DE MESES EN ESPAÑOL PARA TU SISTEMA ---
+# --- NOMBRES DE MESES EN ESPAÑOL ---
 MESES_ESP = {
     1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
     5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
@@ -134,8 +134,10 @@ def webhook():
             ahora = datetime.now(tz)
             
             fecha_hoy_str = ahora.strftime("%Y-%m-%d")
-            mes_nombre = MESES_ESP[ahora.month]
-            anio_str = str(ahora.year)
+            mes_num = ahora.month
+            mes_nombre = MESES_ESP[mes_num]
+            anio_num = ahora.year
+            anio_str = str(anio_num)
 
             # 1. COMANDO: GASTO
             if text_lower.startswith('gasto'):
@@ -149,18 +151,24 @@ def webhook():
                 else:
                     monto = float(match_monto.group())
                     
-                    # Estructura idéntica al formulario "Agregar gasto"
-                    db.collection('gastos').add({
+                    doc_gasto = {
                         'fecha': fecha_hoy_str,
                         'mes': mes_nombre,
+                        'mesNumero': mes_num,
                         'anio': anio_str,
+                        'anioNumero': anio_num,
                         'monto': monto,
                         'concepto': concepto,
                         'descripcion': concepto,
                         'categoria': 'Gastos varios',
                         'tipo': 'varios',
+                        'cargadoPor': 'Bot WhatsApp',
+                        'usuario': 'Bot WhatsApp',
                         'timestamp': firestore.SERVER_TIMESTAMP
-                    })
+                    }
+
+                    db.collection('gastos').add(doc_gasto)
+
                     responder_whatsapp(chat_id, f"✅ *Gasto registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n📝 *Concepto:* {concepto}\n📅 *Fecha:* {fecha_hoy_str}")
 
             # 2. COMANDO: INGRESO / HONORARIOS
@@ -176,17 +184,23 @@ def webhook():
                     monto = float(match_monto.group())
                     concepto_txt = f"Cobro honorarios {cliente}"
 
-                    # Estructura idéntica al formulario "Agregar ingreso"
-                    db.collection('ingresos').add({
+                    doc_ingreso = {
                         'fecha': fecha_hoy_str,
                         'mes': mes_nombre,
+                        'mesNumero': mes_num,
                         'anio': anio_str,
+                        'anioNumero': anio_num,
                         'monto': monto,
                         'concepto': concepto_txt,
                         'cliente': cliente,
                         'categoria': 'Cobro de honorarios',
+                        'cargadoPor': 'Bot WhatsApp',
+                        'usuario': 'Bot WhatsApp',
                         'timestamp': firestore.SERVER_TIMESTAMP
-                    })
+                    }
+
+                    db.collection('ingresos').add(doc_ingreso)
+
                     responder_whatsapp(chat_id, f"💵 *Ingreso registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n👤 *Cliente:* {cliente}\n📝 *Concepto:* {concepto_txt}\n📅 *Fecha:* {fecha_hoy_str}")
 
             # 3. COMANDO: EVENTO
@@ -216,7 +230,7 @@ def webhook():
                     responder_whatsapp(
                         chat_id, 
                         "⚠️ *Error al crear evento:*\nFalta indicar el *motivo o título*.\n\n"
-                        "💡 *Ejemplo:* `evento mañana 16:30 Reunion con Cliente`"
+                        "💡 *Ejemplo:* `evento mañana 16:30 Reunion with Client`"
                     )
                 else:
                     try:
