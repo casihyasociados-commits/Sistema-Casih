@@ -132,12 +132,13 @@ def webhook():
             text_lower = text_message.lower()
             tz = pytz.timezone('America/Argentina/Buenos_Aires')
             ahora = datetime.now(tz)
-            
+
+            # Mismo formato que usa index.html: fecha "YYYY-MM-DD", mes de 2 dígitos,
+            # año como string, y mesKey = "YYYY-MM" (es el campo que filtra Administración)
             fecha_hoy_str = ahora.strftime("%Y-%m-%d")
-            mes_num = ahora.month
-            mes_nombre = MESES_ESP[mes_num]
-            anio_num = ahora.year
-            anio_str = str(anio_num)
+            mes_str = ahora.strftime("%m")
+            anio_str = ahora.strftime("%Y")
+            mes_key = f"{anio_str}-{mes_str}"
 
             # 1. COMANDO: GASTO
             if text_lower.startswith('gasto'):
@@ -150,21 +151,17 @@ def webhook():
                     responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *concepto o detalle*.\n\n💡 *Ejemplo:* `gasto 12000 resma de hojas`")
                 else:
                     monto = float(match_monto.group())
-                    
+
                     doc_gasto = {
                         'fecha': fecha_hoy_str,
-                        'mes': mes_nombre,
-                        'mesNumero': mes_num,
-                        'anio': anio_str,
-                        'anioNumero': anio_num,
-                        'monto': monto,
                         'concepto': concepto,
-                        'descripcion': concepto,
-                        'categoria': 'Gastos varios',
-                        'tipo': 'varios',
+                        'cat': 'varios',            # clave usada por catLbl/catCls en index.html
                         'cargadoPor': 'Bot WhatsApp',
-                        'usuario': 'Bot WhatsApp',
-                        'timestamp': firestore.SERVER_TIMESTAMP
+                        'monto': monto,
+                        'mes': mes_str,              # "08" (2 dígitos, no "Agosto")
+                        'anio': anio_str,            # "2026"
+                        'mesKey': mes_key,           # "2026-08" -> esto es lo que filtra Administración
+                        'creadoEn': firestore.SERVER_TIMESTAMP
                     }
 
                     db.collection('gastos').add(doc_gasto)
@@ -178,30 +175,27 @@ def webhook():
                 
                 if not match_monto:
                     responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
-                elif not cliente:
-                    responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *cliente*.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
                 else:
                     monto = float(match_monto.group())
-                    concepto_txt = f"Cobro honorarios {cliente}"
+                    # El cliente es opcional (igual que en el formulario web) para no trabar la carga
+                    concepto_txt = f"Cobro honorarios {cliente}" if cliente else "Cobro de honorarios"
 
                     doc_ingreso = {
                         'fecha': fecha_hoy_str,
-                        'mes': mes_nombre,
-                        'mesNumero': mes_num,
-                        'anio': anio_str,
-                        'anioNumero': anio_num,
-                        'monto': monto,
                         'concepto': concepto_txt,
-                        'cliente': cliente,
-                        'categoria': 'Cobro de honorarios',
-                        'cargadoPor': 'Bot WhatsApp',
-                        'usuario': 'Bot WhatsApp',
-                        'timestamp': firestore.SERVER_TIMESTAMP
+                        'cliente': cliente,          # puede quedar como ''
+                        'cat': 'honorarios',          # clave usada por catLbl/catCls en index.html
+                        'monto': monto,
+                        'mes': mes_str,               # "08"
+                        'anio': anio_str,              # "2026"
+                        'mesKey': mes_key,            # "2026-08"
+                        'creadoEn': firestore.SERVER_TIMESTAMP
                     }
 
                     db.collection('ingresos').add(doc_ingreso)
 
-                    responder_whatsapp(chat_id, f"💵 *Ingreso registrado correctamente*\n💰 *Monto:* ${monto:.2f}\n👤 *Cliente:* {cliente}\n📝 *Concepto:* {concepto_txt}\n📅 *Fecha:* {fecha_hoy_str}")
+                    linea_cliente = f"\n👤 *Cliente:* {cliente}" if cliente else ""
+                    responder_whatsapp(chat_id, f"💵 *Ingreso registrado correctamente*\n💰 *Monto:* ${monto:.2f}{linea_cliente}\n📝 *Concepto:* {concepto_txt}\n📅 *Fecha:* {fecha_hoy_str}")
 
             # 3. COMANDO: EVENTO
             elif text_lower.startswith('evento'):
