@@ -635,7 +635,7 @@ input.currency-input{letter-spacing:0.5px;}
       </select>
     </div>
     <div class="fg"><div class="fl">Tipo de cliente</div><select class="fs" id="cn-tipo"><option value="posible">Posible cliente</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
-    <div class="fg"><div class="fl">Observaciones</div><textarea class="fta" id="cn-no" placeholder="Notas, estado actual, observaciones..."></textarea></div>
+    <div class="fg"><div class="fl">Descripción del caso</div><textarea class="fta" id="cn-no" placeholder="Descripción del caso, estado actual..."></textarea></div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
   </div>
@@ -1143,7 +1143,31 @@ function setCtab(t){
   else renderClientes();
 }
 
-function renderClientes(){
+function enviarFichaWhatsApp(id){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
+  if(!c)return;
+  var partes=[];
+  partes.push('*📋 FICHA DE CLIENTE — Casih & Asociados*');
+  partes.push('');
+  partes.push('*Nombre:* '+(c.nombre||'—'));
+  if(c.edad)partes.push('*Edad:* '+c.edad);
+  if(c.cuil)partes.push('*CUIT:* '+c.cuil);
+  if(c.tel)partes.push('*Teléfono:* '+c.tel);
+  if(c.domicilio)partes.push('*Domicilio:* '+c.domicilio);
+  if(c.empleador)partes.push('*Empresa/Empleador:* '+c.empleador);
+  if(c.antiguedad)partes.push('*Antigüedad:* '+c.antiguedad);
+  partes.push('');
+  partes.push('*Motivo:* '+(mLbl[c.motivo]||c.motivo||'—'));
+  if(c.etapa)partes.push('*Etapa:* '+(eLbl[c.etapa]||c.etapa));
+  if(c.expte)partes.push('*Expediente:* '+c.expte);
+  if(c.fecha)partes.push('*Primer contacto:* '+c.fecha);
+  if(c.notas){partes.push('');partes.push('*Descripción del caso:*');partes.push(c.notas);}
+  if(c.drive){partes.push('');partes.push('📁 Carpeta Drive: '+c.drive);}
+  var texto=partes.join('\n');
+  window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');
+}
+
+
   var list=CLIENTES_CACHE.filter(function(cl){return cl.tipo===curCtab;});
   var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
   if(list.length===0){gr.innerHTML='';em.style.display='block';return;}
@@ -1174,7 +1198,7 @@ function renderClientes(){
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       fechaCarga+
       '<div class="cc-footer" style="margin-top:8px"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
-      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+driveBtn+'<button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+driveBtn+'<button class="btn-sm" onclick="enviarFichaWhatsApp(\''+c.id+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📤 Enviar ficha</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
 }
