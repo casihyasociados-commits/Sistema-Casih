@@ -1167,7 +1167,7 @@ function enviarFichaWhatsApp(id){
   window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');
 }
 
-
+function renderClientes(){
   var list=CLIENTES_CACHE.filter(function(cl){return cl.tipo===curCtab;});
   var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
   if(list.length===0){gr.innerHTML='';em.style.display='block';return;}
