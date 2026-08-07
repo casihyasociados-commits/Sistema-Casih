@@ -242,10 +242,94 @@ def webhook():
                     except Exception as err:
                         responder_whatsapp(chat_id, f"❌ *Error al crear evento:* {str(err)}")
 
+            # 4. COMANDO: RECORDATORIO
+            elif text_lower.startswith('recordame') or text_lower.startswith('recordá') or text_lower.startswith('recorda'):
+                inicio, fin, hora_str, fecha_detectada = parsear_fecha_hora(text_message)
+
+                texto_recordatorio = re.sub(
+                    r'recordame|recorda|recordá|mañana|pasado mañana|hoy|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado|domingo|\b\d{1,2}:\d{2}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b',
+                    '',
+                    text_message,
+                    flags=re.IGNORECASE
+                ).strip()
+
+                if not fecha_detectada:
+                    responder_whatsapp(
+                        chat_id,
+                        "⚠️ *Error al crear recordatorio:*\nNo se detectó el *día o fecha*.\n\n"
+                        "💡 *Ejemplo:* `recordame mañana 15:00 llamar a García`"
+                    )
+                elif not hora_str:
+                    responder_whatsapp(
+                        chat_id,
+                        "⚠️ *Error al crear recordatorio:*\nNo se especificó la *hora* (formato HH:MM).\n\n"
+                        "💡 *Ejemplo:* `recordame mañana 15:00 llamar a García`"
+                    )
+                elif not texto_recordatorio:
+                    responder_whatsapp(
+                        chat_id,
+                        "⚠️ *Error al crear recordatorio:*\nFalta indicar *qué* recordar.\n\n"
+                        "💡 *Ejemplo:* `recordame mañana 15:00 llamar a García`"
+                    )
+                else:
+                    doc_recordatorio = {
+                        'chatId': chat_id,           # a este mismo chat (privado o grupo) se le responde
+                        'fecha': inicio.strftime("%Y-%m-%d"),
+                        'hora': inicio.strftime("%H:%M"),
+                        'texto': texto_recordatorio,
+                        'enviado': False,
+                        'creadoEn': firestore.SERVER_TIMESTAMP
+                    }
+                    db.collection('recordatorios').add(doc_recordatorio)
+
+                    fecha_formateada = inicio.strftime("%d/%m/%Y")
+                    responder_whatsapp(
+                        chat_id,
+                        f"⏰ *Recordatorio guardado*\n"
+                        f"📆 *Fecha:* {fecha_formateada}\n"
+                        f"🕐 *Hora:* {hora_str} hs\n"
+                        f"📝 *Texto:* {texto_recordatorio}"
+                    )
+
     except Exception as e:
         print("Error procesando Webhook:", str(e))
         
     return jsonify({"status": "success"}), 200
+
+# --- RUTA PARA REVISAR Y ENVIAR RECORDATORIOS PENDIENTES ---
+# La llama cron-job.org cada 5 minutos (GET simple). De paso, ese mismo
+# ping mantiene despierto el servicio en Render, que se duerme tras 15
+# minutos sin actividad en el plan gratuito.
+@app.route('/revisar-recordatorios', methods=['GET'])
+def revisar_recordatorios():
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    ahora = datetime.now(tz)
+    enviados = 0
+    errores = 0
+
+    try:
+        pendientes = db.collection('recordatorios').where('enviado', '==', False).stream()
+        for doc in pendientes:
+            data = doc.to_dict()
+            try:
+                fecha_hora_str = f"{data['fecha']} {data['hora']}"
+                programado = tz.localize(datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M"))
+
+                if ahora >= programado:
+                    responder_whatsapp(
+                        data['chatId'],
+                        f"⏰ *Recordatorio:*\n{data['texto']}"
+                    )
+                    doc.reference.update({'enviado': True, 'enviadoEn': firestore.SERVER_TIMESTAMP})
+                    enviados += 1
+            except Exception as e_inner:
+                print("Error procesando recordatorio", doc.id, str(e_inner))
+                errores += 1
+    except Exception as e:
+        print("Error revisando recordatorios:", str(e))
+        return jsonify({"status": "error", "detalle": str(e)}), 500
+
+    return jsonify({"status": "ok", "enviados": enviados, "errores": errores, "hora_chequeo": ahora.isoformat()}), 200
 
 @app.route('/', methods=['GET'])
 def health():
