@@ -1,4 +1,4 @@
-import os
+\import os
 import json
 import re
 import pytz
@@ -72,6 +72,7 @@ def parsear_fecha_hora(texto):
     hora_str = None
     inicio = None
     fin = None
+    hora_default = False
 
     if match_hora and fecha_evento:
         horas = int(match_hora.group(1))
@@ -80,8 +81,14 @@ def parsear_fecha_hora(texto):
             inicio = fecha_evento.replace(hour=horas, minute=minutos, second=0, microsecond=0)
             fin = inicio + timedelta(hours=1)
             hora_str = match_hora.group(0)
+    elif fecha_evento and not match_hora:
+        # No se especificó hora -> se asume 08:30 por defecto
+        inicio = fecha_evento.replace(hour=8, minute=30, second=0, microsecond=0)
+        fin = inicio + timedelta(hours=1)
+        hora_str = "08:30"
+        hora_default = True
 
-    return inicio, fin, hora_str, fecha_evento
+    return inicio, fin, hora_str, fecha_evento, hora_default
 
 # --- CREAR EVENTO EN GOOGLE CALENDAR ---
 def agregar_evento_calendar(resumen, inicio, fin):
@@ -102,6 +109,50 @@ def agregar_evento_calendar(resumen, inicio, fin):
     
     service.events().insert(calendarId='casihyasociados@gmail.com', body=evento).execute()
     return True
+
+# --- FUNCION PARA INTERPRETAR MONTOS EN CUALQUIER FORMATO ---
+# Entiende: "1000000" / "1,000,000" / "1.000.000" / "1 millon" / "1.5 millones" / "500 mil"
+def extraer_monto(texto):
+    txt = texto.lower()
+
+    # 1) "X millon(es)" -> multiplica por 1.000.000
+    m = re.search(r'\d+(?:[.,]\d+)?\s*(?:millones|mill[oó]n|mill)\b(?:\s*de\s*pesos)?', txt)
+    if m:
+        numero = re.search(r'\d+(?:[.,]\d+)?', m.group(0)).group(0)
+        monto = float(numero.replace(',', '.')) * 1_000_000
+        texto_sin = texto[:m.start()] + texto[m.end():]
+        return monto, texto_sin
+
+    # 2) "X mil" -> multiplica por 1.000
+    m = re.search(r'\d+(?:[.,]\d+)?\s*mil\b(?:\s*de\s*pesos)?', txt)
+    if m:
+        numero = re.search(r'\d+(?:[.,]\d+)?', m.group(0)).group(0)
+        monto = float(numero.replace(',', '.')) * 1_000
+        texto_sin = texto[:m.start()] + texto[m.end():]
+        return monto, texto_sin
+
+    # 3) numero plano, con o sin separadores de miles/decimales
+    m = re.search(r'\d[\d.,]*', txt)
+    if not m:
+        return None, texto
+    token = m.group(0)
+    sep_count = token.count('.') + token.count(',')
+    if sep_count == 0:
+        monto = float(token)
+    elif sep_count > 1:
+        # mas de un separador -> todos son de miles (1.000.000 / 1,000,000)
+        monto = float(re.sub(r'[.,]', '', token))
+    else:
+        sep_char = '.' if '.' in token else ','
+        entero, frac = token.split(sep_char)
+        if len(frac) == 3:
+            # separador de miles (1.000 / 1,000)
+            monto = float(entero + frac)
+        else:
+            # separador decimal (1250.50)
+            monto = float(entero + '.' + frac)
+    texto_sin = texto[:m.start()] + texto[m.end():]
+    return monto, texto_sin
 
 # --- RESPONDER POR WHATSAPP ---
 def responder_whatsapp(chat_id, texto):
@@ -140,18 +191,31 @@ def webhook():
             anio_str = ahora.strftime("%Y")
             mes_key = f"{anio_str}-{mes_str}"
 
+            # 0. COMANDO: AYUDA
+            if text_lower.startswith('ayuda'):
+                responder_whatsapp(
+                    chat_id,
+                    "🤖 *Comandos disponibles*\n\n"
+                    "💰 *Gasto*\n`gasto MONTO CONCEPTO`\n_Ej: gasto 12000 librería_\n\n"
+                    "💵 *Ingreso / Honorario*\n`ingreso MONTO CLIENTE`\n_Ej: ingreso 150000 Garcia_\n\n"
+                    "📅 *Evento* (se crea en Google Calendar)\n`evento DÍA [HORA] TÍTULO`\n_Ej: evento miercoles 17:00 cita cliente Walter Figueroa_\n\n"
+                    "⏰ *Recordatorio* (llega por WhatsApp a esta misma hora)\n`recordame DÍA [HORA] TEXTO`\n_Ej: recordame mañana 15:00 llamar a García_\n\n"
+                    "📆 *Formas de indicar el día:* hoy, mañana, pasado mañana, un día de la semana (lunes, martes...), o una fecha exacta (15/08 o 15/08/2026).\n\n"
+                    "🕐 Si no indicás la hora, se asume automáticamente las *08:30 hs*.\n\n"
+                    "⚠️ El comando va siempre *al principio* del mensaje, y la hora en formato 24hs (15:00, no 3pm)."
+                )
+
             # 1. COMANDO: GASTO
-            if text_lower.startswith('gasto'):
-                match_monto = re.search(r'\d+(\.\d+)?', text_message)
-                concepto = re.sub(r'gasto|\d+(\.\d+)?', '', text_message, flags=re.IGNORECASE).strip()
-                
-                if not match_monto:
+            elif text_lower.startswith('gasto'):
+                monto, resto = extraer_monto(text_message)
+                concepto = re.sub(r'gasto', '', resto, flags=re.IGNORECASE).strip()
+                concepto = re.sub(r'\s{2,}', ' ', concepto).strip()
+
+                if monto is None:
                     responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `gasto 12000 librería`")
                 elif not concepto:
                     responder_whatsapp(chat_id, "⚠️ *Error al registrar gasto:*\nFalta indicar el *concepto o detalle*.\n\n💡 *Ejemplo:* `gasto 12000 resma de hojas`")
                 else:
-                    monto = float(match_monto.group())
-
                     doc_gasto = {
                         'fecha': fecha_hoy_str,
                         'concepto': concepto,
@@ -170,13 +234,13 @@ def webhook():
 
             # 2. COMANDO: INGRESO / HONORARIOS
             elif text_lower.startswith('ingreso') or text_lower.startswith('honorario'):
-                match_monto = re.search(r'\d+(\.\d+)?', text_message)
-                cliente = re.sub(r'ingreso|honorarios|honorario|\d+(\.\d+)?', '', text_message, flags=re.IGNORECASE).strip()
-                
-                if not match_monto:
+                monto, resto = extraer_monto(text_message)
+                cliente = re.sub(r'ingreso|honorarios|honorario', '', resto, flags=re.IGNORECASE).strip()
+                cliente = re.sub(r'\s{2,}', ' ', cliente).strip()
+
+                if monto is None:
                     responder_whatsapp(chat_id, "⚠️ *Error al registrar ingreso:*\nFalta indicar el *monto* numérico.\n\n💡 *Ejemplo:* `ingreso 150000 Garcia`")
                 else:
-                    monto = float(match_monto.group())
                     # El cliente es opcional (igual que en el formulario web) para no trabar la carga
                     concepto_txt = f"Cobro honorarios {cliente}" if cliente else "Cobro de honorarios"
 
@@ -199,7 +263,7 @@ def webhook():
 
             # 3. COMANDO: EVENTO
             elif text_lower.startswith('evento'):
-                inicio, fin, hora_str, fecha_detectada = parsear_fecha_hora(text_message)
+                inicio, fin, hora_str, fecha_detectada, hora_default = parsear_fecha_hora(text_message)
                 
                 resumen = re.sub(
                     r'evento|mañana|pasado mañana|hoy|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado|domingo|\b\d{1,2}:\d{2}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b', 
@@ -214,12 +278,6 @@ def webhook():
                         "⚠️ *Error al crear evento:*\nNo se detectó el *día o fecha*.\n\n"
                         "💡 *Ejemplo:* `evento miercoles 17:00 cita cliente Walter Figueroa`"
                     )
-                elif not hora_str:
-                    responder_whatsapp(
-                        chat_id, 
-                        "⚠️ *Error al crear evento:*\nNo se especificó la *hora* (formato HH:MM).\n\n"
-                        "💡 *Ejemplo:* `evento miercoles 17:00 cita cliente Walter Figueroa`"
-                    )
                 elif not resumen:
                     responder_whatsapp(
                         chat_id, 
@@ -230,11 +288,12 @@ def webhook():
                     try:
                         if agregar_evento_calendar(resumen, inicio, fin):
                             fecha_formateada = inicio.strftime("%d/%m/%Y")
+                            nota_default = " _(hora no indicada, se asumió por defecto)_" if hora_default else ""
                             responder_whatsapp(
                                 chat_id, 
                                 f"📅 *Evento agendado en Google Calendar:*\n"
                                 f"📆 *Fecha:* {fecha_formateada}\n"
-                                f"⏰ *Hora:* {hora_str} hs\n"
+                                f"⏰ *Hora:* {hora_str} hs{nota_default}\n"
                                 f"📌 *Título:* {resumen}"
                             )
                         else:
@@ -244,7 +303,7 @@ def webhook():
 
             # 4. COMANDO: RECORDATORIO
             elif text_lower.startswith('recordame') or text_lower.startswith('recordá') or text_lower.startswith('recorda'):
-                inicio, fin, hora_str, fecha_detectada = parsear_fecha_hora(text_message)
+                inicio, fin, hora_str, fecha_detectada, hora_default = parsear_fecha_hora(text_message)
 
                 texto_recordatorio = re.sub(
                     r'recordame|recorda|recordá|mañana|pasado mañana|hoy|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado|domingo|\b\d{1,2}:\d{2}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b',
@@ -257,12 +316,6 @@ def webhook():
                     responder_whatsapp(
                         chat_id,
                         "⚠️ *Error al crear recordatorio:*\nNo se detectó el *día o fecha*.\n\n"
-                        "💡 *Ejemplo:* `recordame mañana 15:00 llamar a García`"
-                    )
-                elif not hora_str:
-                    responder_whatsapp(
-                        chat_id,
-                        "⚠️ *Error al crear recordatorio:*\nNo se especificó la *hora* (formato HH:MM).\n\n"
                         "💡 *Ejemplo:* `recordame mañana 15:00 llamar a García`"
                     )
                 elif not texto_recordatorio:
@@ -283,11 +336,12 @@ def webhook():
                     db.collection('recordatorios_bot').add(doc_recordatorio)
 
                     fecha_formateada = inicio.strftime("%d/%m/%Y")
+                    nota_default = " _(hora no indicada, se asumió por defecto)_" if hora_default else ""
                     responder_whatsapp(
                         chat_id,
                         f"⏰ *Recordatorio guardado*\n"
                         f"📆 *Fecha:* {fecha_formateada}\n"
-                        f"🕐 *Hora:* {hora_str} hs\n"
+                        f"🕐 *Hora:* {hora_str} hs{nota_default}\n"
                         f"📝 *Texto:* {texto_recordatorio}"
                     )
 
