@@ -280,7 +280,7 @@ def webhook():
                         'enviado': False,
                         'creadoEn': firestore.SERVER_TIMESTAMP
                     }
-                    db.collection('recordatorios').add(doc_recordatorio)
+                    db.collection('recordatorios_bot').add(doc_recordatorio)
 
                     fecha_formateada = inicio.strftime("%d/%m/%Y")
                     responder_whatsapp(
@@ -308,7 +308,7 @@ def revisar_recordatorios():
     errores = 0
 
     try:
-        pendientes = db.collection('recordatorios').where('enviado', '==', False).stream()
+        pendientes = db.collection('recordatorios_bot').where('enviado', '==', False).stream()
         for doc in pendientes:
             data = doc.to_dict()
             try:
