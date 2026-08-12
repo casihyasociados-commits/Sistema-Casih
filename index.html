@@ -378,6 +378,13 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div id="dash-oficio-list"><div style="font-size:13px;color:var(--text3)">Sin oficios cargados.</div></div>
   </div>
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--green)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:15px;font-weight:600;color:var(--text)">🩺 Estudios pagados</span>
+      <button onclick="openModal('m-estudio-pagado')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar estudio</button>
+    </div>
+    <div id="dash-estudios-list"><div style="font-size:13px;color:var(--text3);padding:6px 0">Sin estudios cargados.</div></div>
+  </div>
   <div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <span style="font-size:15px;font-weight:600;color:var(--text)">📦 Seguimiento Correo</span>
@@ -620,7 +627,10 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Edad</div><input class="fi" id="cn-edad" placeholder="Ej: 35" type="number"></div>
       <div class="fg"><div class="fl">CUIT</div><input class="fi" id="cn-cuil" placeholder="Ej: 20-30123456-1"></div>
     </div>
-    <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="cn-dom" placeholder="Calle, número, ciudad"></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="cn-tel" placeholder="Ej: 351 6154521"></div>
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="cn-dom" placeholder="Calle, número, ciudad"></div>
+    </div>
     <div class="g2">
       <div class="fg"><div class="fl">Empresa / Empleador</div><input class="fi" id="cn-empleador" placeholder="Nombre de la empresa"></div>
       <div class="fg"><div class="fl">Antigüedad</div><input class="fi" id="cn-antiguedad" placeholder="Ej: 3 años y 2 meses"></div>
@@ -758,6 +768,15 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="fg"><div class="fl">URL *</div><input class="fi" id="lr-url" placeholder="https://..."></div>
     <div class="fg"><div class="fl">Ícono (emoji)</div><input class="fi" id="lr-icon" placeholder="🔗"></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-link-rapido')">Cancelar</button><button class="btn-primary" onclick="saveLinkRapido()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-estudio-pagado" onclick="if(event.target===this)closeModal('m-estudio-pagado')">
+  <div class="modal"><h3>Nuevo estudio pagado</h3>
+    <div class="fg"><div class="fl">Tipo de estudio *</div><input class="fi" id="ep-tipo" placeholder="Ej: Radiografía, RMN, análisis clínicos"></div>
+    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="ep-cliente" placeholder="Nombre del cliente"></div>
+    <div class="fg"><div class="fl">Monto pagado *</div><input class="fi" id="ep-monto" type="number" placeholder="$"></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-estudio-pagado')">Cancelar</button><button class="btn-primary" onclick="saveEstudioPagado()">Guardar</button></div>
   </div>
 </div>
 
@@ -1549,9 +1568,18 @@ function reactivarCliente(id){
 
 function convC(id,t){db.collection('clientes').doc(id).update({tipo:t}).then(function(){showToast('Cliente actualizado ✓');});}
 
+function resetClienteForm(){
+  ['cn-n','cn-apellido','cn-edad','cn-cuil','cn-tel','cn-dom','cn-empleador','cn-antiguedad','cn-no'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var m=document.getElementById('cn-m');if(m)m.selectedIndex=0;
+  var tipo=document.getElementById('cn-tipo');if(tipo)tipo.value='posible';
+  var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Nuevo cliente — Derecho Laboral';
+  var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
+  if(saveBtn){saveBtn.textContent='Guardar';saveBtn.onclick=saveCliente;}
+}
+
 function abrirModalNuevoCliente(){
   if(curCtab==='consumidor'){openModal('m-consumidor');}
-  else{openModal('m-cliente');}
+  else{resetClienteForm();openModal('m-cliente');}
 }
 
 function saveCliente(){
@@ -1570,7 +1598,8 @@ function saveCliente(){
     motivo:document.getElementById('cn-m').value,
     tipo:document.getElementById('cn-tipo').value,
     notas:document.getElementById('cn-no').value.trim(),
-    tel:'',dni:'',expte:'',etapa:'Cita',fecha:fmt(today),
+    tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',
+    dni:'',expte:'',etapa:'Cita',fecha:fmt(today),
     drive:'',driveFolderId:'',
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -1590,9 +1619,10 @@ function editCliente(id){
   var partes=(c.nombre||'').trim().split(' ');
   setVal('cn-n',c.apellido||partes[0]||c.nombre);
   setVal('cn-apellido',c.apellido||(partes.length>1?partes.slice(1).join(' '):''));
-  setVal('cn-edad',c.edad);setVal('cn-cuil',c.cuil);setVal('cn-dom',c.domicilio);
+  setVal('cn-edad',c.edad);setVal('cn-cuil',c.cuil);setVal('cn-tel',c.tel);setVal('cn-dom',c.domicilio);
   setVal('cn-empleador',c.empleador);setVal('cn-antiguedad',c.antiguedad);
   setVal('cn-m',c.motivo||'Despido');setVal('cn-tipo',c.tipo||'posible');setVal('cn-no',c.notas);
+  var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Editar cliente';
   var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
   if(saveBtn){
     saveBtn.textContent='Actualizar';
@@ -1601,12 +1631,12 @@ function editCliente(id){
       var ap=document.getElementById('cn-apellido')?document.getElementById('cn-apellido').value.trim():'';
       var nombreCompleto=ap?n+' '+ap:n;
       if(!n){alert('El nombre es obligatorio.');return;}
-      var data={nombre:nombreCompleto,apellido:ap,edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',motivo:document.getElementById('cn-m').value,tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
+      var data={nombre:nombreCompleto,apellido:ap,edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',motivo:document.getElementById('cn-m').value,tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
       db.collection('clientes').doc(id).update(data).then(function(){
         closeModal('m-cliente');showToast('Cliente actualizado ✓');
-        saveBtn.textContent='Guardar';saveBtn.onclick=saveCliente;
         var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
         if(!existing||!existing.driveFolderId){crearCarpetaCliente(data.nombre,function(folderId,folderLink){if(folderId)db.collection('clientes').doc(id).update({drive:folderLink,driveFolderId:folderId});});}
+        resetClienteForm();
       });
     };
   }
@@ -2046,6 +2076,30 @@ function saveOficio(){
   db.collection('oficios').add({cliente:cliente,desc:desc,numero:document.getElementById('oficio-numero').value.trim(),fechaEnvio:document.getElementById('oficio-fecha-envio').value,fechaRec:fechaRec,notas:document.getElementById('oficio-notas').value.trim(),estado:'activo',emailEnviado:false,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-oficio');showToast('Oficio guardado ✓');['oficio-desc','oficio-numero','oficio-notas','oficio-fecha-envio','oficio-fecha-rec'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});if(clienteEl)clienteEl.value='';if(clienteSearch)clienteSearch.value='';});
 }
 function enviarEmailOficio(o){if(typeof emailjs==='undefined')return;emailjs.send('service_2y03ev8','template_r3a3s99',{titulo:'Recordatorio oficio: '+o.desc,descripcion:'Cliente: '+o.cliente+(o.numero?' | N°: '+o.numero:'')+( o.notas?' | '+o.notas:''),fecha:o.fechaRec,name:'Sistema Casih & Asociados',email:'casihyasociados@gmail.com'}).catch(function(){});}
+
+// ─── ESTUDIOS PAGADOS ───
+function initEstudiosPagadosDash(){
+  db.collection('estudios_pagados').onSnapshot(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderEstudiosPagadosDash(list);},function(){db.collection('estudios_pagados').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderEstudiosPagadosDash(list);});});
+}
+function renderEstudiosPagadosDash(list){
+  var el=document.getElementById('dash-estudios-list');if(!el)return;
+  if(!list||list.length===0){el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin estudios cargados.</div>';return;}
+  var html='<div style="display:flex;flex-direction:column;gap:6px">';
+  list.forEach(function(e){
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:8px 10px"><div><div style="font-size:13px;font-weight:600;color:var(--text)">'+e.tipoEstudio+'</div><div style="font-size:12px;color:var(--text3)">👤 '+e.cliente+'</div></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;font-weight:600;color:var(--green)">'+fmtARS(e.monto||0)+'</span><button class="btn-danger" onclick="delDoc(\'estudios_pagados\',\''+e.id+'\')">✕</button></div></div>';
+  });
+  html+='</div>';el.innerHTML=html;
+}
+function saveEstudioPagado(){
+  var tipoEstudio=document.getElementById('ep-tipo').value.trim();
+  var cliente=document.getElementById('ep-cliente').value.trim();
+  var monto=parseFloat(document.getElementById('ep-monto').value);
+  if(!tipoEstudio||!cliente||!monto){alert('Tipo de estudio, cliente y monto son obligatorios.');return;}
+  db.collection('estudios_pagados').add({tipoEstudio:tipoEstudio,cliente:cliente,monto:monto,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    closeModal('m-estudio-pagado');showToast('Estudio guardado ✓');
+    ['ep-tipo','ep-cliente','ep-monto'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  });
+}
 
 // ─── CORREO DASHBOARD ───
 function initCorreoDash(){
@@ -3474,6 +3528,7 @@ function initApp() {
     initGastosRecientes();
     initCorreoDash();
     initOficiosDash();
+    initEstudiosPagadosDash();
     initCalendar();
     initConsumidor();
   }, 300);
