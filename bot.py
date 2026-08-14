@@ -385,6 +385,160 @@ def revisar_recordatorios():
 
     return jsonify({"status": "ok", "enviados": enviados, "errores": errores, "hora_chequeo": ahora.isoformat()}), 200
 
+# --- SEGUIMIENTO CORREO ARGENTINO ---
+# El formulario publico de seguimiento no pide captcha: es un POST simple que
+# devuelve un fragmento HTML con la tabla de movimientos (mas nuevo primero).
+CA_URL = "https://www.correoargentino.com.ar/sites/all/modules/custom/ca_forms/api/wsFacade.php"
+
+def consultar_correo_ca(prefijo, numero):
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        'Referer': 'https://www.correoargentino.com.ar/formularios/ondnc'
+    }
+    payload = {'action': 'ondnc', 'id': numero, 'producto': prefijo, 'pais': 'AR'}
+    resp = requests.post(CA_URL, data=payload, headers=headers, timeout=30)
+    resp.raise_for_status()
+    html = resp.content.decode('utf-8-sig', errors='replace')
+
+    if 'No se encontraron resultados' in html:
+        return []
+
+    filas = re.findall(
+        r'data-title="Fecha:">(.*?)</td>\s*'
+        r'<td data-title="Planta:">(.*?)</td>\s*'
+        r'<td data-title="Historia:">(.*?)</td>\s*'
+        r'<td data-title="Estado:">(.*?)</td>',
+        html, re.S
+    )
+    return [
+        {'fecha': f.strip(), 'planta': p.strip(), 'historia': h.strip(), 'estado': e.strip()}
+        for f, p, h, e in filas
+    ]
+
+@app.route('/revisar-correos', methods=['GET'])
+def revisar_correos():
+    actualizados = 0
+    sin_cambios = 0
+    errores = 0
+    consultados = 0
+    primeras = 0
+
+    try:
+        docs = list(db.collection('correos').stream())
+    except Exception as e:
+        print("Error leyendo correos:", str(e))
+        return jsonify({"status": "error", "detalle": str(e)}), 500
+
+    grupo = os.environ.get("GREEN_API_GROUP_ID")
+
+    for doc in docs:
+        data = doc.to_dict()
+        prefijo = data.get('caPrefijo')
+        numero = data.get('caNumero')
+
+        # Solo las piezas con codigo cargado y todavia no finalizadas
+        if not prefijo or not numero or data.get('caFinalizado'):
+            continue
+
+        consultados += 1
+        try:
+            movs = consultar_correo_ca(prefijo, numero)
+        except Exception as e_req:
+            print("Error consultando", prefijo, numero, str(e_req))
+            errores += 1
+            doc.reference.update({'caError': 'No se pudo consultar', 'caUltimaConsulta': firestore.SERVER_TIMESTAMP})
+            continue
+
+        if not movs:
+            doc.reference.update({'caError': 'Sin resultados en Correo Argentino', 'caUltimaConsulta': firestore.SERVER_TIMESTAMP})
+            continue
+
+        ultimo = movs[0]
+        previos = data.get('caMovimientos') or 0
+
+        update = {
+            'caEstado': ultimo['estado'],
+            'caHistoria': ultimo['historia'],
+            'caPlanta': ultimo['planta'],
+            'caFechaMov': ultimo['fecha'],
+            'caMovimientos': len(movs),
+            'caError': '',
+            'caUltimaConsulta': firestore.SERVER_TIMESTAMP
+        }
+
+        # Una vez entregada no se consulta mas
+        if ultimo['estado'].upper() == 'ENTREGADO':
+            update['caFinalizado'] = True
+
+        # La primera consulta solo deja registrado el estado actual: avisar de
+        # piezas recien cargadas seria ruido, no novedad.
+        primera_vez = not data.get('caConsultado')
+        update['caConsultado'] = True
+
+        doc.reference.update(update)
+
+        if primera_vez:
+            primeras += 1
+            continue
+
+        if len(movs) <= previos:
+            sin_cambios += 1
+            continue
+
+        actualizados += 1
+
+        if grupo:
+            cliente = data.get('cliente', 'Sin cliente')
+            pieza = "%s-%s-AR" % (prefijo, numero)
+            estado = ultimo['estado'].upper()
+
+            if estado == 'RECHAZADO':
+                msg = ("⚠️ *ENVÍO RECHAZADO*\n\n"
+                       "👤 *Cliente:* %s\n"
+                       "📦 *Pieza:* %s\n"
+                       "📍 *Movimiento:* %s\n"
+                       "🏢 *Planta:* %s\n"
+                       "📅 *Fecha:* %s\n\n"
+                       "_El destinatario rechazó la pieza. Revisar si requiere acción._"
+                       % (cliente, pieza, ultimo['historia'], ultimo['planta'], ultimo['fecha']))
+            elif estado == 'ENTREGADO':
+                msg = ("✅ *Envío entregado*\n\n"
+                       "👤 *Cliente:* %s\n"
+                       "📦 *Pieza:* %s\n"
+                       "🏢 *Planta:* %s\n"
+                       "📅 *Fecha:* %s"
+                       % (cliente, pieza, ultimo['planta'], ultimo['fecha']))
+            else:
+                msg = ("📦 *Novedad en envío*\n\n"
+                       "👤 *Cliente:* %s\n"
+                       "📦 *Pieza:* %s\n"
+                       "📍 *Movimiento:* %s\n"
+                       "🏢 *Planta:* %s\n"
+                       "📅 *Fecha:* %s"
+                       % (cliente, pieza, ultimo['historia'], ultimo['planta'], ultimo['fecha']))
+
+            responder_whatsapp(grupo, msg)
+
+    # Si fallaron todas, probablemente cambio el sitio o nos estan bloqueando:
+    # conviene enterarse en vez de que el chequeo quede roto en silencio.
+    if grupo and consultados > 0 and errores == consultados:
+        responder_whatsapp(
+            grupo,
+            "⚠️ *Seguimiento de correo*\nNo se pudo consultar ninguna pieza hoy (%d intento/s). "
+            "Puede que Correo Argentino haya cambiado el sitio o esté bloqueando las consultas." % errores
+        )
+
+    return jsonify({
+        "status": "ok",
+        "consultados": consultados,
+        "primera_consulta": primeras,
+        "con_novedad": actualizados,
+        "sin_cambios": sin_cambios,
+        "errores": errores
+    }), 200
+
 @app.route('/', methods=['GET'])
 def health():
     return "Servidor del Bot activo y funcionando correctamente.", 200

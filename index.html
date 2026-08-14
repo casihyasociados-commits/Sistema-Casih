@@ -744,6 +744,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal"><h3>Seguimiento de correo</h3>
     <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="co-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'co-cliente')"><select class="fs" id="co-cliente" style="margin-top:4px"><option value="">— Seleccionar cliente —</option></select></div>
     <div class="fg"><div class="fl">Código / referencia</div><input class="fi" id="co-codigo" placeholder="Ej: Expt. 12345/26"></div>
+    <div class="fg"><div class="fl">Código de seguimiento Correo Argentino</div><input class="fi" id="co-ca" placeholder="Ej: MD 002978823" oninput="previewCodigoCA()"><div id="co-ca-preview" style="font-size:11px;color:var(--text3);margin-top:4px">Opcional. Si lo cargás, el estado se actualiza solo todos los días.</div></div>
     <div class="fg"><div class="fl">Fecha</div><input class="fi" id="co-fecha" type="date"></div>
     <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="co-notas" placeholder="Descripción del seguimiento..."></textarea></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-correo')">Cancelar</button><button class="btn-primary" onclick="saveCorreo()">Guardar</button></div>
@@ -2044,7 +2045,12 @@ function renderCorreoTable(){
 function saveCorreo(){
   var cliente=(document.getElementById('co-cliente')?document.getElementById('co-cliente').value:'');
   var codigo=document.getElementById('co-codigo').value.trim();if(!cliente||!codigo){alert('Cliente y código son obligatorios.');return;}
-  db.collection('correos').add({cliente:cliente,codigo:codigo,fecha:document.getElementById('co-fecha').value,notas:document.getElementById('co-notas').value.trim(),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-correo');showToast('Seguimiento guardado ✓');document.getElementById('co-codigo').value='';document.getElementById('co-notas').value='';});
+  var caTxt=document.getElementById('co-ca')?document.getElementById('co-ca').value.trim():'';
+  var ca=parseCodigoCA(caTxt);
+  if(caTxt&&!ca){alert('El código de seguimiento de Correo Argentino no tiene un formato válido.\n\nDebe ser 2 letras + número, por ejemplo: MD 002978823');return;}
+  var doc={cliente:cliente,codigo:codigo,fecha:document.getElementById('co-fecha').value,notas:document.getElementById('co-notas').value.trim(),creadoEn:firebase.firestore.FieldValue.serverTimestamp()};
+  if(ca){doc.caPrefijo=ca.prefijo;doc.caNumero=ca.numero;doc.caMovimientos=0;doc.caFinalizado=false;doc.caConsultado=false;}
+  db.collection('correos').add(doc).then(function(){closeModal('m-correo');showToast('Seguimiento guardado ✓');['co-codigo','co-notas','co-ca'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});previewCodigoCA();});
 }
 
 // ─── SEGUIMIENTO OFICIO ───
@@ -2102,6 +2108,33 @@ function saveEstudioPagado(){
 }
 
 // ─── CORREO DASHBOARD ───
+// Acepta "MD 002978823", "MD-2978823-AR", "MD002978823" (2 letras + numero)
+function parseCodigoCA(txt){
+  if(!txt)return null;
+  var t=String(txt).toUpperCase().replace(/\s+/g,'');
+  var m=t.match(/^([A-Z]{2})-?(\d+)(?:-?AR)?$/);
+  if(!m)return null;
+  return {prefijo:m[1],numero:m[2]};
+}
+function previewCodigoCA(){
+  var el=document.getElementById('co-ca'),prev=document.getElementById('co-ca-preview');
+  if(!el||!prev)return;
+  var v=el.value.trim();
+  if(!v){prev.style.color='var(--text3)';prev.textContent='Opcional. Si lo cargás, el estado se actualiza solo todos los días.';return;}
+  var p=parseCodigoCA(v);
+  if(p){prev.style.color='var(--green)';prev.textContent='✓ Se consultará como '+p.prefijo+'-'+p.numero+'-AR';}
+  else{prev.style.color='var(--orange)';prev.textContent='⚠ Formato no reconocido. Debe ser 2 letras + número (ej: MD 002978823).';}
+}
+// Verde entregado / rojo rechazado / naranja en calle / gris en transito
+function caBadge(co){
+  var est=(co.caEstado||'').toUpperCase();
+  if(est==='ENTREGADO')return '<span class="badge b-green">Entregado</span>';
+  if(est==='RECHAZADO')return '<span class="badge b-red">⚠ Rechazado</span>';
+  var h=(co.caHistoria||'').toUpperCase();
+  if(!h)return '<span class="badge b-gray">Sin consultar</span>';
+  if(h.indexOf('INTENTO DE ENTREGA')>=0||h.indexOf('PODER DEL CARTERO')>=0)return '<span class="badge b-orange">'+co.caHistoria+'</span>';
+  return '<span class="badge b-gray">'+co.caHistoria+'</span>';
+}
 function initCorreoDash(){
   db.collection('correos').onSnapshot(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderCorreoDash(list);},function(){db.collection('correos').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderCorreoDash(list);});});
 }
@@ -2117,6 +2150,14 @@ function renderCorreoDash(list){
     html+='</div>';
     html+='<div style="font-size:12px;color:var(--text3);margin-bottom:6px">'+(co.notas||'Sin descripción')+'</div>';
     html+='<a href="https://www.correoargentino.com.ar/" target="_blank" style="font-size:12px;color:var(--blue);font-family:monospace">'+co.codigo+'</a>';
+    if(co.caNumero){
+      html+='<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">';
+      html+='<div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:5px">'+co.caPrefijo+'-'+co.caNumero+'-AR</div>';
+      html+=caBadge(co);
+      if(co.caFechaMov)html+='<div style="font-size:11px;color:var(--text3);margin-top:5px">'+co.caFechaMov+(co.caPlanta?' · '+co.caPlanta:'')+'</div>';
+      if(co.caError)html+='<div style="font-size:11px;color:var(--orange);margin-top:4px">⚠ '+co.caError+'</div>';
+      html+='</div>';
+    }
     html+='</div>';
   });
   html+='</div>';
