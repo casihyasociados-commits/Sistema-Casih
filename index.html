@@ -269,7 +269,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
-    <button class="nav-btn" onclick="goTo('nuevosservicios')">Nuevos Servicios</button>
+    <button class="nav-btn" onclick="goTo('escritos')">Escritos IA</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -552,61 +552,45 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
-<!-- NUEVOS SERVICIOS -->
-<div class="section" id="sec-nuevosservicios">
+<!-- ESCRITOS CON IA -->
+<div class="section" id="sec-escritos">
   <div class="page-header">
     <div>
-      <div class="page-title">Nuevos Servicios</div>
-      <div class="page-sub">Derecho del Consumidor · Derecho Societario · Material de uso interno del equipo</div>
+      <div class="page-title">Escritos con IA</div>
+      <div class="page-sub">Genera un primer borrador con el estilo del estudio — siempre revisar antes de presentar</div>
     </div>
   </div>
-
-  <!-- SELECTOR PRINCIPAL -->
-  <div style="display:flex;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap">
-    <button id="ns-btn-consumidor" onclick="nuevosServiciosMostrar('consumidor')" style="flex:1;min-width:200px;padding:16px 20px;border-radius:12px;border:2px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;transition:all 0.15s">
-      <div style="font-size:18px;margin-bottom:4px">⚖️</div>
-      <div style="font-size:14px;font-weight:700">Defensa del Consumidor</div>
-      <div style="font-size:11px;opacity:0.8;margin-top:2px">Planes de ahorro · Medicina prepaga · Bancos y tarjetas</div>
-    </button>
-    <button id="ns-btn-sociedades" onclick="nuevosServiciosMostrar('sociedades')" style="flex:1;min-width:200px;padding:16px 20px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;transition:all 0.15s">
-      <div style="font-size:18px;margin-bottom:4px">🏛️</div>
-      <div style="font-size:14px;font-weight:700">Derecho Societario</div>
-      <div style="font-size:11px;opacity:0.8;margin-top:2px">SAS · SRL · SA · Modificaciones · IPJ Córdoba</div>
-    </button>
-  </div>
-
-  <!-- CONTENEDOR CONSUMIDOR -->
-  <div id="ns-consumidor">
-    <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
-      ⚠️ <strong>Uso interno.</strong> Los montos y estimaciones de daño moral y punitivo son orientativos. Verificar siempre jurisprudencia local actualizada antes de cuantificar en cualquier demanda.
+  <div class="card" style="max-width:720px">
+    <div class="fg">
+      <div class="fl">Tipo de escrito</div>
+      <select class="fs" id="es-tipo">
+        <option value="denuncia_trabajo">Denuncia laboral — Ministerio de Trabajo</option>
+      </select>
     </div>
-    <div class="cap-layout">
-      <div class="cap-sidebar">
-        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Introducción</div>
-        <button class="cap-sector-btn active" id="capbtn-intro" onclick="capMostrar('intro')">📖 Marco general</button>
-        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:14px">Sectores</div>
-        <button class="cap-sector-btn s1" id="capbtn-s1" onclick="capMostrar('s1')">🚗 Planes de ahorro</button>
-        <button class="cap-sector-btn s2" id="capbtn-s2" onclick="capMostrar('s2')">🏥 Medicina prepaga</button>
-        <button class="cap-sector-btn s3" id="capbtn-s3" onclick="capMostrar('s3')">🏦 Bancos y tarjetas</button>
+    <div class="fg">
+      <div class="fl">Cliente *</div>
+      <div style="position:relative">
+        <input class="fi" id="es-cliente-search" placeholder="Escribí para buscar..." oninput="filtrarClientes('es-cliente-search','es-cliente-dropdown')" onfocus="filtrarClientes('es-cliente-search','es-cliente-dropdown')" autocomplete="off">
+        <input type="hidden" id="es-cliente" value="">
+        <div id="es-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
       </div>
-      <div id="cap-contenido"></div>
     </div>
+    <div class="fg">
+      <div class="fl">Hechos del caso *</div>
+      <textarea class="fta" id="es-hechos" style="min-height:160px" placeholder="Contá el caso como se lo explicarías a un colega: cuándo ingresó, qué pasó, si mandó cartas documento y qué decían, si hubo respuesta, qué se reclama..."></textarea>
+    </div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">
+      El escrito se genera con IA a partir de los datos del cliente y lo que describas acá. Revisalo y corregilo siempre antes de presentarlo — es un primer borrador, no un documento final.
+    </div>
+    <button class="btn-primary" id="es-btn-generar" onclick="generarEscrito()" style="width:100%;padding:12px">✨ Generar con IA</button>
   </div>
 
-  <!-- CONTENEDOR SOCIEDADES -->
-  <div id="ns-sociedades" style="display:none">
-    <div style="background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:12px;color:var(--orange);line-height:1.5">
-      ⚠️ <strong>Borrador para revisión profesional.</strong> Los requisitos registrales son fijados por resolución de la IPJ Córdoba y se modifican con frecuencia. Verificar el estado actual en tramitesipj.cba.gov.ar antes de cada presentación.
+  <div class="card" id="es-resultado-card" style="max-width:720px;display:none;margin-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">Borrador generado</div>
+      <button class="btn-sm" onclick="copiarEscrito()">📋 Copiar texto</button>
     </div>
-    <div class="tabs" id="soc-tabs" style="margin-bottom:1.25rem;flex-wrap:wrap">
-      <button class="tab active" onclick="socMostrar('intro')">📖 Introducción</button>
-      <button class="tab" onclick="socMostrar('sas')">SAS</button>
-      <button class="tab" onclick="socMostrar('srl')">SRL</button>
-      <button class="tab" onclick="socMostrar('sa')">SA</button>
-      <button class="tab" onclick="socMostrar('mod')">Modificaciones</button>
-      <button class="tab" onclick="socMostrar('alertas')">⚠ Alertas normativas</button>
-    </div>
-    <div id="soc-contenido"></div>
+    <textarea class="fta" id="es-resultado" style="min-height:420px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
   </div>
 </div>
 
@@ -742,8 +726,8 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-correo" onclick="if(event.target===this)closeModal('m-correo')">
   <div class="modal"><h3>Seguimiento de correo</h3>
-    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="co-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'co-cliente')"><select class="fs" id="co-cliente" style="margin-top:4px"><option value="">— Seleccionar cliente —</option></select></div>
-    <div class="fg"><div class="fl">Código / referencia</div><input class="fi" id="co-codigo" placeholder="Ej: Expt. 12345/26"></div>
+    <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="co-cliente" placeholder="Nombre y apellido"></div>
+    <div class="fg"><div class="fl">Documentación</div><input class="fi" id="co-codigo" placeholder="Ej: Carta documento, cédula de notificación..."></div>
     <div class="fg"><div class="fl">Código de seguimiento Correo Argentino</div><input class="fi" id="co-ca" placeholder="Ej: MD 002978823" oninput="previewCodigoCA()"><div id="co-ca-preview" style="font-size:11px;color:var(--text3);margin-top:4px">Opcional. Si lo cargás, el estado se actualiza solo todos los días.</div></div>
     <div class="fg"><div class="fl">Fecha</div><input class="fi" id="co-fecha" type="date"></div>
     <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="co-notas" placeholder="Descripción del seguimiento..."></textarea></div>
@@ -776,7 +760,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal"><h3>Nuevo estudio pagado</h3>
     <div class="fg"><div class="fl">Tipo de estudio *</div><input class="fi" id="ep-tipo" placeholder="Ej: Radiografía, RMN, análisis clínicos"></div>
     <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="ep-cliente" placeholder="Nombre del cliente"></div>
-    <div class="fg"><div class="fl">Monto pagado *</div><input class="fi" id="ep-monto" type="number" placeholder="$"></div>
+    <div class="fg"><div class="fl">Monto pagado *</div><input class="fi" id="ep-monto" type="text" placeholder="$0"></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-estudio-pagado')">Cancelar</button><button class="btn-primary" onclick="saveEstudioPagado()">Guardar</button></div>
   </div>
 </div>
@@ -893,6 +877,7 @@ input.currency-input{letter-spacing:0.5px;}
 
 <script>
 // ─── FIREBASE CONFIG ───
+const BOT_URL = "https://sistema-casih.onrender.com";
 const firebaseConfig = {
   apiKey: "AIzaSyAJgmhuG2v6Bnun37mgqLUA0f0KLdcnvY8",
   authDomain: "sistemacasih.firebaseapp.com",
@@ -957,14 +942,13 @@ function closeModal(id){document.getElementById(id).className='modal-bg';}
 function goTo(s){
   document.querySelectorAll('.section').forEach(function(x){x.className='section';});
   document.getElementById('sec-'+s).className='section active';
-  ['dashboard','clientes','tareas','agenda','admin','nuevosservicios'].forEach(function(n,i){
+  ['dashboard','clientes','tareas','agenda','admin','escritos'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes')renderClientes();
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
-  if(s==='nuevosservicios'){setTimeout(function(){nuevosServiciosMostrar('consumidor');},50);}
 }
 
 // ─── FECHA ───
@@ -1149,7 +1133,7 @@ function updCStats(){
 
 function updateClienteSelects(){
   var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
-  ['ev-cliente','tn-cl','er-cliente','hd-cliente','rec-cliente','co-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
+  ['ev-cliente','tn-cl','er-cliente','hd-cliente','rec-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
 }
 
 function setCtab(t){
@@ -2043,14 +2027,22 @@ function renderCorreoTable(){
   });
 }
 function saveCorreo(){
-  var cliente=(document.getElementById('co-cliente')?document.getElementById('co-cliente').value:'');
-  var codigo=document.getElementById('co-codigo').value.trim();if(!cliente||!codigo){alert('Cliente y código son obligatorios.');return;}
+  var cliente=(document.getElementById('co-cliente')?document.getElementById('co-cliente').value.trim():'');
+  var codigo=document.getElementById('co-codigo').value.trim();if(!cliente||!codigo){alert('Cliente y documentación son obligatorios.');return;}
   var caTxt=document.getElementById('co-ca')?document.getElementById('co-ca').value.trim():'';
   var ca=parseCodigoCA(caTxt);
   if(caTxt&&!ca){alert('El código de seguimiento de Correo Argentino no tiene un formato válido.\n\nDebe ser 2 letras + número, por ejemplo: MD 002978823');return;}
   var doc={cliente:cliente,codigo:codigo,fecha:document.getElementById('co-fecha').value,notas:document.getElementById('co-notas').value.trim(),creadoEn:firebase.firestore.FieldValue.serverTimestamp()};
   if(ca){doc.caPrefijo=ca.prefijo;doc.caNumero=ca.numero;doc.caMovimientos=0;doc.caFinalizado=false;doc.caConsultado=false;}
-  db.collection('correos').add(doc).then(function(){closeModal('m-correo');showToast('Seguimiento guardado ✓');['co-codigo','co-notas','co-ca'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});previewCodigoCA();});
+  db.collection('correos').add(doc).then(function(docRef){
+    closeModal('m-correo');showToast('Seguimiento guardado ✓');
+    ['co-cliente','co-codigo','co-notas','co-ca'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    previewCodigoCA();
+    if(ca){
+      showToast('Consultando estado en Correo Argentino...');
+      fetch(BOT_URL+'/revisar-correo-individual?id='+docRef.id).catch(function(){});
+    }
+  });
 }
 
 // ─── SEGUIMIENTO OFICIO ───
@@ -2099,7 +2091,7 @@ function renderEstudiosPagadosDash(list){
 function saveEstudioPagado(){
   var tipoEstudio=document.getElementById('ep-tipo').value.trim();
   var cliente=document.getElementById('ep-cliente').value.trim();
-  var monto=parseFloat(document.getElementById('ep-monto').value);
+  var monto=getCurrencyValue(document.getElementById('ep-monto'));
   if(!tipoEstudio||!cliente||!monto){alert('Tipo de estudio, cliente y monto son obligatorios.');return;}
   db.collection('estudios_pagados').add({tipoEstudio:tipoEstudio,cliente:cliente,monto:monto,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     closeModal('m-estudio-pagado');showToast('Estudio guardado ✓');
@@ -2138,8 +2130,9 @@ function caBadge(co){
 function initCorreoDash(){
   db.collection('correos').onSnapshot(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderCorreoDash(list);},function(){db.collection('correos').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderCorreoDash(list);});});
 }
-function renderCorreoDash(list){
+function renderCorreoDash(listCompleta){
   var el=document.getElementById('dash-correo-list');if(!el)return;
+  var list=listCompleta.filter(function(c){return !c.archivado;});
   if(list.length===0){el.innerHTML='<div style="font-size:13px;color:var(--text3)">Sin envíos cargados.</div>';return;}
   var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">';
   list.forEach(function(co){
@@ -2156,6 +2149,7 @@ function renderCorreoDash(list){
       html+=caBadge(co);
       if(co.caFechaMov)html+='<div style="font-size:11px;color:var(--text3);margin-top:5px">'+co.caFechaMov+(co.caPlanta?' · '+co.caPlanta:'')+'</div>';
       if(co.caError)html+='<div style="font-size:11px;color:var(--orange);margin-top:4px">⚠ '+co.caError+'</div>';
+      if((co.caEstado||'').toUpperCase()==='ENTREGADO')html+='<button data-archivar="'+co.id+'" style="margin-top:8px;width:100%;font-size:11px;padding:5px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">🗄 Archivar</button>';
       html+='</div>';
     }
     html+='</div>';
@@ -2166,6 +2160,12 @@ function renderCorreoDash(list){
     btn.addEventListener('click',function(){
       var id=this.getAttribute('data-cid');
       if(confirm('¿Eliminar este seguimiento?'))db.collection('correos').doc(id).delete().then(function(){showToast('Eliminado ✓');});
+    });
+  });
+  el.querySelectorAll('[data-archivar]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=this.getAttribute('data-archivar');
+      db.collection('correos').doc(id).update({archivado:true}).then(function(){showToast('Seguimiento archivado ✓');});
     });
   });
 }
@@ -2187,7 +2187,7 @@ function delGastoRapido(id){if(!confirm('¿Eliminar este gasto?'))return;db.coll
 // ─── CURRENCY FORMAT ───
 function formatCurrency(input){var cursor=input.selectionStart,oldLen=input.value.length;var val=input.value.replace(/\./g,'').replace(/,/g,'').replace(/[^0-9]/g,'');if(!val){input.value='';input.dataset.raw='';return;}var formatted=parseInt(val).toLocaleString('es-AR');input.value=formatted;input.dataset.raw=val;var newLen=formatted.length;var newCursor=cursor+(newLen-oldLen);try{input.setSelectionRange(newCursor,newCursor);}catch(e){}}
 function getCurrencyValue(input){return parseFloat((input.dataset.raw||input.value.replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,''))||0);}
-function applyCurrencyInputs(){var ids=['hd-monto-cuota','in-mo','ga-mo','gasto-monto'];ids.forEach(function(id){var el=document.getElementById(id);if(!el||el.dataset.currencyApplied)return;el.dataset.currencyApplied='1';el.classList.add('currency-input');el.setAttribute('type','text');el.setAttribute('inputmode','numeric');el.addEventListener('keyup',function(){formatCurrency(this);});el.addEventListener('input',function(){formatCurrency(this);});el.addEventListener('paste',function(){var self=this;setTimeout(function(){formatCurrency(self);},10);});});}
+function applyCurrencyInputs(){var ids=['hd-monto-cuota','in-mo','ga-mo','gasto-monto','ep-monto'];ids.forEach(function(id){var el=document.getElementById(id);if(!el||el.dataset.currencyApplied)return;el.dataset.currencyApplied='1';el.classList.add('currency-input');el.setAttribute('type','text');el.setAttribute('inputmode','numeric');el.addEventListener('keyup',function(){formatCurrency(this);});el.addEventListener('input',function(){formatCurrency(this);});el.addEventListener('paste',function(){var self=this;setTimeout(function(){formatCurrency(self);},10);});});}
 
 // ─── TIPO TAREA TOGGLE ───
 function setTipoTarea(tipo){
@@ -2217,6 +2217,49 @@ function filtrarClientes(inputId,dropdownId){
   dropdown.style.display='block';
   dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
+}
+
+// ─── ESCRITOS CON IA ───
+function generarEscrito(){
+  var nombre=document.getElementById('es-cliente').value.trim();
+  var hechos=document.getElementById('es-hechos').value.trim();
+  var tipo=document.getElementById('es-tipo').value;
+  if(!nombre){alert('Seleccioná un cliente de la lista.');return;}
+  if(!hechos){alert('Describí los hechos del caso.');return;}
+  var cliente=CLIENTES_CACHE.find(function(c){return c.nombre===nombre;});
+  if(!cliente){alert('No encontré ese cliente en el sistema. Elegilo de la lista desplegable.');return;}
+
+  var btn=document.getElementById('es-btn-generar');
+  btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
+  document.getElementById('es-resultado-card').style.display='none';
+
+  fetch(BOT_URL+'/generar-escrito',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      tipo:tipo,
+      hechos:hechos,
+      cliente:{nombre:cliente.nombre,cuil:cliente.cuil,edad:cliente.edad,domicilio:cliente.domicilio,tel:cliente.tel,empleador:cliente.empleador,motivo:cliente.motivo,antiguedad:cliente.antiguedad}
+    })
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('es-resultado').value=data.texto;
+      document.getElementById('es-resultado-card').style.display='block';
+      document.getElementById('es-resultado-card').scrollIntoView({behavior:'smooth'});
+      showToast('Borrador generado ✓ — revisalo antes de usarlo');
+    }else{
+      alert('No se pudo generar el escrito: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor. Puede que esté "despertando" (tarda hasta 1 minuto la primera vez) — probá de nuevo en unos segundos.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar con IA';
+  });
+}
+function copiarEscrito(){
+  var ta=document.getElementById('es-resultado');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado al portapapeles ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
 }
 
 function filterClientSearch(q,selectId){
@@ -2295,1069 +2338,6 @@ function renderAnalisis(){
     var tbody=document.getElementById('anual-table');if(tbody)tbody.innerHTML=rows;
   });
 }
-
-
-// ─── NUEVOS SERVICIOS ───
-function nuevosServiciosMostrar(cual){
-  var isConsumidor=cual==='consumidor';
-  document.getElementById('ns-consumidor').style.display=isConsumidor?'block':'none';
-  document.getElementById('ns-sociedades').style.display=isConsumidor?'none':'block';
-  var btnC=document.getElementById('ns-btn-consumidor'),btnS=document.getElementById('ns-btn-sociedades');
-  if(btnC){btnC.style.border=isConsumidor?'2px solid var(--blue)':'1px solid var(--border)';btnC.style.background=isConsumidor?'var(--blue-bg)':'var(--bg2)';btnC.style.color=isConsumidor?'var(--blue)':'var(--text2)';}
-  if(btnS){btnS.style.border=isConsumidor?'1px solid var(--border)':'2px solid var(--purple)';btnS.style.background=isConsumidor?'var(--bg2)':'var(--purple-bg)';btnS.style.color=isConsumidor?'var(--text2)':'var(--purple)';}
-  if(isConsumidor){setTimeout(function(){capMostrar('intro');},50);}
-  else{setTimeout(function(){socMostrar('intro');},50);}
-}
-
-// ─── CAPACITACIÓN ───
-
-function capMostrar(seccion) {
-  // Actualizar botones sidebar
-  document.querySelectorAll('.cap-sector-btn').forEach(function(b) { b.classList.remove('active'); });
-  var btn = document.getElementById('capbtn-' + seccion);
-  if (btn) btn.classList.add('active');
-
-  var contenido = document.getElementById('cap-contenido');
-  if (!contenido) return;
-
-  if (seccion === 'intro') { contenido.innerHTML = capRenderIntro(); return; }
-  if (seccion === 's1') { contenido.innerHTML = capRenderSector('s1'); return; }
-  if (seccion === 's2') { contenido.innerHTML = capRenderSector('s2'); return; }
-  if (seccion === 's3') { contenido.innerHTML = capRenderSector('s3'); return; }
-}
-
-function capCard(titulo, html, color) {
-  color = color || 'var(--border)';
-  return '<div class="card" style="margin-bottom:12px;border-left:3px solid ' + color + '">' +
-    '<div class="card-title">' + titulo + '</div>' + html + '</div>';
-}
-
-function capNorma(art, texto, color) {
-  color = color || 'var(--blue)';
-  return '<div class="cap-norma-item"><span class="cap-norma-art" style="color:' + color + '">' + art + '</span>' + texto + '</div>';
-}
-
-function capStep(num, texto, warn) {
-  return '<div class="cap-step"><div class="cap-step-num' + (warn ? ' warn' : '') + '">' + (warn ? '!' : num) + '</div><div class="cap-step-body">' + texto + '</div></div>';
-}
-
-function capConsulta(texto) {
-  return '<div class="cap-consulta">"' + texto + '"</div>';
-}
-
-function capSemaforo(color, texto) {
-  return '<span class="semaforo-' + color + '">' + (color === 'verde' ? '🟢' : color === 'amarillo' ? '🟡' : '🔴') + ' ' + texto + '</span>';
-}
-
-// ─── INTRO ───
-function capRenderIntro() {
-  var html = '';
-
-  // Tabs intro
-  html += '<div class="cap-tabs-inner" id="intro-tabs">' +
-    '<button class="cap-tab-inner active" onclick="introTab(\'sistema\')">1. El sistema legal</button>' +
-    '<button class="cap-tab-inner" onclick="introTab(\'vias\')">2. Las dos vías</button>' +
-    '<button class="cap-tab-inner" onclick="introTab(\'punitivo\')">3. Daño punitivo</button>' +
-    '<button class="cap-tab-inner" onclick="introTab(\'prescripcion\')">4. Prescripción</button>' +
-    '<button class="cap-tab-inner" onclick="introTab(\'viabilidad\')">5. Viabilidad</button>' +
-    '</div>';
-
-  html += '<div id="intro-tab-content"></div>';
-
-  setTimeout(function() { introTab('sistema'); }, 50);
-  return html;
-}
-
-function introTab(key) {
-  document.querySelectorAll('#intro-tabs .cap-tab-inner').forEach(function(b) { b.classList.remove('active'); });
-  var tabs = ['sistema', 'vias', 'punitivo', 'prescripcion', 'viabilidad'];
-  var idx = tabs.indexOf(key);
-  var btns = document.querySelectorAll('#intro-tabs .cap-tab-inner');
-  if (btns[idx]) btns[idx].classList.add('active');
-
-  var el = document.getElementById('intro-tab-content');
-  if (!el) return;
-
-  var html = '';
-  if (key === 'sistema') {
-    html += capCard('¿Por qué incorporamos este servicio?',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">Cualquier persona que paga un servicio, tiene una prepaga, un plan de ahorro o un préstamo bancario es un consumidor. Cuando una empresa le falla, la ley le da herramientas concretas para reclamar y obtener una indemnización.</p>' +
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">La norma central es la <strong style="color:var(--text)">Ley 24.240 (LDC)</strong>. Su principio más importante está en el artículo 3: en caso de duda, siempre se interpreta a favor del consumidor. Ese principio tiene jerarquía constitucional — artículo 42 CN.</p>' +
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Lo que hace especialmente atractiva esta área es que el modelo de trabajo es idéntico al laboral. La diferencia clave respecto al laboral es el <strong style="color:var(--green)">daño punitivo del artículo 52 bis</strong> — el equivalente directo del artículo 2 de la Ley 25.323 que ya conocemos bien: el rubro que transforma el resultado de un caso y hace viable el modelo de honorarios sobre resultado.</p>',
-      'var(--blue)');
-
-    html += capCard('Las normas que el equipo usa todos los días',
-      [
-        capNorma('Art. 1 LDC', '¿Quién es consumidor? Primer check de toda consulta.'),
-        capNorma('Art. 2 LDC', '¿Quién es proveedor? Una administradora, un banco, una prepaga: todos son proveedores.'),
-        capNorma('Art. 3 LDC', 'Principio pro consumidor — regla de desempate de todo el área. En caso de duda, gana el consumidor.', 'var(--green)'),
-        capNorma('Art. 4 LDC', 'Deber de información — cualquier vez que la empresa no informó algo relevante, hay infracción.'),
-        capNorma('Art. 8 LDC', 'La publicidad integra el contrato y es exigible aunque no esté en el texto escrito.'),
-        capNorma('Art. 37 LDC', 'Cláusulas abusivas — nulas aunque el cliente haya firmado. Aplica a cargos escondidos, penalidades desproporcionadas, actualizaciones sin tope.', 'var(--orange)'),
-        capNorma('Art. 50 LDC', 'Prescripción: 3 años desde cada acto dañoso individual. Primer filtro de toda consulta.', 'var(--red)'),
-        capNorma('Art. 52 bis LDC', 'Daño punitivo — el rubro que transforma el modelo de honorarios.', 'var(--green)'),
-        capNorma('Art. 53 LDC', 'Inversión de la carga de la prueba — el proveedor debe probar, no el consumidor.'),
-        capNorma('Art. 2654 CCCN', 'Cláusulas de prórroga de jurisdicción al extranjero = nulas. El cliente siempre puede demandar en Córdoba.', 'var(--purple)')
-      ].join(''), 'var(--blue)');
-
-    html += capCard('Sectores prioritarios del estudio',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Luego de analizar viabilidad, frecuencia de consulta, rentabilidad real y complejidad operativa, el estudio trabaja con tres sectores prioritarios:</p>' +
-      '<div style="display:flex;flex-direction:column;gap:8px">' +
-        '<div style="background:var(--orange-bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--orange)"><strong>🚗 Planes de ahorro automotor</strong> — Montos altos, cliente muy motivado, contratos estandarizables.</div>' +
-        '<div style="background:var(--green-bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green)"><strong>🏥 Medicina prepaga y obras sociales</strong> — Daño moral más alto del sistema, clientes con urgencia, honorarios muy altos.</div>' +
-        '<div style="background:var(--purple-bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--purple)"><strong>🏦 Bancos y tarjetas de crédito</strong> — Demandados más solventes, daño emergente exacto desde los resúmenes, punitivo alto.</div>' +
-      '</div>', 'var(--orange)');
-  }
-
-  else if (key === 'vias') {
-    html += capCard('Vía Administrativa',
-      '<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">El cliente denuncia ante la Dirección Provincial o Municipal de Defensa del Consumidor de Córdoba. La autoridad convoca a una audiencia conciliatoria. Si hay acuerdo, se homologa. Si no, se instruye un sumario.</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:12px">' +
-        '<div style="background:var(--green-bg);border-radius:6px;padding:8px">✅ Reintegro o cumplimiento del servicio</div>' +
-        '<div style="background:var(--red-bg);border-radius:6px;padding:8px;color:var(--red)">✗ Sin daño moral ni punitivo</div>' +
-        '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">📍 Tucumán 176, Córdoba / Online: cidi.cba.gov.ar</div>' +
-        '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⏱ 30 a 60 días · Sin abogado obligatorio</div>' +
-      '</div>', 'var(--green)');
-
-    html += capCard('Vía Civil Directa',
-      '<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">El cliente demanda directamente ante los Juzgados Civil y Comercial de Córdoba. Puede iniciarse antes, durante o después de la vía administrativa. Es donde está el resultado económico real.</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:12px">' +
-        '<div style="background:var(--green-bg);border-radius:6px;padding:8px;color:var(--green)">✅ Daño emergente + intereses + daño moral + punitivo</div>' +
-        '<div style="background:var(--orange-bg);border-radius:6px;padding:8px;color:var(--orange)">⚠ Mediación prejudicial obligatoria (Ley 8858) antes de demandar</div>' +
-        '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⏱ 6 a 18 meses</div>' +
-        '<div style="background:var(--bg3);border-radius:6px;padding:8px;color:var(--text2)">⚖ Siempre requiere abogado</div>' +
-      '</div>' +
-      '<div style="background:var(--blue-bg);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--blue);margin-bottom:8px"><strong>Estrategia más habitual:</strong> Ambas vías en paralelo. La multa administrativa va al Estado; la indemnización civil va al cliente. Son independientes y compatibles.</div>' +
-      '<div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;color:var(--text2);line-height:1.7">' +
-        '<strong style="color:var(--text)">¿Y si la vía administrativa resuelve primero?</strong><br><br>' +
-        'Si la administrativa resuelve con el reintegro completo del daño emergente, el estudio evalúa si vale la pena seguir con la civil solo por el daño moral y el punitivo. ' +
-        'En muchos casos <strong style="color:var(--text)">sí vale la pena</strong>, porque esos rubros pueden ser significativamente mayores al daño emergente. ' +
-        'Un caso donde el daño emergente fue de $300.000 y la administrativa lo reintegró puede tener un daño moral de $400.000 y un punitivo de $800.000 esperando en la civil. ' +
-        'El criterio del equipo: si el acuerdo administrativo incluye una cláusula de renuncia a acciones futuras, <strong style="color:var(--red)">no firmar sin analizar</strong> el potencial de la vía civil primero. ' +
-        'Si el acuerdo no tiene renuncia, el reintegro cobrado no impide continuar con la civil por los demás rubros.' +
-      '</div>',
-      'var(--blue)');
-  }
-
-  else if (key === 'punitivo') {
-    html += capCard('¿Qué es el daño punitivo?',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Es una multa civil que el juez impone al proveedor <strong style="color:var(--text)">a favor del consumidor</strong>, por encima de la reparación del daño real. No compensa un daño específico del cliente: castiga la conducta del proveedor y la disuade para que no la repita. Lo establece el <strong style="color:var(--green)">artículo 52 bis de la LDC</strong>.</p>' +
-      '<div style="background:var(--green-bg);border-radius:8px;padding:12px;font-size:12px;color:var(--green);line-height:1.6"><strong>Analogía con el laboral:</strong> El punitivo del art. 52 bis LDC cumple exactamente el mismo rol que el art. 2 de la Ley 25.323. Un daño emergente de $200.000 con punitivo aplicable puede convertirse en una condena de $1.000.000 o más. Esa diferencia es lo que cierra el modelo económico del servicio.</div>',
-      'var(--green)');
-
-    html += capCard('¿Cuándo procede?',
-      '<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text2)">' +
-        '<div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-size:14px;flex-shrink:0">✓</span><span>La conducta es <strong>masiva y sistemática</strong> — no un error aislado sino una pauta deliberada que afecta a miles simultáneamente.</span></div>' +
-        '<div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-size:14px;flex-shrink:0">✓</span><span>El proveedor <strong>obtiene un beneficio económico directo</strong> de la conducta. Cobrar algo indebido o negar una prestación obligatoria le ahorra o genera dinero.</span></div>' +
-        '<div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-size:14px;flex-shrink:0">✓</span><span>El proveedor <strong>ignoró los reclamos individuales</strong> porque el costo de ignorarlos era menor que el beneficio de continuar.</span></div>' +
-        '<div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-size:14px;flex-shrink:0">✓</span><span>El proveedor no corrigió el problema voluntariamente cuando tuvo la oportunidad.</span></div>' +
-      '</div>' +
-      '<div style="margin-top:12px;background:var(--orange-bg);border-radius:6px;padding:10px;font-size:12px;color:var(--orange)"><strong>Regla operativa:</strong> Antes de cuantificar el punitivo en cualquier demanda, verificar jurisprudencia actualizada de las Cámaras Civiles y Comerciales de Córdoba.</div>',
-      'var(--green)');
-  }
-
-  else if (key === 'prescripcion') {
-    html += capCard('Art. 50 LDC — 3 años desde cada acto dañoso individual',
-      '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--red)"><strong>Es lo primero que se verifica en toda consulta, antes de analizar el fondo del reclamo.</strong></div>' +
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">En cobros indebidos el plazo corre desde cada cobro por separado, no desde el primero. Parte de los cobros puede estar prescripta aunque otros no.</p>' +
-      '<div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;color:var(--text2);line-height:1.7">' +
-        '<strong style="color:var(--text)">Ejemplo:</strong> Cobro indebido desde enero 2022, consulta en junio 2026.<br>' +
-        '<span style="color:var(--red)">✗ Prescriptos:</span> enero 2022 a mayo 2023 — no se pueden reclamar.<br>' +
-        '<span style="color:var(--green)">✓ Vigentes:</span> junio 2023 a junio 2026 (36 meses) — sí se reclaman.<br>' +
-        'Si el cobro era $10.000/mes → daño emergente reclamable: <strong style="color:var(--green)">$360.000</strong>' +
-      '</div>',
-      'var(--red)');
-
-    html += capCard('Cómputo según el tipo de reclamo',
-      '<div style="display:flex;flex-direction:column;gap:10px">' +
-
-        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
-          '<div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px">🚗 PLANES DE AHORRO — Cuota que se triplicó</div>' +
-          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde cada cuota cobrada en exceso</div>' +
-          '<div style="font-size:12px;color:var(--text2);line-height:1.6">El cliente contrató en 2020 con cuota de $20.000. En 2022 empezó a subir. Consulta en junio 2026. ' +
-          'El límite de prescripción es junio 2023. Las cuotas cobradas en exceso de <span style="color:var(--red)">antes de junio 2023 están prescriptas</span>. ' +
-          'Las de <span style="color:var(--green)">junio 2023 a junio 2026 (36 cuotas) sí se reclaman</span>. ' +
-          'Si la diferencia promedio es $80.000/mes → daño emergente: <strong style="color:var(--green)">$2.880.000</strong>.</div>' +
-        '</div>' +
-
-        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
-          '<div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">🏥 MEDICINA PREPAGA — Negativa de cobertura con gastos de bolsillo</div>' +
-          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde la fecha de la negativa y desde cada pago de bolsillo</div>' +
-          '<div style="font-size:12px;color:var(--text2);line-height:1.6">La prepaga negó en marzo 2022 la cobertura de un medicamento oncológico. El cliente lo pagó de su bolsillo desde entonces: $45.000/mes. Consulta en junio 2026. ' +
-          'La negativa de marzo 2022 <span style="color:var(--red)">está prescripta como hecho</span>. ' +
-          'Pero los pagos de <span style="color:var(--green)">junio 2023 a junio 2026 (36 meses) sí se reclaman</span>. ' +
-          'Daño emergente: $45.000 × 36 = <strong style="color:var(--green)">$1.620.000</strong>. ' +
-          'Además: la cobertura hacia adelante como pretensión de hacer no prescribe.</div>' +
-        '</div>' +
-
-        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
-          '<div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px">🏦 BANCOS — Tasas abusivas en préstamo</div>' +
-          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde cada pago de intereses en exceso</div>' +
-          '<div style="font-size:12px;color:var(--text2);line-height:1.6">El cliente tomó un préstamo en enero 2021 y pagó intereses por encima del límite legal todos los meses. Consulta en junio 2026. ' +
-          'Los pagos de <span style="color:var(--red)">enero 2021 a mayo 2023 están prescriptos</span>. ' +
-          'Los de <span style="color:var(--green)">junio 2023 a junio 2026 son reclamables</span>. ' +
-          'La pericia contable calcula el exceso exacto sobre esos 36 meses.</div>' +
-        '</div>' +
-
-        '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px">' +
-          '<div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px">🚗 PLANES DE AHORRO — Penalidad abusiva</div>' +
-          '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">Cómputo: desde que fue comunicada o aplicada</div>' +
-          '<div style="font-size:12px;color:var(--text2);line-height:1.6">La empresa informó en mayo 2026 que la penalidad por rescisión es de $600.000. El plazo de 3 años corre desde esa comunicación. ' +
-          'En este caso el reclamo está completamente vigente. Hay tiempo hasta mayo 2029.</div>' +
-        '</div>' +
-
-      '</div>' +
-      '<div style="margin-top:10px;background:var(--blue-bg);border-radius:6px;padding:10px;font-size:12px;color:var(--blue)"><strong>Suspensión:</strong> Cuando se presenta la solicitud de mediación prejudicial (Ley 8858), la prescripción se suspende automáticamente. Si está próxima a vencer, presentar la mediación antes de que se cumpla el plazo.</div>',
-      'var(--red)');
-  }
-
-  else if (key === 'viabilidad') {
-    html += capCard('¿Cuándo tomar un caso y cuándo no?',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">Un caso es viable cuando el daño emergente calculado sobre el período vigente de prescripción es suficientemente alto como para que tenga sentido económico para el cliente y para el estudio.</p>' +
-      '<div style="background:var(--orange-bg);border-radius:8px;padding:12px;margin-bottom:10px;font-size:13px;color:var(--orange)"><strong>Regla práctica orientativa:</strong> Si el daño emergente total dentro de la prescripción no supera los $150.000, el caso probablemente no justifique la vía civil.</div>' +
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Esta regla no es rígida. Un caso con daño emergente bajo puede ser viable si tiene:</p>' +
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">' +
-        '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Urgencia médica que requiere una cautelar inmediata.</span></div>' +
-        '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Daño moral muy claro y acreditable con hechos concretos.</span></div>' +
-        '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Punitivo casi seguro por conducta sistemática bien documentada.</span></div>' +
-      '</div>',
-      'var(--orange)');
-
-    html += capCard('Casos que se derivan sin tomar',
-      [
-        capNorma('Prescripción corrida', 'No hay nada que hacer. Explicar al cliente y cerrar.', 'var(--red)'),
-        capNorma('Daño emergente bajo sin elementos compensatorios', 'Derivar a instructivo de vía administrativa gratuita.', 'var(--orange)'),
-        capNorma('Sin documentación mínima', 'Sin prueba no hay caso en ninguna vía.', 'var(--red)')
-      ].join(''), 'var(--red)');
-  }
-
-  el.innerHTML = html;
-}
-
-// ─── SECTORES ───
-var CAP_SECTORES_DATA = {
-  s1: {
-    nombre: 'Planes de ahorro automotor',
-    emoji: '🚗',
-    color: 'var(--orange)',
-    empresas: 'Plan Rombo (Renault) · Plan Óvalo (Ford) · Plan Chevrolet · VW Ahorro · Toyota',
-    intro: 'Córdoba tiene una de las bases de suscriptores de planes de ahorro más altas del país. La conflictividad explotó desde 2018: las cuotas están indexadas al precio del 0km y muchos adherentes vieron sus cuotas triplicarse o cuadruplicarse. Los contratos de cada administradora son prácticamente iguales para todos los adherentes del mismo plan y año — una vez analizado un contrato, ese análisis aplica a todos los clientes con el mismo plan.',
-    herramientas: [
-      { nombre: 'IGJ (igj.gob.ar)', desc: 'Regula las administradoras que operan como sociedades comerciales. La mayoría de las grandes vinculadas a terminales caen bajo su jurisdicción.' },
-      { nombre: 'CNV (cnv.gob.ar)', desc: 'Regula las administradoras que operan como fondos comunes de inversión o fideicomisos.' },
-      { nombre: 'Verificar en el contrato', desc: 'Qué figura legal usa la administradora para determinar el organismo regulador correcto. Presentar el reclamo ante el regulador específico genera presión adicional significativa.' }
-    ],
-    semaforo: [
-      { color: 'verde', titulo: 'La cuota se triplicó', desc: 'Casi siempre viable. Los montos superan el umbral en la gran mayoría de los casos.' },
-      { color: 'amarillo', titulo: 'Adjudicado pero no entregaron el auto', desc: 'Viable cuando el cliente tiene gastos concretos documentados durante la demora.' },
-      { color: 'amarillo', titulo: 'Penalidad abusiva por salirse del plan', desc: 'Viable cuando la penalidad supera $150.000 y el porcentaje cobrado supera el 25% de lo pagado.' }
-    ],
-    casos: [
-      {
-        titulo: 'Caso 1 — La cuota se triplicó',
-        consultas: [
-          'Empecé pagando $35.000 y ahora me cobran $150.000, no puedo más con esto.',
-          'Me vendieron el plan diciéndome que era accesible y ahora la cuota es más cara que un alquiler.',
-          'El contrato no explica en ningún lado que la cuota iba a subir tanto y tan rápido.',
-          'Tengo el folleto que me dieron cuando contraté y dice cuotas desde cierto monto, pero eso no es lo que pago.'
-        ],
-        preguntas: [
-          'Cuál era la cuota exacta al momento de contratar. Tiene el contrato original.',
-          'Cuál es la cuota actual. Tiene el último comprobante.',
-          'Tiene el contrato completo con todos los anexos, condiciones generales y cuadro de valores.',
-          'Tiene algún folleto o material publicitario del momento de contratar.',
-          'Desde cuándo empezó a subir la cuota significativamente.',
-          'Hizo algún reclamo previo a la administradora. Tiene respuesta escrita.'
-        ],
-        viabilidad: 'Calcular diferencia de cuotas × meses vigentes dentro de prescripción. Si supera $150.000: caso viable para vía civil. Si el contrato no tiene tope o el mecanismo no estaba claro: cláusula candidata a abusiva (art. 37 LDC). Si la publicidad mostraba valores sin aclarar la indexación: aplica art. 8 LDC.',
-        calculo: 'Cuota original $40.000 → cuota actual $130.000 → diferencia $90.000/mes × 30 meses vigentes = <strong style="color:var(--green)">$2.700.000 daño emergente base</strong>. Se suman intereses, daño moral y punitivo.',
-        normativa: [
-          { art: 'Art. 4 LDC', desc: 'Deber de información — si no se informó claramente la indexación al 0km hay infracción directa.' },
-          { art: 'Art. 8 LDC', desc: 'La publicidad integra el contrato — si se publicitaban cuotas sin aclarar la indexación, eso es exigible.' },
-          { art: 'Art. 37 LDC', desc: 'Cláusulas de actualización ilimitada sin tope son candidatas a ser declaradas abusivas.' },
-          { art: 'Art. 52 bis LDC', desc: 'Daño punitivo — la cláusula abusiva es idéntica en todos los contratos del plan. Decisión corporativa deliberada.' },
-          { art: 'Art. 1741 CCCN', desc: 'Daño moral — comprar un auto es un proyecto de vida. La frustración tiene peso que los jueces reconocen.' },
-          { art: 'Art. 2654 CCCN', desc: 'Cláusulas de prórroga de jurisdicción fuera de Córdoba son nulas. El cliente siempre puede demandar acá.' },
-          { art: 'Ley 8858 Córdoba', desc: 'Mediación prejudicial obligatoria. Prescripción se suspende desde la presentación.' }
-        ],
-        pasos_admin: [
-          'Reunir la documentación: contrato completo con todos los anexos, comprobantes de primeras y últimas cuotas, material publicitario si existe, comunicaciones con la administradora.',
-          'Preparar el relato de hechos: datos del plan con fecha y cuota original, evolución de la cuota mes a mes, cláusulas abusivas identificadas y transcriptas, cálculo del daño dentro de la prescripción.',
-          'Presentar ante la Dirección Provincial de Consumidor (Tucumán 176 o cidi.cba.gov.ar) y ante la IGJ o CNV según la administradora — el doble reclamo regulatorio genera más presión.',
-          'Preparar al cliente para la audiencia: pedir reintegro en dinero efectivo, nunca como crédito dentro del plan. No aceptar propuestas con renuncia a acciones futuras sin consultar. Si la oferta es parcial, dejar que fracase — el acta de fracaso es prueba valiosa para la vía civil.',
-          'Evaluar el resultado. Si no cubre el daño emergente completo más intereses razonables, rechazar y derivar a vía civil.'
-        ],
-        pasos_civil: [
-          'Mediación prejudicial obligatoria (Ley 8858). La prescripción se suspende desde que se presenta la solicitud. Las administradoras suelen enviar representantes con facultades de acordar.',
-          'Si la mediación fracasa: demanda con nulidad de la cláusula de actualización (art. 37 LDC) + daño emergente (diferencia de cuotas mes a mes con comprobantes) + intereses + daño moral + punitivo (cláusula idéntica en todos los contratos del plan).',
-          'Prueba: documental (contrato + comprobantes + publicidad), informativa a la administradora (contrato tipo + historial de actualizaciones de precio del 0km), informativa a IGJ o CNV (antecedentes de sanciones).',
-          'Pericia contable: necesaria en casos donde los aumentos fueron progresivos. El perito calcula el exceso exacto. En montos altos está completamente justificada.',
-          '⚠ Medida cautelar de no innovar (art. 232 CPC Córdoba): cuando el cliente no puede pagar la cuota actualizada y la administradora amenaza con rescindir mientras dura el proceso.'
-        ]
-      },
-      {
-        titulo: 'Caso 2 — Adjudicado pero no entregaron el auto',
-        consultas: [
-          'Me adjudicaron el auto hace 7 meses y todavía no me lo entregan, solo me dan excusas.',
-          'Tengo el acta de adjudicación con una fecha de entrega que ya pasó hace 5 meses.',
-          'Mientras espero el auto tengo que alquilar uno para trabajar y la empresa no se hace cargo.'
-        ],
-        preguntas: [
-          'Tiene el acta de adjudicación con la fecha exacta de entrega comprometida.',
-          'Cuántos meses lleva de demora desde esa fecha.',
-          'Tuvo gastos concretos por no tener el vehículo: alquiler de auto, transporte, gastos laborales. Tiene todos los comprobantes.',
-          'La empresa reconoció la demora por escrito. Tiene esa comunicación.',
-          'Está al día con las cuotas del plan.'
-        ],
-        viabilidad: 'Con gastos documentados que superen $150.000: caso sólido. Sin gastos acreditables pero demora de varios meses: evaluar solidez antes de comprometerse — se sostiene en daño moral y punitivo si la demora afecta a múltiples adjudicados del mismo grupo. Indicar al cliente que conserve todos los comprobantes de gastos adicionales desde la primera consulta.',
-        calculo: null,
-        normativa: [
-          { art: 'Art. 8 LDC', desc: 'El plazo de entrega comprometido en el acta de adjudicación es parte del contrato y es exigible.' },
-          { art: 'Art. 37 LDC', desc: 'Las cláusulas que limitan la responsabilidad de la administradora por demoras son nulas.' },
-          { art: 'Art. 52 bis LDC', desc: 'Punitivo cuando la demora es sistemática y afecta a múltiples adjudicados del mismo grupo.' },
-          { art: 'Art. 1741 CCCN', desc: 'Daño moral — la frustración de un proyecto de vida de la magnitud de un auto tiene peso acreditable.' },
-          { art: 'Art. 232 CPC Córdoba', desc: 'Cautelar si la empresa amenaza con rescindir mientras dura el proceso.' }
-        ],
-        pasos_admin: [
-          'Preparar el relato con el detalle de la adjudicación, fecha comprometida, meses de demora, gastos incurridos con comprobantes, y comunicaciones de la administradora.',
-          'Presentar ante la Dirección Provincial de Consumidor y ante IGJ o CNV en paralelo.',
-          'En la audiencia: objetivo específico es conseguir una fecha concreta de entrega con cláusula de penalidad diaria por cada día de incumplimiento. No aceptar acuerdo sin fecha específica ni sin penalidad.'
-        ],
-        pasos_civil: [
-          'Mediación prejudicial obligatoria (Ley 8858).',
-          'Demanda con: cumplimiento forzado de entrega (el juez puede ordenar bajo apercibimiento de multa diaria) + daño emergente por gastos durante la demora + intereses + daño moral + punitivo si la demora es sistemática.',
-          'Prueba: acta de adjudicación con fecha, comprobantes de gastos, comunicaciones. Informativa a la administradora sobre cuántos adjudicados del mismo grupo están en situación de demora — si son muchos, el carácter sistemático queda acreditado y el punitivo casi asegurado.'
-        ]
-      },
-      {
-        titulo: 'Caso 3 — Penalidad abusiva por salirse del plan',
-        consultas: [
-          'Quiero salirme del plan y me dicen que tengo que pagar el 40% de todo lo que pagué.',
-          'Me informaron una penalidad de $600.000 para darme de baja del plan.',
-          'La empresa me dice que la penalidad está en el contrato pero nadie me explicó eso cuando firmé.'
-        ],
-        preguntas: [
-          'Cuánto tiempo lleva en el plan y cuál es el total pagado hasta hoy.',
-          'Cuál es el monto exacto de la penalidad informada.',
-          'Tiene el contrato con la cláusula de penalidad transcripta.',
-          'Tiene los comprobantes de todos los pagos realizados.',
-          'La empresa informó la penalidad por escrito o solo verbalmente.'
-        ],
-        viabilidad: 'Calcular el porcentaje que representa la penalidad sobre el total pagado. Si supera el 25% y el monto absoluto supera $150.000: caso viable. Por debajo del 20%: límite de lo razonable según jurisprudencia — analizar con cuidado. ⚠ Mayor incertidumbre del sector — verificar criterio reciente de las Cámaras de Córdoba antes de tomar.',
-        calculo: null,
-        normativa: [
-          { art: 'Art. 37 LDC', desc: 'Penalidades desproporcionadas que el consumidor no hubiera aceptado de haber sido correctamente informado son nulas. Es el argumento central.' },
-          { art: 'Art. 4 LDC', desc: 'La penalidad tiene que haber sido informada claramente al momento de contratar.' },
-          { art: 'Art. 52 bis LDC', desc: 'Punitivo si la cláusula de penalidad abusiva es idéntica en todos los contratos del plan.' },
-          { art: 'Art. 1741 CCCN', desc: 'Daño moral cuando la empresa actuó de forma coactiva o intimidatoria.' }
-        ],
-        pasos_admin: [
-          'Preparar el relato con el contrato, total pagado, cláusula de penalidad transcripta literalmente, monto pretendido, y cálculo de por qué es desproporcionado.',
-          'Presentar ante la Dirección Provincial de Consumidor y ante IGJ o CNV en paralelo.',
-          'En la audiencia: pedir nulidad de la cláusula o reducción a porcentaje razonable más reintegro. No aceptar con renuncia a acciones futuras sin consultar.'
-        ],
-        pasos_civil: [
-          'Mediación prejudicial (Ley 8858). Las empresas suelen preferir acordar antes que exponer su cláusula a una sentencia que la declare nula para todos sus contratos.',
-          'Demanda con: nulidad de la cláusula de penalidad (art. 37 LDC) + restitución del monto cobrado en exceso + daño moral si hubo coacción + punitivo si la cláusula es idéntica en todos los contratos del plan.'
-        ]
-      }
-    ]
-  },
-
-  s2: {
-    nombre: 'Medicina prepaga y obras sociales',
-    emoji: '🏥',
-    color: 'var(--green)',
-    empresas: 'OSDE · Swiss Medical · Galeno · Medifé · Luis Pasteur · APOC · Obras sociales sindicales',
-    intro: 'El sector con mayor impacto emocional. El bien comprometido es la salud del cliente o de sus familiares. Consecuencias directas: el daño moral reconocido en este sector es el más alto del sistema, y en los casos urgentes hay que actuar en horas, no en días. Los casos urgentes donde el estudio consigue la cobertura generan una fidelidad excepcional: el cliente cuyo tratamiento fue cubierto gracias al estudio no solo vuelve sino que recomienda activamente.',
-    herramientas: [
-      { nombre: 'Buscador PMO oficial', desc: 'deissms.github.io/buscador_m/pmo.html — Verificar si la prestación rechazada está en el PMO ANTES de cualquier otra cosa. Si está en el PMO, el caso tiene la base legal más sólida posible: la empresa no puede negar algo que la ley le manda cubrir.' },
-      { nombre: 'Superintendencia de Servicios de Salud (SSS)', desc: 'sssalud.gob.ar — Las prepagas le temen más a la SSS que a la Dirección de Consumidor porque una sanción afecta su habilitación en todo el país. Estrategia: presentar ante la SSS Y ante la Dirección de Consumidor en paralelo.' },
-      { nombre: 'Leyes 23.660 y 23.661', desc: 'Para obras sociales sindicales. El régimen es diferente al de la prepaga privada pero también deben cubrir el PMO sin excepción.' }
-    ],
-    semaforo: [
-      { color: 'verde', titulo: 'Negativa de cobertura con gastos de bolsillo', desc: 'Muy viable. El daño emergente es exacto (facturas), el daño moral es el más alto del sistema, y si está en el PMO la base es sólida.' },
-      { color: 'amarillo', titulo: 'Demora en práctica urgente con riesgo para la salud', desc: 'Viable cuando hay urgencia médica activa (requiere cautelar inmediata) o cuando hubo gastos concretos durante la demora.' }
-    ],
-    casos: [
-      {
-        titulo: 'Caso 1 — Negativa de cobertura con gastos de bolsillo',
-        consultas: [
-          'Mi prepaga me negó la cobertura de una cirugía que me indicó el médico y tuve que pagarla yo.',
-          'OSDE no me cubre el medicamento que me recetó el oncólogo y cuesta una fortuna por mes.',
-          'Me mandaron una carta diciendo que la práctica no está cubierta pero el médico dice que es absolutamente necesaria.',
-          'Me dijeron que mi condición es una preexistencia pero me diagnosticaron después de contratarlos.'
-        ],
-        preguntas: [
-          'Tiene la negativa de cobertura por escrito. Si fue verbal, tiene capturas o emails que acrediten el pedido y la falta de respuesta.',
-          'Tiene la prescripción médica del médico tratante con fecha exacta.',
-          'Pagó la práctica o medicamento de su bolsillo. Tiene todas las facturas.',
-          '⚠ Verificar si la prestación está en el PMO: deissms.github.io/buscador_m/pmo.html',
-          'Hace cuánto ocurrió la negativa. Calcular prescripción: 3 años desde la fecha de cada negativa o pago.',
-          'Si la prepaga alegó preexistencia: cuándo fue el primer diagnóstico. Si fue después de contratar, la exclusión es improcedente.'
-        ],
-        viabilidad: 'Facturas que sumen más de $150.000 dentro del período de prescripción: caso viable con daño emergente exacto. Si el monto no llega al umbral pero la prestación sigue siendo necesaria: puede ser viable porque además del reintegro se pide la cobertura permanente hacia adelante + daño moral + punitivo. Si la prestación está en el PMO: el caso es sólido independientemente del monto.',
-        calculo: null,
-        normativa: [
-          { art: 'Ley 26.682', desc: 'Ley de Medicina Prepaga: prestaciones mínimas obligatorias que no pueden negarse. Prohíbe rescisión unilateral salvo causales taxativas. Silencio en los plazos = autorización tácita.' },
-          { art: 'PMO vigente', desc: 'Verificar siempre en deissms.github.io/buscador_m/pmo.html antes de citar en cualquier reclamo porque se actualiza periódicamente.' },
-          { art: 'Art. 52 bis LDC', desc: 'Punitivo — negar una prestación obligatoria es deliberado y lucrativo. Acreditar con informativa a la SSS sobre antecedentes de la empresa.' },
-          { art: 'Art. 1741 CCCN', desc: 'Daño moral — los jueces reconocen montos significativamente más altos en salud que en cualquier otro sector.' },
-          { art: 'Arts. 232 CPC y 1711 CCCN', desc: 'Fundamento de las medidas cautelares en casos urgentes.' }
-        ],
-        pasos_admin: [
-          '⚠ Primer paso siempre: verificar si la prestación está en el PMO usando deissms.github.io/buscador_m/pmo.html. Si está, citar expresamente el PMO y el artículo de la Ley 26.682 en todos los documentos.',
-          'Preparar documentación: datos de afiliación con número de credencial y plan, prescripción médica con fecha, negativa de la prepaga con fecha, facturas de gastos de bolsillo.',
-          'Presentar ante la SSS en sssalud.gob.ar — actúa más rápido que la Dirección de Consumidor en estos casos porque conoce el PMO a fondo.',
-          'Presentar ante la Dirección de Consumidor en paralelo para generar presión adicional.',
-          'La SSS suele notificar a la empresa rápidamente. Muchas prepagas resuelven antes de que emita una resolución desfavorable.'
-        ],
-        pasos_civil: [
-          'Mediación prejudicial (Ley 8858). En casos de urgencia extrema consultar con el juzgado si la situación habilita excepción.',
-          'Demanda con: reintegro de gastos de bolsillo (daño emergente exacto con facturas) + cobertura futura permanente si sigue siendo médicamente necesaria + daño moral (art. 1741 CCCN — en salud es el más alto del sistema) + punitivo (negar prestación obligatoria = decisión deliberada y lucrativa).',
-          'Prueba: prescripción del médico tratante (fundamental), historia clínica completa, PMO vigente acreditando que la prestación está incluida, informativa a la SSS sobre antecedentes de sanciones (refuerza el punitivo más que cualquier otro elemento), comprobantes de gastos, pericia médica solo si la prepaga discute la necesidad médica.'
-        ]
-      },
-      {
-        titulo: 'Caso 2 — Demora en práctica urgente con riesgo para la salud',
-        consultas: [
-          'Mi médico me recetó una cirugía hace dos meses y la prepaga no autoriza ni niega, solo dice que está en evaluación.',
-          'Me cortaron el tratamiento oncológico porque la prepaga no autoriza la continuación.',
-          'Llevo 6 semanas esperando autorización para una práctica que el médico dice que no puede esperar más.',
-          'Mi hijo necesita una cirugía urgente y la prepaga no responde. Qué puedo hacer.'
-        ],
-        preguntas: [
-          '⚠ PRIMERA PREGUNTA SIEMPRE: ¿hay riesgo real e inmediato para la salud si no se realiza la práctica? Esto define toda la estrategia.',
-          'Tiene la prescripción médica con indicación de urgencia si el médico la señaló.',
-          'Cuántos días o semanas lleva pendiente la autorización sin respuesta.',
-          '⚠ Verificar si la práctica está en el PMO: deissms.github.io/buscador_m/pmo.html',
-          'Tuvo gastos de bolsillo durante la demora. Tiene los comprobantes.',
-          'Tiene documentación de haber solicitado la autorización: email, registro en la app de la prepaga, carta documento.'
-        ],
-        viabilidad: 'Urgencia médica activa: viable siempre, independientemente del monto — la cautelar de cobertura urgente es el camino. Demora ya resuelta con gastos de bolsillo que superen $150.000: viable para reintegro + daño moral + punitivo. Demora resuelta sin gastos y sin urgencia actual: derivar a SSS sin compromiso de honorarios sobre resultado.',
-        calculo: null,
-        normativa: [
-          { art: 'Ley 26.682', desc: 'La falta de respuesta en los plazos establecidos implica autorización tácita. No puede mantener al afiliado en un limbo indefinido.' },
-          { art: 'PMO', desc: 'Si la práctica demorada está en el PMO la empresa no puede negarla ni demorarla sin justificación médica expresa y documentada.' },
-          { art: 'Arts. 232 CPC y 1711 CCCN', desc: 'Medida cautelar innovativa: el juez puede ordenar a la prepaga cubrir la prestación inmediatamente mientras dura el proceso.' },
-          { art: 'Art. 52 bis LDC', desc: 'Punitivo — la demora deliberada en autorizaciones es una práctica sistemática que reduce costos para la empresa.' },
-          { art: 'Art. 1741 CCCN', desc: 'Daño moral — en urgencia médica la angustia y el deterioro de salud durante la espera son los elementos más fuertes del sistema.' }
-        ],
-        pasos_admin: [
-          'Para casos SIN urgencia: presentar ante la SSS con prescripción médica, indicación de urgencia si existe, y registro de los días sin respuesta. Presentar ante Dirección de Consumidor en paralelo.',
-          '⚠ Para urgencia real: NO esperar el resultado de los reclamos administrativos. Iniciar la vía civil con cautelar de inmediato en paralelo.'
-        ],
-        pasos_civil: [
-          '⚠ Para urgencia médica activa: evaluar si la situación habilita excepción o simplificación de la mediación prejudicial. Algunos juzgados admiten presentaciones urgentes — consultar con el juzgado de turno.',
-          'Cautelar innovativa: acreditar (1) verosimilitud del derecho — la prestación es obligatoria por PMO o por el plan contratado, y (2) peligro en la demora — esperar pone en riesgo la salud. El juez puede dictarla el mismo día en urgencias reales.',
-          'Presentar al juzgado: prescripción con indicación de urgencia, historia clínica disponible, documentación de la solicitud sin respuesta, verificación del PMO. Desde la consulta hasta la presentación judicial: máximo 24-48 horas.',
-          'Si la prepaga no cumple la cautelar: puede ser sancionada con astreintes (multas diarias por incumplimiento de la orden judicial).',
-          'Una vez resuelta la urgencia: el juicio principal continúa para obtener reintegro de gastos de bolsillo, daño moral por el período de angustia, y punitivo por conducta sistemática.'
-        ]
-      }
-    ]
-  },
-
-  s3: {
-    nombre: 'Bancos y tarjetas de crédito',
-    emoji: '🏦',
-    color: 'var(--purple)',
-    empresas: 'Santander · BBVA · Galicia · Macro · Nación · Provincia · HSBC · Naranja X · Mercado Pago · Uala',
-    intro: 'Los bancos son los demandados más solventes del universo de defensa del consumidor: cuando hay condena, el cobro es seguro. Las conductas son masivas por naturaleza — cuando un banco aplica una tasa que supera los límites legales, la cobra a miles de clientes simultáneamente. El daño emergente es calculable con precisión exacta a partir de los resúmenes de cuenta, estados de préstamo o movimientos bancarios: cada monto tiene su comprobante con fecha exacta.',
-    herramientas: [
-      { nombre: 'BCRA — Usuarios Financieros (bcra.gob.ar)', desc: 'El banco tiene obligación legal de responder al BCRA en plazos estrictos. Si no responde o no resuelve, el BCRA puede aplicar sanciones que afectan la licencia bancaria. Por eso muchos bancos prefieren resolver antes de que llegue a sumario. Ingresar a bcra.gob.ar → Usuarios Financieros → seleccionar tipo de reclamo → completar formulario → guardar el número de reclamo. Gratuito, online, sin abogado obligatorio.' },
-      { nombre: 'Estrategia combinada recomendada', desc: 'BCRA + Dirección de Consumidor en paralelo. El doble canal regulatorio genera más presión y muchos bancos resuelven antes de que llegue a sumario en alguno de los dos.' }
-    ],
-    semaforo: [
-      { color: 'amarillo', titulo: 'Tasas abusivas en préstamos', desc: 'Viable cuando el exceso de intereses calculado supera $150.000. Requiere pericia contable — el costo puede superar el beneficio en montos bajos.' },
-      { color: 'verde', titulo: 'Estafa digital y el banco no devolvió', desc: 'Muy viable y en crecimiento exponencial. Cuando supera el umbral y hay documentación sólida el caso es fuerte.' }
-    ],
-    casos: [
-      {
-        titulo: 'Caso 1 — Tasas abusivas en préstamos y tarjetas',
-        consultas: [
-          'Saqué un préstamo en Mercado Pago y la tasa que me cobran es una locura, pago el doble de lo que pedí.',
-          'Tengo una tarjeta de crédito y los intereses por no pagar el mínimo son desproporcionados.',
-          'Tomé un crédito personal en el banco y siento que estoy pagando intereses que no corresponden.'
-        ],
-        preguntas: [
-          'Tiene el contrato del préstamo o el resumen de tarjeta con la TNA y TEA especificadas.',
-          'Tiene los resúmenes o estados de cuenta donde figuran los intereses cobrados mes a mes.',
-          'Cuál es el monto total del préstamo o crédito original.',
-          'Es un préstamo de banco, de tarjeta de crédito, o de billetera virtual (Mercado Pago, Uala, Naranja X, Personal Pay).',
-          'Hace cuánto tomó el préstamo y cuánto lleva pagado en total de intereses.'
-        ],
-        viabilidad: 'El exceso sobre los límites legales tiene que ser calculado por perito contable. Hacer estimación antes de comprometerse. Si el exceso estimado supera $150.000 y cubre el costo de la pericia: caso viable. Para montos bajos de billeteras virtuales: calcular si justifica el proceso. Si el préstamo es antiguo verificar prescripción: 3 años desde cada pago de intereses en exceso.',
-        calculo: 'La Ley 25.065 establece que los intereses compensatorios no pueden superar el 25% de la tasa que el emisor cobra al comercio adherido, y los punitorios no más del 50% adicional sobre los compensatorios. Cualquier exceso sobre esos límites es un cobro indebido reclamable.',
-        normativa: [
-          { art: 'Ley 25.065 art. 16', desc: 'Intereses compensatorios ≤ 25% de la tasa que el emisor cobra al comercio adherido.' },
-          { art: 'Ley 25.065 art. 18', desc: 'Intereses punitorios no pueden superar en más del 50% a los compensatorios.' },
-          { art: 'Art. 771 CCCN', desc: 'Los jueces pueden reducir los intereses pactados cuando resulten desproporcionados.' },
-          { art: 'Art. 37 LDC', desc: 'Las cláusulas de tasas que superan los límites legales son abusivas y nulas.' },
-          { art: 'Circulares BCRA', desc: 'Verificar la circular aplicable al producto al momento de cada caso — se actualizan frecuentemente.' },
-          { art: 'Art. 52 bis LDC', desc: 'Punitivo — el banco aplica la misma tasa abusiva a miles de clientes. Decisión corporativa deliberada.' }
-        ],
-        pasos_admin: [
-          'Presentar reclamo ante el BCRA en bcra.gob.ar: adjuntar contrato del préstamo y resúmenes con los intereses cobrados. El banco tiene plazo estricto para responder al BCRA.',
-          'Presentar denuncia ante la Dirección de Consumidor en paralelo.',
-          'El BCRA puede ordenar al banco corregir la tasa hacia adelante. Sin embargo el reintegro de intereses ya cobrados en exceso generalmente requiere vía civil.',
-          'Si el banco resuelve con el reintegro completo: caso cerrado. Si no, derivar a civil.'
-        ],
-        pasos_civil: [
-          'Mediación prejudicial (Ley 8858). Los bancos suelen enviar representantes con facultades de acordar cuando la pericia muestra claramente el exceso.',
-          'Demanda con: nulidad de la cláusula de tasas (art. 37 LDC + art. 771 CCCN) + restitución de todos los intereses cobrados en exceso calculados con la pericia + intereses sobre esos montos + daño moral + punitivo (misma tasa aplicada a miles = decisión corporativa deliberada).',
-          'Prueba: documental (contrato con TNA y TEA, resúmenes con intereses), pericial contable (la prueba central — sin ella el caso no tiene sustento técnico), informativa al BCRA sobre antecedentes de sanciones al banco (acredita conducta sistemática para el punitivo).'
-        ]
-      },
-      {
-        titulo: 'Caso 2 — Estafa digital y el banco no devolvió el dinero',
-        consultas: [
-          'Me llamaron del banco, me pidieron el token, y me vaciaron la cuenta. El banco dice que fue culpa mía.',
-          'Entré a un link que me mandó un SMS que parecía del banco y me robaron todos los ahorros.',
-          'Me hackearon el homebanking y transfirieron todo mi dinero. El banco se niega a devolverme la plata.',
-          'Me robaron el celular y con eso vaciaron mi cuenta bancaria. El banco se niega.'
-        ],
-        preguntas: [
-          '⚠ Cuál es el monto total perdido en la estafa.',
-          'Cómo ocurrió exactamente: lo llamaron (vishing), recibió un mensaje/link (phishing/smishing), fue acceso directo sin su participación.',
-          'Tiene la denuncia policial o ante el Ministerio Público Fiscal. Si no la tiene: indicarle que la haga de inmediato — sin denuncia el caso pierde solidez.',
-          'Tiene los movimientos de cuenta mostrando las transferencias o extracciones fraudulentas.',
-          'Presentó el reclamo ante el banco. Tiene la respuesta del banco por escrito negando la devolución.',
-          'Hace cuánto ocurrió la estafa. Verificar prescripción: 3 años desde el hecho.'
-        ],
-        viabilidad: 'Monto perdido mayor a $150.000 + denuncia policial + movimientos de cuenta + negativa del banco por escrito: caso viable. Si el banco ya ofreció devolución parcial: evaluar si el monto no devuelto + daño moral justifica continuar. Si el monto es inferior al umbral: derivar al BCRA sin compromiso de honorarios sobre resultado.',
-        calculo: 'El argumento central es que el banco tiene obligación de implementar medidas de seguridad suficientes. Cuando un tercero accede a la cuenta usando técnicas que sistemas más robustos podrían haber prevenido (autenticación de dos factores, detección de operaciones inusuales, verificación adicional para montos altos), la responsabilidad no es solo del estafador sino también del banco.',
-        normativa: [
-          { art: 'CCCN arts. 1378-1420', desc: 'Contratos bancarios — los bancos tienen obligaciones especiales de seguridad y diligencia en la custodia de fondos. Más estrictas que cualquier otro proveedor.' },
-          { art: 'Art. 1724 CCCN', desc: 'Responsabilidad por culpa grave — el banco actúa con culpa grave cuando sus sistemas de seguridad son insuficientes para prevenir fraudes que los estándares de la industria podrían evitar.' },
-          { art: 'Art. 37 LDC', desc: 'Las cláusulas que intentan eximir al banco de responsabilidad ante fraudes electrónicos son abusivas y nulas.' },
-          { art: 'Art. 52 bis LDC', desc: 'Punitivo — la negativa sistemática a devolver en casos de estafa digital es una política corporativa deliberada.' },
-          { art: 'Circulares BCRA sobre seguridad', desc: 'El BCRA tiene reglamentaciones sobre sistemas de seguridad que los bancos deben implementar. El incumplimiento refuerza la responsabilidad.' }
-        ],
-        pasos_admin: [
-          'Preparar documentación: denuncia policial/MPF, movimientos de cuenta con operaciones fraudulentas, respuesta del banco negando la devolución, registro de llamadas o mensajes del estafador si los tiene, capturas de la página falsa si fue por phishing.',
-          'Presentar reclamo ante el BCRA en bcra.gob.ar — seleccionar la categoría de fraude u operación no reconocida.',
-          'Presentar denuncia ante la Dirección de Consumidor en paralelo.',
-          'Si el banco devuelve el monto completo: caso cerrado. Si no, derivar a vía civil.'
-        ],
-        pasos_civil: [
-          'Mediación prejudicial (Ley 8858). Los bancos frecuentemente tienen representantes con facultades para acordar cuando el caso está bien documentado.',
-          'Demanda con: restitución del monto total perdido (daño emergente exacto con movimientos de cuenta) + intereses desde la fecha de la estafa + daño moral (impacto en la economía familiar, angustia de haber perdido ahorros, trato del banco al negarle la devolución) + punitivo (la negativa sistemática a devolver es política corporativa deliberada: conviene economicamente negar caso por caso porque solo una minoría llega a juicio).',
-          'Prueba: denuncia policial/MPF, movimientos de cuenta, comunicaciones con el banco incluyendo la negativa, registro de llamadas o mensajes del estafador, capturas de la página falsa. Informativa al BCRA sobre antecedentes de reclamos similares contra ese banco — acredita el carácter sistemático y es el argumento más fuerte para el punitivo.'
-        ]
-      }
-    ]
-  }
-};
-
-function capRenderSector(key) {
-  var s = CAP_SECTORES_DATA[key];
-  if (!s) return '<div class="empty-state">Sector no encontrado.</div>';
-
-  var html = '';
-
-  // Tabs de sub-secciones
-  var subtabs = ['intro', 'semaforo', 'caso1', 'caso2'];
-  if (key === 's1') subtabs = ['intro', 'semaforo', 'caso1', 'caso2', 'caso3'];
-
-  html += '<div class="cap-tabs-inner" id="sector-tabs-' + key + '">' +
-    '<button class="cap-tab-inner active" onclick="sectorTab(\'' + key + '\',\'intro\')">Introducción</button>' +
-    '<button class="cap-tab-inner" onclick="sectorTab(\'' + key + '\',\'semaforo\')">🚦 Semáforo</button>' +
-    '<button class="cap-tab-inner" onclick="sectorTab(\'' + key + '\',\'caso1\')">' + s.casos[0].titulo.split(' — ')[0] + '</button>' +
-    '<button class="cap-tab-inner" onclick="sectorTab(\'' + key + '\',\'caso2\')">' + s.casos[1].titulo.split(' — ')[0] + '</button>' +
-    (s.casos[2] ? '<button class="cap-tab-inner" onclick="sectorTab(\'' + key + '\',\'caso3\')">Caso 3</button>' : '') +
-    '</div>';
-
-  html += '<div id="sector-content-' + key + '"></div>';
-
-  setTimeout(function() { sectorTab(key, 'intro'); }, 50);
-  return html;
-}
-
-function sectorTab(key, tab) {
-  var s = CAP_SECTORES_DATA[key];
-  if (!s) return;
-
-  // Actualizar tabs
-  var tabsEl = document.getElementById('sector-tabs-' + key);
-  if (tabsEl) {
-    tabsEl.querySelectorAll('.cap-tab-inner').forEach(function(b) { b.classList.remove('active'); });
-    var tabNames = ['intro', 'semaforo', 'caso1', 'caso2', 'caso3'];
-    var idx = tabNames.indexOf(tab);
-    var btns = tabsEl.querySelectorAll('.cap-tab-inner');
-    if (btns[idx]) btns[idx].classList.add('active');
-  }
-
-  var el = document.getElementById('sector-content-' + key);
-  if (!el) return;
-
-  var html = '';
-
-  if (tab === 'intro') {
-    html += capCard(s.emoji + ' ' + s.nombre,
-      '<p style="font-size:11px;color:var(--text3);margin-bottom:8px">' + s.empresas + '</p>' +
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7">' + s.intro + '</p>',
-      s.color);
-
-    html += capCard('Herramientas y organismos específicos',
-      s.herramientas.map(function(h) {
-        return '<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">→ ' + h.nombre + '</div><div style="font-size:12px;color:var(--text2);line-height:1.5">' + h.desc + '</div></div>';
-      }).join('<hr style="border-color:var(--border);margin:8px 0">'),
-      s.color);
-  }
-
-  else if (tab === 'semaforo') {
-    html += '<div style="margin-bottom:12px">';
-    s.semaforo.forEach(function(item) {
-      html += '<div class="card" style="margin-bottom:10px">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-        capSemaforo(item.color, item.titulo) +
-        '</div>' +
-        '<p style="font-size:12px;color:var(--text2);line-height:1.5">' + item.desc + '</p>' +
-        '</div>';
-    });
-    html += '</div>';
-  }
-
-  else {
-    var casoIdx = tab === 'caso1' ? 0 : tab === 'caso2' ? 1 : 2;
-    var caso = s.casos[casoIdx];
-    if (!caso) { el.innerHTML = '<div class="empty-state">Caso no encontrado.</div>'; return; }
-
-    html += capCard(caso.titulo,
-      '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Consultas típicas</div>' +
-      caso.consultas.map(capConsulta).join(''),
-      s.color);
-
-    html += capCard('Preguntas clave para calificar el caso',
-      caso.preguntas.map(function(p, i) { return capStep(i + 1, p, p.startsWith('⚠')); }).join(''),
-      s.color);
-
-    html += capCard('Parámetros de viabilidad',
-      '<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:' + (caso.calculo ? '10px' : '0') + '">' + caso.viabilidad + '</div>' +
-      (caso.calculo ? '<div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:12px;color:var(--text2);line-height:1.7">' + caso.calculo + '</div>' : ''),
-      'var(--orange)');
-
-    var htmlPasos = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
-    htmlPasos += '<div><div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Vía Administrativa</div>' +
-      caso.pasos_admin.map(function(p, i) { return capStep(i + 1, p, p.startsWith('⚠')); }).join('') + '</div>';
-    htmlPasos += '<div><div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Vía Civil</div>' +
-      caso.pasos_civil.map(function(p, i) { return capStep(i + 1, p, p.startsWith('⚠')); }).join('') + '</div>';
-    htmlPasos += '</div>';
-    html += capCard('Resolución paso a paso', htmlPasos, 'var(--blue)');
-
-    html += capCard('Normativa aplicable',
-      caso.normativa.map(function(n) { return capNorma(n.art, n.desc, s.color); }).join(''),
-      s.color);
-  }
-
-  el.innerHTML = html;
-}
-
-
-// ─── MÓDULO SOCIEDADES ───
-
-function socMostrar(tab) {
-  document.querySelectorAll('#soc-tabs .tab').forEach(function(b,i){
-    b.className='tab'+(['intro','sas','srl','sa','mod','alertas'][i]===tab?' active':'');
-  });
-  var el=document.getElementById('soc-contenido');
-  if(!el)return;
-  if(tab==='intro')el.innerHTML=socRenderIntro();
-  else if(tab==='sas')el.innerHTML=socRenderSAS();
-  else if(tab==='srl')el.innerHTML=socRenderSRL();
-  else if(tab==='sa')el.innerHTML=socRenderSA();
-  else if(tab==='mod')el.innerHTML=socRenderMod();
-  else if(tab==='alertas')el.innerHTML=socRenderAlertas();
-}
-
-function socStep(num,titulo,desc,norma,alert,tip){
-  var html='<div class="soc-step"><div class="soc-step-num">'+num+'</div><div class="soc-step-body">';
-  html+='<div class="soc-step-title">'+titulo+'</div>';
-  html+='<div class="soc-step-desc">'+desc+'</div>';
-  if(norma)html+='<div class="soc-norma"><strong>Normativa:</strong> '+norma+'</div>';
-  if(alert)html+='<div class="soc-alert">⚠️ '+alert+'</div>';
-  if(tip)html+='<div class="soc-tip">✔ '+tip+'</div>';
-  html+='</div></div>';
-  return html;
-}
-
-function socCard(titulo,html,color){
-  color=color||'var(--border)';
-  return '<div class="card" style="margin-bottom:12px;border-left:3px solid '+color+'"><div class="card-title">'+titulo+'</div>'+html+'</div>';
-}
-
-function socPlataformas(){
-  return '<div class="card" style="margin-bottom:16px;border-left:3px solid var(--blue)">'+
-    '<div class="card-title">Plataformas IPJ Córdoba</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">'+
-    '<div class="soc-plat"><div class="soc-plat-title">Portal IPJ — Trámites</div><a class="soc-plat-link" href="https://tramitesipj.cba.gov.ar" target="_blank">→ tramitesipj.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Constitución, modificaciones, consultas, tasas</div></div>'+
-    '<div class="soc-plat"><div class="soc-plat-title">CiDi — Acceso</div><a class="soc-plat-link" href="https://cidi.cba.gov.ar" target="_blank">→ cidi.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Requiere Nivel 2 + clave fiscal ARCA Nivel 3</div></div>'+
-    '<div class="soc-plat"><div class="soc-plat-title">IPJ — Normativa</div><a class="soc-plat-link" href="https://ipj.cba.gov.ar" target="_blank">→ ipj.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Resoluciones, modelos aprobados, novedades</div></div>'+
-    '<div class="soc-plat"><div class="soc-plat-title">Boletín Oficial Córdoba</div><a class="soc-plat-link" href="https://boletinoficial.cba.gov.ar" target="_blank">→ boletinoficial.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Publicación de edictos de constitución</div></div>'+
-    '<div class="soc-plat"><div class="soc-plat-title">Rentas Córdoba</div><a class="soc-plat-link" href="https://rentascordoba.cba.gov.ar" target="_blank">→ rentascordoba.cba.gov.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">Inscripción en Ingresos Brutos provincial</div></div>'+
-    '<div class="soc-plat"><div class="soc-plat-title">ARCA (ex AFIP)</div><a class="soc-plat-link" href="https://afip.gob.ar" target="_blank">→ afip.gob.ar</a><div style="font-size:11px;color:var(--text3);margin-top:4px">CUIT, clave fiscal Nivel 3</div></div>'+
-    '</div>'+
-    '<div style="margin-top:10px;background:var(--green-bg);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--green)">✔ Todos los trámites de constitución ante IPJ Córdoba son 100% digitales y remotos. No requieren presencialidad.</div>'+
-  '</div>';
-}
-
-// ─── INTRO ───
-function socRenderIntro(){
-  var html='';
-
-  // Sub-tabs de intro
-  html+='<div class="cap-tabs-inner" id="soc-intro-tabs">'+
-    '<button class="cap-tab-inner active" onclick="socIntroTab(\'concepto\')">1. ¿Qué es una sociedad?</button>'+
-    '<button class="cap-tab-inner" onclick="socIntroTab(\'marco\')">2. Marco normativo</button>'+
-    '<button class="cap-tab-inner" onclick="socIntroTab(\'ipj\')">3. IPJ y fuero judicial</button>'+
-    '<button class="cap-tab-inner" onclick="socIntroTab(\'comparativo\')">4. Comparativo de tipos</button>'+
-    '<button class="cap-tab-inner" onclick="socIntroTab(\'gobierno\')">5. Gobierno societario</button>'+
-    '<button class="cap-tab-inner" onclick="socIntroTab(\'plataformas\')">6. Plataformas</button>'+
-    '<button class="cap-tab-inner" onclick="socIntroTab(\'alcance\')">7. Alcance del módulo</button>'+
-  '</div>';
-  html+='<div id="soc-intro-content"></div>';
-  setTimeout(function(){socIntroTab('concepto');},50);
-  return html;
-}
-
-function socIntroTab(key){
-  document.querySelectorAll('#soc-intro-tabs .cap-tab-inner').forEach(function(b,i){
-    b.className='cap-tab-inner'+(['concepto','marco','ipj','comparativo','gobierno','plataformas','alcance'][i]===key?' active':'');
-  });
-  var el=document.getElementById('soc-intro-content');
-  if(!el)return;
-  var html='';
-
-  if(key==='concepto'){
-    html+=socCard('¿Qué es una sociedad comercial?',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">Una sociedad comercial es una <strong style="color:var(--text)">persona jurídica</strong>: un sujeto de derecho distinto de las personas que la integran, con patrimonio propio, capacidad para contratar, ser titular de bienes, demandar y ser demandada. Sus socios, en los tipos más usados, responden solo hasta el capital aportado.</p>'+
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7"><strong style="color:var(--text3)">Base legal:</strong> art. 2 LGS — hay sociedad cuando una o más personas se obligan a realizar aportes para aplicarlos a la producción o intercambio de bienes o servicios, participando de los beneficios y soportando las pérdidas.</p>',
-      'var(--blue)');
-    html+=socCard('¿Por qué los clientes constituyen una sociedad?',
-      '<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text2)">'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span><strong style="color:var(--text)">Limitar la responsabilidad personal:</strong> el patrimonio del socio queda al margen de las deudas de la sociedad (arts. 163, 146 y Ley 27.349 LGS).</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Separar el patrimonio del negocio del patrimonio personal.</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Acceder a crédito, participar en licitaciones y emitir facturación institucional.</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Incorporar socios o inversores en el futuro con estructura jurídica clara.</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--blue)">›</span><span>Organizar la sucesión de un negocio familiar.</span></div>'+
-      '</div>'+
-      '<div class="soc-alert" style="margin-top:10px">La separación patrimonial no es absoluta. El <strong>art. 54, tercer párrafo LGS</strong> (inoponibilidad de la personalidad jurídica) permite que un juez responsabilice a los socios con su patrimonio personal cuando la sociedad fue usada para violar la ley, el orden público o la buena fe, o para frustrar derechos de terceros.</div>',
-      'var(--blue)');
-  }
-
-  else if(key==='marco'){
-    html+=socCard('LGS — Ley General de Sociedades (Ley 19.550)',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Norma central. Regula SA, SRL y todos los tipos societarios clásicos. Artículos más relevantes: arts. 1–2 (concepto), art. 10 (publicidad), arts. 54 y 274 (responsabilidad), arts. 146–162 (SRL), arts. 163–307 (SA), arts. 94–112 (disolución).</p>',
-      'var(--blue)');
-    html+=socCard('Ley 27.349 — Sociedad por Acciones Simplificada (SAS)',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7">Sancionada en 2017. Crea un tipo societario digital, con trámite íntegramente online, objeto amplio, admite socio único y no requiere escritura pública. Es el tipo más ágil disponible hoy en Córdoba.</p>',
-      'var(--green)');
-    html+=socCard('Resoluciones de la IPJ Córdoba',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">La Inspección de Personas Jurídicas reglamenta los requisitos de inscripción para la Provincia de Córdoba. Normativa clave vigente:</p>'+
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px">'+
-      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;color:var(--text2)"><strong style="color:var(--text)">RG conjunta 5020/21</strong> — Trámite integrado SRL</div>'+
-      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;color:var(--text2)"><strong style="color:var(--text)">RG 3T/23</strong> — Sociedades y Registro Público</div>'+
-      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;color:var(--text2)"><strong style="color:var(--text)">Res. 49T/25</strong> — Firma digital CiDi, firma mixta ológrafa/digital</div>'+
-      '</div>'+
-      '<div class="soc-alert" style="margin-top:10px">La IGJ (CABA) y la DPPJ (PBA) son organismos de otras jurisdicciones. Sus resoluciones <strong>NO aplican en Córdoba</strong>. El organismo de contralor en esta provincia es exclusivamente la <strong>IPJ</strong>.</div>',
-      'var(--orange)');
-  }
-
-  else if(key==='ipj'){
-    html+=socCard('Inspección de Personas Jurídicas — IPJ Córdoba',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">Organismo provincial que inscribe y fiscaliza a las personas jurídicas con domicilio legal en la Provincia de Córdoba. Actúa bajo la órbita del Ministerio de Finanzas de la Provincia. En el Coloquio IDEA 2025, la IPJ fue reconocida públicamente como el sistema de registración societaria más ágil y moderno de Argentina.</p>'+
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Portal de trámites: <a href="https://tramitesipj.cba.gov.ar" target="_blank" style="color:var(--blue)">tramitesipj.cba.gov.ar</a></span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Acceso: CiDi Nivel 2 — <a href="https://cidi.cba.gov.ar" target="_blank" style="color:var(--blue)">cidi.cba.gov.ar</a></span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Web institucional: <a href="https://ipj.cba.gov.ar" target="_blank" style="color:var(--blue)">ipj.cba.gov.ar</a></span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Todos los trámites de constitución son 100% digitales. No requieren presencialidad.</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Integrada con ARCA (CUIT), Bancor (aportes), Boletín Oficial Córdoba y Rentas Córdoba.</span></div>'+
-      '</div>',
-      'var(--green)');
-    html+=socCard('Fuero judicial en Córdoba Capital',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">En Córdoba no existe un fuero comercial separado. Los conflictos societarios tramitan ante los <strong style="color:var(--text)">Juzgados Civiles y Comerciales de la Primera Circunscripción Judicial</strong> (Córdoba Capital). La alzada es la Cámara de Apelaciones en lo Civil y Comercial correspondiente por nominación. El Tribunal Superior de Justicia de Córdoba actúa como instancia extraordinaria provincial.</p>'+
-      '<div class="soc-alert">A diferencia de CABA (donde existe la CNACOM — Cámara Nacional de Apelaciones en lo Comercial), en Córdoba la jurisprudencia societaria de referencia la producen las Cámaras Civiles y Comerciales. Al citar doctrina judicial, verificar que sea de Córdoba o de la CSJN, no de CNACOM.</div>',
-      'var(--purple)');
-  }
-
-  else if(key==='comparativo'){
-    html+=socCard('SAS · SRL · SA cerrada — Diferencias clave',
-      '<p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px">El 95% de las nuevas constituciones en Córdoba corresponde a estos tres tipos. La elección depende del perfil del cliente, la actividad, la cantidad de socios y los objetivos de largo plazo.</p>'+
-      '<div style="overflow-x:auto"><table style="font-size:11px;min-width:560px">'+
-      '<tr><th>Criterio</th><th style="color:var(--green)">SAS</th><th style="color:var(--purple)">SRL</th><th style="color:var(--red)">SA cerrada</th></tr>'+
-      '<tr><td>Normativa</td><td>Ley 27.349</td><td>Arts. 146–162 LGS</td><td>Arts. 163–307 LGS</td></tr>'+
-      '<tr><td>Socios mínimos</td><td>1</td><td>2</td><td>1</td></tr>'+
-      '<tr><td>Socios máximos</td><td>Sin límite</td><td>50</td><td>Sin límite</td></tr>'+
-      '<tr><td>Capital</td><td>Cuotas (mín. 2 SMVM)</td><td>Cuotas</td><td>Acciones</td></tr>'+
-      '<tr><td>Instrumento</td><td>Privado / digital (CiDi)</td><td>Privado o escritura</td><td>Escritura pública</td></tr>'+
-      '<tr><td>Administración</td><td>Administrador(es)</td><td>Gerencia</td><td>Directorio</td></tr>'+
-      '<tr><td>Sindicatura</td><td>No requerida</td><td>Opcional (según capital)</td><td>Según capital — verificar umbral IPJ</td></tr>'+
-      '<tr><td>Velocidad IPJ Cba.</td><td style="color:var(--green)">Más ágil (100% digital)</td><td>Ágil (100% digital)</td><td>Digital (plazo variable)</td></tr>'+
-      '</table></div>'+
-      '<div class="soc-alert" style="margin-top:12px">Capital mínimo SAS = 2 SMVM (se actualiza con cada variación del salario mínimo). Umbral de sindicatura SA y SRL: verificar resolución IPJ vigente antes de cada constitución.</div>',
-      'var(--blue)');
-    html+=socCard('Guía rápida de recomendación',
-      '<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text2)">'+
-      '<div style="background:var(--green-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--green)">→ SAS:</strong> Socio único o hasta 2 socios, negocio digital o startup, necesita arrancar rápido.</div>'+
-      '<div style="background:var(--purple-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--purple)">→ SRL:</strong> Dos o más socios, PyME o empresa familiar, no se prevé recibir inversión externa.</div>'+
-      '<div style="background:var(--red-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--red)">→ SA cerrada:</strong> Múltiples accionistas, estructura más formal, puede necesitar financiamiento.</div>'+
-      '<div style="background:var(--orange-bg);border-radius:8px;padding:10px 12px"><strong style="color:var(--orange)">→ Actividad regulada</strong> (seguros, salud, financiero): verificar tipo requerido por el organismo regulador antes de recomendar.</div>'+
-      '</div>'+
-      '<div class="soc-alert" style="margin-top:10px">La elección del tipo societario tiene consecuencias impositivas (Ganancias, IVA, Ingresos Brutos provinciales). Coordinar siempre con el contador del cliente antes de tomar la decisión final.</div>',
-      'var(--orange)');
-  }
-
-  else if(key==='gobierno'){
-    html+=socCard('Conceptos clave del gobierno societario',
-      [
-        {titulo:'Objeto social',desc:'Descripción de las actividades que la sociedad puede realizar. Define el límite de su capacidad jurídica. Debe ser preciso pero no excesivamente restrictivo. Para actividades reguladas, verificar si el objeto requiere habilitación especial de otro organismo.'},
-        {titulo:'Capital social y cuotas / acciones',desc:'Es el aporte comprometido por los socios. En SRL y SAS: cuotas. En SA: acciones. La responsabilidad del socio queda, en principio, limitada al capital suscripto. La integración puede ser total (en el acto) o parcial (con saldo en plazo legal de 2 años).'},
-        {titulo:'Órgano de administración',desc:'Dirige la operación cotidiana. En SAS: administrador. En SRL: gerente. En SA: directorio (mandato máx. 3 ejercicios — art. 257 LGS). Quien administra tiene deberes de lealtad y diligencia (art. 59 LGS) y puede responder con su patrimonio personal ante actuación dolosa o negligente (art. 274 LGS).'},
-        {titulo:'Asamblea / Reunión de socios',desc:'Es el órgano de gobierno. En SA: asamblea ordinaria (estados contables, autoridades, dividendos — art. 234 LGS) o extraordinaria (reforma de estatuto, fusión, disolución — art. 235 LGS). En SRL: reunión de socios con mayorías según contrato.'},
-        {titulo:'Libros societarios obligatorios',desc:'SA: libro de actas de directorio, libro de actas de asamblea, registro de acciones. SRL: libro de actas de reuniones de socios, registro de cuotas. SAS: libros digitales (obligatorios dentro de los 180 días de la inscripción). Si habrá empleados: libro especial art. 52 LCT.'}
-      ].map(function(item){
-        return '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">'+item.titulo+'</div><div style="font-size:12px;color:var(--text2);line-height:1.65">'+item.desc+'</div></div>';
-      }).join('')+
-      '<div class="soc-alert">El abogado no reemplaza al contador. Toda constitución societaria debe coordinarse con el asesor impositivo del cliente.</div>',
-      'var(--purple)');
-  }
-
-  else if(key==='plataformas'){
-    html+=socPlataformas();
-    html+=socCard('Recursos de referencia adicionales',
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px">'+
-      '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Infoleg — texto oficial LGS, Ley 27.349, CCCN</span><a href="https://infoleg.gob.ar" target="_blank" style="color:var(--blue);font-size:11px;text-decoration:none">infoleg.gob.ar →</a></div>'+
-      '</div>',
-      'var(--blue)');
-  }
-
-  else if(key==='alcance'){
-    html+=socCard('Nivel 1 — Servicios completos (este módulo)',
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Constitución de SAS ante IPJ Córdoba — Ley 27.349</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Constitución de SRL ante IPJ Córdoba — arts. 146–162 LGS</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Constitución de SA cerrada ante IPJ Córdoba — arts. 163–307 LGS</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--green)">✔</span><span>Modificaciones estatutarias simples: sede, denominación, objeto, designación/remoción de autoridades</span></div>'+
-      '</div>',
-      'var(--green)');
-    html+=socCard('Nivel 2 — Aceptar con análisis previo interno',
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Pactos de socios con cláusulas de salida, preferencia o antidilución</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Transformación de tipo societario (arts. 74–81 LGS)</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Disolución y liquidación voluntaria (arts. 94–112 LGS)</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--orange)">›</span><span>Cesión simple de cuotas o acciones entre partes de acuerdo</span></div>'+
-      '</div>',
-      'var(--orange)');
-    html+=socCard('Nivel 3 — Fuera del alcance actual (derivar o declinar)',
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Fusión y escisión (arts. 82–88 LGS)</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Compraventa de cuotas/acciones con due diligence</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Sociedades con socios o capital extranjero (arts. 118/123 LGS — trámite ante IPJ mediante RG 3/23 y RG 22/25)</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Responsabilidad de administradores y acciones societarias (arts. 274–279 LGS)</span></div>'+
-      '<div style="display:flex;gap:8px"><span style="color:var(--red)">✗</span><span>Sociedades bajo fiscalización CNV</span></div>'+
-      '</div>'+
-      '<div class="soc-tip" style="margin-top:10px">La frontera entre niveles no es rígida: se corre a medida que el estudio acumula experiencia. Un caso de Nivel 2 bien resuelto es la antesala para encarar los de Nivel 3.</div>',
-      'var(--red)');
-  }
-
-  el.innerHTML=html;
-}
-
-// ─── SAS ───
-function socRenderSAS(){
-  var html='';
-  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
-  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SAS</span>';
-  html+='<span class="soc-header-badge" style="background:var(--blue-bg);color:var(--blue)">Ley 27.349</span>';
-  html+='<span class="soc-header-badge" style="background:var(--green-bg);color:var(--green)">Admite socio único</span>';
-  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">100% digital</span>';
-  html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad por Acciones Simplificada · IPJ Córdoba · Sin escritura pública obligatoria · Sin presencialidad.</p>';
-  html+=socPlataformas();
-  html+='<div class="card" style="margin-bottom:0">';
-  html+=socStep(1,'Diagnóstico inicial con el cliente',
-    'Cantidad de socios (mínimo 1, sin tope). Actividad. Distribución de capital. Domicilio social en Córdoba. Confirmar que ningún socio sea otra SAS o SA (restricción vigente — verificar resoluciones IPJ actuales). Verificar que el objeto no requiera habilitación especial.',
-    'Art. 33 Ley 27.349 — objeto: toda actividad lícita',null,null);
-  html+=socStep(2,'Reserva de denominación en Portal IPJ',
-    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2. Verificar disponibilidad del nombre (homonimia). La denominación debe incluir "SAS". La reserva tiene plazo determinado: avanzar con el trámite dentro de ese plazo.',
-    'Portal IPJ: tramitesipj.cba.gov.ar',null,
-    'La denominación reservada no queda disponible para terceros mientras está vigente la reserva. No demorar la presentación del trámite.');
-  html+=socStep(3,'Redacción del instrumento constitutivo',
-    'Dos opciones: (a) Modelo aprobado por IPJ — más ágil, la fiscalización del organismo se limita al objeto social; o (b) instrumento redactado por el abogado — mayor flexibilidad pero puede generar observaciones. Contemplar: denominación, domicilio en Córdoba, objeto, capital, cuotas, órgano de administración, representación, plazo.',
-    'Arts. 36–38 Ley 27.349 · Modelo IPJ disponible en tramitesipj.cba.gov.ar',null,
-    'No requiere escritura pública. Se acepta instrumento privado con firma digital CiDi o firma mixta ológrafa + digital (Res. IPJ 49T/25).');
-  html+=socStep(4,'Integración de capital',
-    'Capital mínimo: equivalente a 2 SMVM al momento de la constitución. Aportes dinerarios: acreditar mediante depósito en Bancor (integración online desde la plataforma IPJ) u otra institución bancaria. Aportes en especie: valuación y entrega en el acto.',
-    'Art. 41 Ley 27.349 — integración de aportes',
-    'Verificar el valor vigente del SMVM antes de cada constitución. El monto en pesos cambia con cada actualización del salario mínimo.',null);
-  html+=socStep(5,'Presentación digital ante IPJ Córdoba',
-    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2 y clave fiscal ARCA Nivel 3. Adjuntar instrumento constitutivo firmado, comprobante de integración de capital, datos de socios y administrador. Abonar Tasa Retributiva de Servicios online. La plataforma genera automáticamente el aviso para el Boletín Oficial si se usa modelo IPJ.',
-    'Arts. 46–48 Ley 27.349 · Res. IPJ vigentes',
-    'Verificar la lista de documentación requerida en tramitesipj.cba.gov.ar antes de iniciar. Los requisitos se actualizan por resolución.',null);
-  html+=socStep(6,'Obtención de CUIT y apertura de libros digitales',
-    'La IPJ tramita el CUIT ante ARCA en forma integrada: el número se envía al domicilio electrónico constituido en el trámite. Las SAS llevan libros digitales — dentro de los 180 días de la inscripción deben acreditarse la apertura de todos los libros obligatorios. Registrar la sociedad en Rentas Córdoba (Ingresos Brutos).',
-    'Resolución General conjunta IPJ-ARCA vigente · Res. IPJ sobre libros digitales',null,null);
-  html+=socStep(7,'Entrega al cliente',
-    'Instrumento inscripto, constancia registral digital firmada por IPJ, CUIT, y guía básica de funcionamiento: funcionamiento de la administración, obligación de libros digitales, actualización de datos ante IPJ ante cualquier cambio.',
-    null,null,null);
-  html+='</div>';
-  return html;
-}
-
-// ─── SRL ───
-function socRenderSRL(){
-  var html='';
-  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
-  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SRL</span>';
-  html+='<span class="soc-header-badge" style="background:var(--purple-bg);color:var(--purple)">Arts. 146–162 LGS</span>';
-  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Máx. 50 socios</span>';
-  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Capital en cuotas</span>';
-  html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sociedad de Responsabilidad Limitada · IPJ Córdoba · Mínimo 2 socios · Requiere publicación en Boletín Oficial de Córdoba.</p>';
-  html+=socPlataformas();
-  html+='<div class="card" style="margin-bottom:0">';
-  html+=socStep(1,'Diagnóstico inicial con el cliente',
-    'Cantidad de socios (mínimo 2, máximo 50 — art. 146 LGS). Actividad. Distribución de cuotas. Designación del gerente (socio o no). Domicilio social en Córdoba. Verificar si algún socio es persona jurídica (requiere documentación adicional). Confirmar que el objeto no requiera habilitación especial.',
-    'Art. 146 LGS — límite de socios',null,null);
-  html+=socStep(2,'Reserva de denominación en Portal IPJ',
-    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2. Verificar disponibilidad del nombre. La denominación debe incluir "SRL" o "Sociedad de Responsabilidad Limitada". Avanzar con el trámite dentro del plazo de vigencia de la reserva.',
-    'Art. 147 LGS — denominación social',null,null);
-  html+=socStep(3,'Redacción del contrato social',
-    'Dos opciones: (a) Modelo aprobado por IPJ (más ágil) o (b) instrumento redactado por el abogado. Contemplar: denominación, domicilio en Córdoba, objeto, capital dividido en cuotas iguales, aportaciones de cada socio, gerencia (designación, facultades, retribución), mayorías para resoluciones sociales, plazo. Incluir o excluir expresamente el régimen de transmisión de cuotas.',
-    'Arts. 147–151 LGS · Art. 153 LGS — transmisión de cuotas',null,
-    'La transmisión de cuotas está sujeta por ley al derecho de preferencia de los restantes socios (art. 153 LGS). Si los socios quieren modificar ese régimen, debe constar expresamente en el contrato.');
-  html+=socStep(4,'Integración de capital',
-    'Aportes dinerarios: integrar al menos el 25% en el acto constitutivo; saldo en hasta 2 años (art. 149 LGS). Acreditar mediante depósito bancario en Bancor (integración online desde plataforma IPJ) u otra entidad. Aportes en especie: integrar íntegramente en el acto.',
-    'Art. 149 LGS — integración de aportes · Art. 150 LGS — aportes en especie',
-    'Verificar capital mínimo vigente ante IPJ Córdoba. Se modifica por resolución.',null);
-  html+=socStep(5,'Publicación de edictos en el Boletín Oficial de Córdoba',
-    'Publicar el aviso de constitución en el Boletín Oficial de la Provincia de Córdoba. Si se usa modelo IPJ, la plataforma genera y envía el aviso automáticamente. Si el instrumento es redactado por el abogado, la publicación debe gestionarse por separado en boletinoficial.cba.gov.ar. Conservar comprobante.',
-    'Art. 10 LGS — publicidad de la constitución',
-    'Verificar el contenido mínimo del aviso requerido por IPJ Córdoba. Requisito previo a la inscripción.',null);
-  html+=socStep(6,'Presentación digital ante IPJ Córdoba',
-    'Ingresar a tramitesipj.cba.gov.ar con CiDi Nivel 2 y clave fiscal ARCA Nivel 3. Adjuntar contrato social firmado (instrumento privado con firma digital o mixta — Res. IPJ 49T/25), comprobante de publicación, comprobante de integración. Abonar Tasa Retributiva de Servicios online.',
-    'RG conjunta 5020/21 (trámite integrado SRL) · RG 3T/23 · Res. IPJ 49T/25',
-    'Verificar la lista actualizada de documentación en tramitesipj.cba.gov.ar antes de cada presentación. Una observación reinicia el plazo del trámite.',null);
-  html+=socStep(7,'Inscripción, CUIT y libros',
-    'La IPJ tramita el CUIT ante ARCA en forma integrada. Rubricar libros societarios: libro de actas de reuniones de socios y libro de registro de cuotas. Si habrá empleados: libro especial art. 52 LCT. Inscripción en Rentas Córdoba (rentascordoba.cba.gov.ar).',
-    'RG conjunta IPJ-ARCA · Art. 52 LCT',null,null);
-  html+=socStep(8,'Entrega al cliente',
-    'Contrato social inscripto, constancia registral digital, CUIT, libros rubricados, y guía básica de funcionamiento: mayorías aplicables, restricciones a la cesión de cuotas (art. 153 LGS), funcionamiento de la gerencia, obligación de estados contables anuales.',
-    null,null,null);
-  html+='</div>';
-  return html;
-}
-
-// ─── SA ───
-function socRenderSA(){
-  var html='';
-  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
-  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Constitución de SA cerrada</span>';
-  html+='<span class="soc-header-badge" style="background:var(--red-bg);color:var(--red)">Arts. 163–307 LGS</span>';
-  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Capital en acciones</span>';
-  html+='<span class="soc-header-badge" style="background:var(--bg3);color:var(--text2)">Sin oferta pública</span>';
-  html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Sociedad Anónima cerrada · IPJ Córdoba · Directorio · Requiere escritura pública.</p>';
-  html+='<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--red)">⚠️ La SA requiere escritura pública ante escribano como paso previo a la presentación registral. Coordinar con el escribano actuante antes de iniciar el trámite.</div>';
-  html+=socPlataformas();
-  html+='<div class="card" style="margin-bottom:0">';
-  html+=socStep(1,'Diagnóstico inicial con el cliente',
-    'Cantidad de accionistas y distribución accionaria. Estructura del directorio: unipersonal o colegiado; duración del mandato (máximo 3 ejercicios — art. 257 LGS). Necesidad de sindicatura (verificar umbral de capital vigente ante IPJ Córdoba). Domicilio social en Córdoba. Confirmar que la sociedad no realizará oferta pública.',
-    'Arts. 163–165 LGS · Art. 257 LGS',
-    'La sindicatura es obligatoria cuando el capital supera el monto fijado por resolución IPJ. Verificar el umbral vigente antes de asesorar al cliente sobre la estructura.',null);
-  html+=socStep(2,'Reserva de denominación en Portal IPJ',
-    'Ingresar a tramitesipj.cba.gov.ar. Verificar disponibilidad del nombre. La denominación debe incluir "SA" o "Sociedad Anónima". Avanzar dentro del plazo de vigencia de la reserva.',
-    'Art. 164 LGS — denominación SA',null,null);
-  html+=socStep(3,'Redacción del estatuto y escritura pública',
-    'El estatuto de la SA se otorga mediante escritura pública (art. 165 LGS). Coordinar con el escribano actuante. El estatuto debe contemplar: denominación, domicilio en Córdoba, objeto, capital y clases de acciones, directorio (cantidad, mandato — art. 257 LGS, remuneración — límite art. 261 LGS), asamblea, sindicatura si corresponde, representación legal, plazo.',
-    'Art. 165 LGS — escritura pública obligatoria · Art. 166 LGS — contenido del estatuto',
-    'La remuneración de directores tiene un límite legal de orden público (art. 261 LGS). Toda remuneración que lo supere sin decisión asamblearia puede ser impugnada. Contemplarlo en la redacción del estatuto.',null);
-  html+=socStep(4,'Integración de capital',
-    'Aportes dinerarios: integrar al menos el 25% en el acto; saldo en hasta 2 años (art. 187 LGS). Acreditar mediante depósito bancario (Bancor u otra entidad) a nombre de la sociedad en formación. Aportes en especie: integrar íntegramente en el acto.',
-    'Art. 187 LGS — integración de aportes SA',null,null);
-  html+=socStep(5,'Publicación de edictos en el Boletín Oficial de Córdoba',
-    'Publicar el aviso de constitución en el Boletín Oficial de la Provincia de Córdoba con los datos del art. 10 LGS. Conservar comprobante de publicación para adjuntar a la presentación registral.',
-    'Art. 10 LGS · Art. 165 LGS',
-    'Verificar el contenido mínimo exigido por IPJ Córdoba. Requisito previo a la inscripción.',null);
-  html+=socStep(6,'Presentación digital ante IPJ Córdoba',
-    'Ingresar a tramitesipj.cba.gov.ar. Adjuntar: primer testimonio de la escritura de constitución (digitalizado y firmado digitalmente), comprobante de publicación, comprobante de integración, datos de directores y síndico si corresponde. Abonar Tasa Retributiva de Servicios. La IPJ puede observar el trámite y requerir subsanaciones.',
-    'RG 3T/23 IPJ · Res. IPJ 49T/25',
-    'Verificar la lista de documentación actualizada en tramitesipj.cba.gov.ar antes de cada presentación. La SA es el tipo con mayor probabilidad de observaciones por la complejidad del estatuto.',null);
-  html+=socStep(7,'Inscripción, CUIT y libros obligatorios',
-    'La IPJ tramita el CUIT ante ARCA en forma integrada. Rubricar libros: libro de actas de directorio, libro de actas de asamblea, libro de registro de acciones. Si hay sindicatura: libro de informes de síndico. Si habrá empleados: libro especial art. 52 LCT. Inscripción en Rentas Córdoba.',
-    'Arts. 213 y 238 LGS — libros SA · Art. 52 LCT',null,null);
-  html+=socStep(8,'Entrega al cliente',
-    'Estatuto inscripto, constancia registral digital, CUIT, libros rubricados, y guía de funcionamiento: tipos de asamblea (arts. 234–235 LGS), quórum y mayorías, límite de remuneración de directores (art. 261 LGS), obligación de estados contables anuales ante IPJ.',
-    null,null,null);
-  html+='</div>';
-  return html;
-}
-
-// ─── MODIFICACIONES ───
-function socRenderMod(){
-  var html='';
-  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
-  html+='<span style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text)">Modificaciones estatutarias</span>';
-  html+='</div>';
-  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">Sede · Denominación · Objeto · Autoridades · IPJ Córdoba.</p>';
-  html+=socPlataformas();
-  html+='<div class="card" style="margin-bottom:0">';
-  html+=socStep(1,'Identificar el tipo de modificación y el órgano competente',
-    'Tipos más frecuentes: cambio de sede social, cambio de denominación, ampliación del objeto, designación o remoción de autoridades. SA → asamblea ordinaria o extraordinaria según el caso (arts. 234–235 LGS); SRL → reunión de socios con mayorías del contrato; SAS → según el estatuto.',
-    'SA: arts. 234–235 LGS / SRL: arts. 159–160 LGS / SAS: Ley 27.349',
-    'Un error en el quórum o las mayorías requeridas invalida la asamblea y, con ella, la modificación aprobada. Verificar antes de convocar.',null);
-  html+=socStep(2,'Convocatoria al órgano correspondiente',
-    'Respetar plazos y orden del día. SA: publicar convocatoria en Boletín Oficial de Córdoba y en diario de publicaciones legales, con los plazos del art. 237 LGS. SRL y SAS: mecanismo previsto en el contrato o estatuto. El orden del día de la asamblea SA es cerrado: solo se pueden tratar los puntos incluidos en él (salvo excepciones del art. 246 LGS).',
-    'Art. 237 LGS — convocatoria SA',null,null);
-  html+=socStep(3,'Celebración de la reunión y labramiento del acta',
-    'Labrar el acta con: fecha y lugar, quórum verificado, socios o accionistas presentes, mayorías con que se aprobó cada punto, resolución adoptada y texto completo de la modificación. Asentar en el libro de actas correspondiente. Firmar según el tipo societario.',
-    'Art. 73 LGS — libros de actas',null,null);
-  html+=socStep(4,'Publicación en el Boletín Oficial de Córdoba (si corresponde)',
-    'Ciertas modificaciones exigen publicación previa a la inscripción: cambio de sede, de objeto y de denominación generalmente la requieren. Renovación de autoridades puede no requerirla en algunos tipos. Verificar en cada caso ante IPJ Córdoba antes de asumir que no es necesaria.',
-    'Art. 10 LGS — publicidad de modificaciones',
-    'No asumir que la publicación no es necesaria sin verificarlo. Una inscripción sin la publicación requerida puede ser observada por la IPJ.',null);
-  html+=socStep(5,'Presentación digital ante IPJ Córdoba',
-    'Ingresar a tramitesipj.cba.gov.ar. Adjuntar: acta certificada o testimonio de escritura (según tipo societario), comprobante de publicación si corresponde, formularios del Portal IPJ, pago de Tasa Retributiva de Servicios. El acta de asamblea SA debe estar certificada o con firmas según Res. IPJ 49T/25.',
-    'RG 3T/23 IPJ · Res. IPJ 49T/25',
-    'Los requisitos documentales varían según el tipo de modificación y el tipo societario. Verificar la lista actualizada en tramitesipj.cba.gov.ar antes de cada presentación.',null);
-  html+=socStep(6,'Inscripción y entrega al cliente',
-    'Una vez inscripta la modificación, entregar constancia registral digital y estatuto/contrato actualizado. Si el cambio afecta el domicilio fiscal o la actividad, recordar al cliente actualizar los datos en ARCA (afip.gob.ar) y en Rentas Córdoba (rentascordoba.cba.gov.ar).',
-    null,null,null);
-  html+='</div>';
-  return html;
-}
-
-// ─── ALERTAS ───
-function socRenderAlertas(){
-  var html='';
-  html+='<div style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--text);margin-bottom:16px">Alertas normativas vigentes — IPJ Córdoba · Junio 2026</div>';
-  var alertas=[
-    {titulo:'RG conjunta 5020/21 (IPJ-ARCA)',desc:'Trámite integrado para SRL — permite obtención de CUIT en forma simultánea a la inscripción, con integración Bancor y publicación automática en Boletín Oficial.',link:'https://tramitesipj.cba.gov.ar'},
-    {titulo:'RG 3T/23 IPJ',desc:'Marco general para sociedades y Registro Público en Córdoba.',link:'https://ipj.cba.gov.ar'},
-    {titulo:'Res. IPJ 49T/25',desc:'Habilita firma mixta (ológrafa + digital) en documentos societarios, flexibilizando los requisitos formales. Permite operar desde cualquier punto del país.',link:null},
-    {titulo:'Capital mínimo SAS',desc:'Equivalente a 2 SMVM. Se actualiza con cada variación del salario mínimo — verificar valor vigente antes de cada constitución.',link:null},
-    {titulo:'Capital mínimo SRL y SA + umbral sindicatura',desc:'Fijados por resolución IPJ — verificar ante tramitesipj.cba.gov.ar antes de cada constitución.',link:'https://tramitesipj.cba.gov.ar'},
-    {titulo:'Trámites 100% digitales y remotos',desc:'Todos los trámites de constitución ante IPJ Córdoba son 100% digitales. No requieren presencialidad.',link:null}
-  ];
-  html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">';
-  alertas.forEach(function(a){
-    html+='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px">';
-    html+='<div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:5px">'+a.titulo+'</div>';
-    html+='<div style="font-size:12px;color:var(--text2);line-height:1.6">'+a.desc+'</div>';
-    if(a.link)html+='<a href="'+a.link+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;margin-top:6px;display:inline-block">→ Verificar en el organismo</a>';
-    html+='</div>';
-  });
-  html+='</div>';
-  html+='<div style="background:var(--bg3);border-radius:var(--radius);padding:14px 16px;font-size:12px;color:var(--text3);line-height:1.8">';
-  html+='<strong style="color:var(--text2)">Consideraciones transversales a todos los servicios</strong><br><br>';
-  html+='<strong style="color:var(--text)">Trámite registral:</strong> Los requisitos documentales de la IPJ cambian por resolución. Verificar en tramitesipj.cba.gov.ar antes de cada presentación.<br>';
-  html+='<strong style="color:var(--text)">Objeto social:</strong> Para actividades reguladas, verificar habilitación especial antes de avanzar.<br>';
-  html+='<strong style="color:var(--text)">Derivación:</strong> Si surge socio extranjero, actividad regulada, conflicto entre socios o necesidad de estructura compleja, el caso sale del Nivel 1. Comunicar al cliente antes de continuar.';
-  html+='</div>';
-  return html;
-}
-
 
 // ─── CHECK MENSUAL ───
 var GASTOS_FIJOS=['Sueldos','Expensas','Cochera','Expensas cochera','Luz','Agua','Limpieza'];

@@ -9,6 +9,7 @@ from firebase_admin import credentials, firestore
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import requests
+import anthropic
 
 app = Flask(__name__)
 
@@ -417,13 +418,92 @@ def consultar_correo_ca(prefijo, numero):
         for f, p, h, e in filas
     ]
 
+def procesar_pieza_correo(doc, data, grupo):
+    """Consulta una pieza, actualiza Firestore y devuelve que paso.
+    Resultado: 'error' | 'sin_resultados' | 'primera_vez' | 'sin_cambios' | 'con_novedad'
+    """
+    prefijo = data.get('caPrefijo')
+    numero = data.get('caNumero')
+
+    try:
+        movs = consultar_correo_ca(prefijo, numero)
+    except Exception as e_req:
+        print("Error consultando", prefijo, numero, str(e_req))
+        doc.reference.update({'caError': 'No se pudo consultar', 'caUltimaConsulta': firestore.SERVER_TIMESTAMP})
+        return 'error'
+
+    if not movs:
+        doc.reference.update({'caError': 'Sin resultados en Correo Argentino', 'caUltimaConsulta': firestore.SERVER_TIMESTAMP})
+        return 'sin_resultados'
+
+    ultimo = movs[0]
+    previos = data.get('caMovimientos') or 0
+
+    update = {
+        'caEstado': ultimo['estado'],
+        'caHistoria': ultimo['historia'],
+        'caPlanta': ultimo['planta'],
+        'caFechaMov': ultimo['fecha'],
+        'caMovimientos': len(movs),
+        'caError': '',
+        'caUltimaConsulta': firestore.SERVER_TIMESTAMP
+    }
+
+    # Una vez entregada no se consulta mas
+    if ultimo['estado'].upper() == 'ENTREGADO':
+        update['caFinalizado'] = True
+
+    # La primera consulta solo deja registrado el estado actual: avisar de
+    # piezas recien cargadas seria ruido, no novedad.
+    primera_vez = not data.get('caConsultado')
+    update['caConsultado'] = True
+
+    doc.reference.update(update)
+
+    if primera_vez:
+        return 'primera_vez'
+
+    if len(movs) <= previos:
+        return 'sin_cambios'
+
+    if grupo:
+        cliente = data.get('cliente', 'Sin cliente')
+        pieza = "%s-%s-AR" % (prefijo, numero)
+        estado = ultimo['estado'].upper()
+
+        if estado == 'RECHAZADO':
+            msg = ("⚠️ *ENVÍO RECHAZADO*\n\n"
+                   "👤 *Cliente:* %s\n"
+                   "📦 *Pieza:* %s\n"
+                   "📍 *Movimiento:* %s\n"
+                   "🏢 *Planta:* %s\n"
+                   "📅 *Fecha:* %s\n\n"
+                   "_El destinatario rechazó la pieza. Revisar si requiere acción._"
+                   % (cliente, pieza, ultimo['historia'], ultimo['planta'], ultimo['fecha']))
+        elif estado == 'ENTREGADO':
+            msg = ("✅ *Envío entregado*\n\n"
+                   "👤 *Cliente:* %s\n"
+                   "📦 *Pieza:* %s\n"
+                   "🏢 *Planta:* %s\n"
+                   "📅 *Fecha:* %s"
+                   % (cliente, pieza, ultimo['planta'], ultimo['fecha']))
+        else:
+            msg = ("📦 *Novedad en envío*\n\n"
+                   "👤 *Cliente:* %s\n"
+                   "📦 *Pieza:* %s\n"
+                   "📍 *Movimiento:* %s\n"
+                   "🏢 *Planta:* %s\n"
+                   "📅 *Fecha:* %s"
+                   % (cliente, pieza, ultimo['historia'], ultimo['planta'], ultimo['fecha']))
+
+        responder_whatsapp(grupo, msg)
+
+    return 'con_novedad'
+
 @app.route('/revisar-correos', methods=['GET'])
 def revisar_correos():
-    actualizados = 0
-    sin_cambios = 0
-    errores = 0
+    contadores = {'error': 0, 'sin_resultados': 0, 'primera_vez': 0, 'sin_cambios': 0, 'con_novedad': 0}
     consultados = 0
-    primeras = 0
 
     try:
         docs = list(db.collection('correos').stream())
@@ -435,92 +515,14 @@ def revisar_correos():
 
     for doc in docs:
         data = doc.to_dict()
-        prefijo = data.get('caPrefijo')
-        numero = data.get('caNumero')
-
         # Solo las piezas con codigo cargado y todavia no finalizadas
-        if not prefijo or not numero or data.get('caFinalizado'):
+        if not data.get('caPrefijo') or not data.get('caNumero') or data.get('caFinalizado'):
             continue
-
         consultados += 1
-        try:
-            movs = consultar_correo_ca(prefijo, numero)
-        except Exception as e_req:
-            print("Error consultando", prefijo, numero, str(e_req))
-            errores += 1
-            doc.reference.update({'caError': 'No se pudo consultar', 'caUltimaConsulta': firestore.SERVER_TIMESTAMP})
-            continue
+        resultado = procesar_pieza_correo(doc, data, grupo)
+        contadores[resultado] = contadores.get(resultado, 0) + 1
 
-        if not movs:
-            doc.reference.update({'caError': 'Sin resultados en Correo Argentino', 'caUltimaConsulta': firestore.SERVER_TIMESTAMP})
-            continue
-
-        ultimo = movs[0]
-        previos = data.get('caMovimientos') or 0
-
-        update = {
-            'caEstado': ultimo['estado'],
-            'caHistoria': ultimo['historia'],
-            'caPlanta': ultimo['planta'],
-            'caFechaMov': ultimo['fecha'],
-            'caMovimientos': len(movs),
-            'caError': '',
-            'caUltimaConsulta': firestore.SERVER_TIMESTAMP
-        }
-
-        # Una vez entregada no se consulta mas
-        if ultimo['estado'].upper() == 'ENTREGADO':
-            update['caFinalizado'] = True
-
-        # La primera consulta solo deja registrado el estado actual: avisar de
-        # piezas recien cargadas seria ruido, no novedad.
-        primera_vez = not data.get('caConsultado')
-        update['caConsultado'] = True
-
-        doc.reference.update(update)
-
-        if primera_vez:
-            primeras += 1
-            continue
-
-        if len(movs) <= previos:
-            sin_cambios += 1
-            continue
-
-        actualizados += 1
-
-        if grupo:
-            cliente = data.get('cliente', 'Sin cliente')
-            pieza = "%s-%s-AR" % (prefijo, numero)
-            estado = ultimo['estado'].upper()
-
-            if estado == 'RECHAZADO':
-                msg = ("⚠️ *ENVÍO RECHAZADO*\n\n"
-                       "👤 *Cliente:* %s\n"
-                       "📦 *Pieza:* %s\n"
-                       "📍 *Movimiento:* %s\n"
-                       "🏢 *Planta:* %s\n"
-                       "📅 *Fecha:* %s\n\n"
-                       "_El destinatario rechazó la pieza. Revisar si requiere acción._"
-                       % (cliente, pieza, ultimo['historia'], ultimo['planta'], ultimo['fecha']))
-            elif estado == 'ENTREGADO':
-                msg = ("✅ *Envío entregado*\n\n"
-                       "👤 *Cliente:* %s\n"
-                       "📦 *Pieza:* %s\n"
-                       "🏢 *Planta:* %s\n"
-                       "📅 *Fecha:* %s"
-                       % (cliente, pieza, ultimo['planta'], ultimo['fecha']))
-            else:
-                msg = ("📦 *Novedad en envío*\n\n"
-                       "👤 *Cliente:* %s\n"
-                       "📦 *Pieza:* %s\n"
-                       "📍 *Movimiento:* %s\n"
-                       "🏢 *Planta:* %s\n"
-                       "📅 *Fecha:* %s"
-                       % (cliente, pieza, ultimo['historia'], ultimo['planta'], ultimo['fecha']))
-
-            responder_whatsapp(grupo, msg)
-
+    errores = contadores['error']
     # Si fallaron todas, probablemente cambio el sitio o nos estan bloqueando:
     # conviene enterarse en vez de que el chequeo quede roto en silencio.
     if grupo and consultados > 0 and errores == consultados:
@@ -533,11 +535,170 @@ def revisar_correos():
     return jsonify({
         "status": "ok",
         "consultados": consultados,
-        "primera_consulta": primeras,
-        "con_novedad": actualizados,
-        "sin_cambios": sin_cambios,
+        "primera_consulta": contadores['primera_vez'],
+        "con_novedad": contadores['con_novedad'],
+        "sin_cambios": contadores['sin_cambios'],
         "errores": errores
     }), 200
+
+# Se llama desde el navegador (index.html) justo despues de cargar un
+# seguimiento nuevo, para no esperar hasta el proximo chequeo programado.
+# Lleva CORS propio porque el resto del bot no lo necesita (solo lo pegan
+# el webhook de WhatsApp y cron-job.org, ambos server-to-server).
+@app.route('/revisar-correo-individual', methods=['GET'])
+def revisar_correo_individual():
+    doc_id = request.args.get('id')
+    if not doc_id:
+        resp = jsonify({"status": "error", "detalle": "Falta el parametro id"})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    ref = db.collection('correos').document(doc_id)
+    snap = ref.get()
+    if not snap.exists:
+        resp = jsonify({"status": "error", "detalle": "No existe ese seguimiento"})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 404
+
+    data = snap.to_dict()
+    if not data.get('caPrefijo') or not data.get('caNumero'):
+        resp = jsonify({"status": "error", "detalle": "Ese registro no tiene codigo de Correo Argentino"})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    grupo = os.environ.get("GREEN_API_GROUP_ID")
+    resultado = procesar_pieza_correo(ref, data, grupo)
+
+    resp = jsonify({"status": "ok", "resultado": resultado})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+# --- ESCRITOS CON IA ---
+# Plantilla anonimizada (sin datos reales de ningun cliente) que le muestra a
+# Claude la estructura y el registro formal que usa el estudio. El contenido
+# especifico del caso nuevo se agrega aparte, en PROMPT_HECHOS.
+PLANTILLA_DENUNCIA_LABORAL = """FORMULA DENUNCIA.
+
+Sr. Director de Reclamaciones Individuales
+Departamento Provincial del Trabajo.
+S___________________/____________D
+
+[NOMBRE Y APELLIDO DEL DENUNCIANTE], CUIL [CUIL], [EDAD] años de edad, de estado civil [ESTADO CIVIL], de nacionalidad [NACIONALIDAD], actualmente [SITUACION LABORAL ACTUAL], con domicilio real en [DOMICILIO], Ciudad de Córdoba. Celular [TELEFONO], correo electrónico: [EMAIL], acompañado por la Dra. Ciardiello María Paula M.P. 1-41227, paulaciardiello@hotmail.com, CIDI NIVEL 2, CUIT 27-38003502-8, cel. 3517541685, constituyendo domicilio a los efectos procesales en calle Arturo M. Bas Nº 389 1º Piso Oficina "A", ambos de esta ciudad, ante S.S. respetuosamente comparezco y digo:
+
+Que vengo a formular denuncia en contra de mi empleadora [NOMBRE DEL EMPLEADOR] CUIL/CUIT [CUIL EMPLEADOR], titular y/o responsable de [DESCRIPCION DEL COMERCIO/EMPRESA] con domicilio en [DOMICILIO EMPLEADOR], comparecemos y decimos:
+
+Que ingresé a trabajar bajo las órdenes de la denunciada el [FECHA DE INGRESO], cumpliendo tareas acordes con la categoría [CATEGORIA LABORAL].
+
+Que mi jornada de trabajo era [DESCRIPCION DE LA JORNADA: días y horarios].
+
+Que las tareas desempeñadas por mi parte consistían en [DESCRIPCION DETALLADA DE LAS TAREAS].
+
+Que durante toda la relación laboral presté servicios de manera personal, habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral se encontrara debidamente registrado ante los organismos correspondientes, en violación a la normativa laboral vigente. [Omitir este párrafo de "sin registración" si el caso es de un trabajador SÍ registrado.]
+
+Que la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta [DESARROLLO DE LOS HECHOS QUE MOTIVAN LA DENUNCIA: despido, impedimento de ingreso, falta de pago, acoso, etc. — este es el núcleo narrativo del caso, se redacta a partir de los hechos concretos que aporte el usuario].
+
+[Si corresponde: descripción de intimaciones previas, cartas documento o telegramas enviados, con fecha y número, y su contenido resumido en discurso indirecto o citado entre comillas cuando el usuario aporte el texto exacto.]
+
+[Si corresponde: respuesta de la contraparte, rechazo, o silencio.]
+
+Que al día de la fecha la denunciada no ha dado cumplimiento a [LO RECLAMADO], ni ha hecho entrega de la certificación de servicios y remuneraciones prevista en el art. 80 LCT [si aplica].
+
+Por los motivos expuestos, se solicita la intervención de esta Autoridad de Aplicación.
+
+En definitiva, ante el incumplimiento de la normativa vigente por parte del Empleador, solicitó que el mismo sea citado, quien deberá concurrir con toda la documentación laboral, legajo personal, además de las constancias de pago de los aportes y contribuciones sindicales, sociales y previsionales, y los importes correspondientes a Liquidación Final e indemnizaciones de ley, a cuyo fin deberá fijar día y hora de audiencia de conciliación. Sin otro particular. Saludo a Ud. muy atte."""
+
+TIPOS_ESCRITO = {
+    'denuncia_trabajo': {
+        'nombre': 'Denuncia laboral — Ministerio de Trabajo',
+        'plantilla': PLANTILLA_DENUNCIA_LABORAL
+    }
+}
+
+@app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
+def generar_escrito():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    body = request.get_json(silent=True) or {}
+    tipo = body.get('tipo')
+    cliente = body.get('cliente') or {}
+    hechos = (body.get('hechos') or '').strip()
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    if tipo not in TIPOS_ESCRITO:
+        return error('Tipo de escrito no reconocido.')
+    if not cliente.get('nombre'):
+        return error('Falta seleccionar un cliente.')
+    if not hechos:
+        return error('Falta describir los hechos del caso.')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    datos_cliente = "\n".join([
+        "Nombre completo: %s" % cliente.get('nombre', ''),
+        "CUIL: %s" % cliente.get('cuil', ''),
+        "Edad: %s" % cliente.get('edad', ''),
+        "Domicilio: %s" % cliente.get('domicilio', ''),
+        "Teléfono: %s" % cliente.get('tel', ''),
+        "Empleador: %s" % cliente.get('empleador', ''),
+        "Categoría / motivo: %s" % cliente.get('motivo', ''),
+        "Antigüedad: %s" % cliente.get('antiguedad', ''),
+    ])
+
+    system_prompt = (
+        "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina "
+        "(CASIH & Asociados). Tu tarea es redactar un escrito legal nuevo siguiendo EXACTAMENTE la "
+        "estructura, el registro formal y las fórmulas jurídicas de la plantilla que se te da a "
+        "continuación, pero reemplazando los datos del cliente y redactando de nuevo el relato de "
+        "los hechos a partir de la información real del caso nuevo que te va a dar el usuario.\n\n"
+        "Reglas:\n"
+        "- Mantené el mismo tono formal, las mismas fórmulas de estilo ('Que vengo a...', 'Que, "
+        "ante ello...', 'Sin otro particular. Saludo a Ud. muy atte.') y la misma estructura de "
+        "párrafos que la plantilla.\n"
+        "- Los textos entre corchetes [ASI] son instrucciones para vos, no van en el resultado: "
+        "reemplazalos por el dato real, o si el dato no fue provisto, redactá la oración sin ese "
+        "dato en vez de dejar el corchete o inventar información.\n"
+        "- El párrafo del relato de los hechos (motivo de la denuncia, intimaciones previas, "
+        "rechazos, etc.) no es un molde a completar: redactalo de cero en el mismo estilo formal, "
+        "a partir de los hechos que te cuenta el usuario en su propio lenguaje.\n"
+        "- Nunca inventes fechas, montos, números de carta documento ni nombres que el usuario no "
+        "haya mencionado.\n"
+        "- Devolvé únicamente el texto final del escrito, sin comentarios tuyos antes o después."
+    )
+
+    user_prompt = (
+        "PLANTILLA DE REFERENCIA (estructura y estilo a seguir):\n\n%s\n\n"
+        "DATOS DEL CLIENTE PARA ESTE ESCRITO:\n%s\n\n"
+        "HECHOS DEL CASO (tal como los describió quien carga el sistema):\n%s\n\n"
+        "Redactá el escrito completo aplicando la plantilla de arriba a este cliente y estos hechos."
+    ) % (TIPOS_ESCRITO[tipo]['plantilla'], datos_cliente, hechos)
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=4096,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}]
+        )
+        texto = "".join([b.text for b in response.content if b.type == "text"])
+    except Exception as e:
+        print("Error generando escrito:", str(e))
+        return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
+
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
 
 @app.route('/', methods=['GET'])
 def health():
