@@ -645,15 +645,11 @@ Que, pese a mis reiterados reclamos verbales, los denunciados persistieron en su
 
 BLOQUE_CIERRE_RECLAMO = """Que conforme lo acontecido, las injurias ocasionadas, intimo a que me abone Liquidación Final, conforme la verdadera relación fáctica laboral y haberes adeudados y diferencias de haberes, SAC y Vacaciones No Gozadas por el plazo de prescripción, Indemnización por despido sin causa, antigüedad (art. 245 LCT), sustitutiva de preaviso (art. 232 LCT), Integración mes de despido (art. 233 LCT) y haga entrega de Certificaciones de Servicios y Remuneraciones estipuladas en Art. 80 LCT, sirviendo el presente como emplazamiento de dicha entrega."""
 
-# Cada item de correspondencia se arma con una formula fija segun su tipo; el
-# contenido transcripto (cita textual del telegrama) nunca pasa por la IA en
-# este paso, solo se inserta tal cual lo cargo/leyo el usuario.
-INTROS_CORRESPONDENCIA_NUESTRA = {
-    'intimacion_inicial': 'Atento a las circunstancias relatadas, con fecha %s envié TCL CD Nº %s, mediante el cual intimé a la parte denunciada, en los siguientes términos:',
-    'nuevo_reclamo': 'Ante la falta de respuesta a mis reclamos, con fecha %s remití nuevo TCL CD Nº %s, en los siguientes términos:',
-    'despido_indirecto': 'Transcurrido el plazo de ley sin obtener una respuesta a mis legítimos reclamos, y encontrándome configurada una injuria laboral de gravedad suficiente para impedir la prosecución de la relación de trabajo, con fecha %s remití nuevo TCL CD Nº %s, mediante el cual me consideré despedido/a por exclusiva culpa de la parte denunciada, reclamando el pago de las indemnizaciones legales correspondientes, en los siguientes términos:',
-    'rechazo_respuesta': 'Que ante ello, con fecha %s remití nuevo TCL CD Nº %s, mediante el cual rechacé en todos sus términos la comunicación de la denunciada, ratificando el contenido de mis intimaciones anteriores, en los siguientes términos:',
-}
+# Cada item de correspondencia se arma con una formula fija, en orden
+# cronologico; el contenido transcripto (cita textual del telegrama) nunca
+# pasa por la IA en este paso, solo se inserta tal cual lo cargo/leyo el
+# usuario.
+INTRO_TELEGRAMA_NUESTRO = 'Que, con fecha %s, remití TCL CD Nº %s, en los siguientes términos:'
 
 def armar_telegrama_nuestro(item):
     fecha = (item.get('fechaEnvio') or '').strip()
@@ -661,9 +657,7 @@ def armar_telegrama_nuestro(item):
     contenido = (item.get('contenido') or '').strip()
     recepcion = (item.get('fechaRecepcion') or '').strip()
 
-    tipo = item.get('tipo') or 'intimacion_inicial'
-    intro_fmt = INTROS_CORRESPONDENCIA_NUESTRA.get(tipo, INTROS_CORRESPONDENCIA_NUESTRA['intimacion_inicial'])
-    texto = (intro_fmt % (fecha, numero)) + '\n\n"%s"' % contenido
+    texto = (INTRO_TELEGRAMA_NUESTRO % (fecha, numero)) + '\n\n"%s"' % contenido
     if recepcion:
         texto += '\n\nDicha intimación fue debidamente recibida por la denunciada con fecha %s conforme constancia del Correo Argentino.' % recepcion
     return texto
@@ -682,15 +676,23 @@ def armar_respuesta_empresa(resp):
     texto += ', mediante la cual pretendió responder los reclamos, en los siguientes términos:\n\n"%s"' % contenido
     return texto
 
+def armar_item_correspondencia(item, alguna_respuesta_ref):
+    if item.get('emisor') == 'empresa':
+        alguna_respuesta_ref[0] = True
+        return [armar_respuesta_empresa(item)]
+
+    partes = [armar_telegrama_nuestro(item)]
+    if item.get('huboRespuesta') and item.get('respuesta'):
+        partes.append(armar_respuesta_empresa(item['respuesta']))
+        alguna_respuesta_ref[0] = True
+    return partes
+
 def armar_bloque_correspondencia(correspondencia):
     partes = []
-    alguna_respuesta = False
+    alguna_respuesta_ref = [False]
     for item in correspondencia:
-        partes.append(armar_telegrama_nuestro(item))
-        if item.get('huboRespuesta') and item.get('respuesta'):
-            partes.append(armar_respuesta_empresa(item['respuesta']))
-            alguna_respuesta = True
-    if not alguna_respuesta:
+        partes.extend(armar_item_correspondencia(item, alguna_respuesta_ref))
+    if not alguna_respuesta_ref[0]:
         partes.append('Al día de la fecha la denunciada no ha contestado ninguna de las intimaciones remitidas por esta parte.')
     return '\n\n'.join(partes)
 

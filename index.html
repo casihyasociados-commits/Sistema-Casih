@@ -641,16 +641,9 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 
   <div class="card" style="max-width:760px;margin-top:16px">
-    <div class="card-title">Relato del impedimento de ingreso</div>
-    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">
-      Este modelo es para el motivo "impedimento de ingreso" (el empleador no deja volver a trabajar). Ese tramo del relato ya está fijo en el sistema, con la fecha de despido que cargaste arriba — no hace falta escribir nada acá. Cuando armemos otros motivos (accidente, falta de pago, etc.) van a tener su propio texto fijo.
-    </div>
-  </div>
-
-  <div class="card" style="max-width:760px;margin-top:16px">
     <div class="card-title">Telegramas / cartas documento</div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:14px">
-      Agregá los telegramas que envió el estudio, en orden. Por cada uno marcá si la empresa respondió — si respondió, cargás su respuesta ahí mismo. Podés adjuntar el archivo (foto o PDF) para que la IA complete fecha, número y texto — revisalo siempre antes de generar, es una transcripción asistida, no definitiva.
+      Agregá cada telegrama en orden cronológico. Elegí quién lo envió (nosotros o la empresa). Si lo enviamos nosotros, marcá si la empresa respondió — si respondió, cargás su respuesta ahí mismo. Podés adjuntar el archivo (foto o PDF) para que la IA complete fecha, número y texto — revisalo siempre antes de generar, es una transcripción asistida, no definitiva.
     </div>
     <div id="es-corr-list"></div>
     <button class="btn-sm" onclick="agregarCorrespondencia()" style="margin-top:8px">+ Agregar telegrama</button>
@@ -2308,15 +2301,12 @@ function agregarCorrespondencia(){
   wrap.id='es-corr-'+idx;
   wrap.style.cssText='border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--bg3)';
   wrap.innerHTML=
-    '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Telegrama nuestro</div>'+
+    '<div class="fg"><div class="fl">Emisor</div><select class="fs" id="es-corr-emisor-'+idx+'" onchange="toggleEmisorCorrespondencia('+idx+')"><option value="nuestra_parte">Nosotros (a favor del cliente)</option><option value="empresa">La empresa / denunciado</option></select></div>'+
     '<div class="g2">'+
-      '<div class="fg"><div class="fl">Tipo</div><select class="fs" id="es-corr-tipo-'+idx+'"><option value="intimacion_inicial">Intimación inicial</option><option value="nuevo_reclamo">Nuevo reclamo</option><option value="despido_indirecto">Me considero despedido/a</option><option value="rechazo_respuesta">Rechazo de respuesta de la empresa</option></select></div>'+
       '<div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="es-corr-fecha-'+idx+'" placeholder="Ej: 02/07/2026"></div>'+
-    '</div>'+
-    '<div class="g2">'+
       '<div class="fg"><div class="fl">Número de seguimiento</div><input class="fi" id="es-corr-numero-'+idx+'" placeholder="Ej: 371372272"></div>'+
-      '<div class="fg"><div class="fl">Fecha de recepción (opcional)</div><input class="fi" id="es-corr-recepcion-'+idx+'" placeholder="Ej: 08/07/2026"></div>'+
     '</div>'+
+    '<div class="fg"><div class="fl">Fecha de recepción (opcional)</div><input class="fi" id="es-corr-recepcion-'+idx+'" placeholder="Ej: 08/07/2026"></div>'+
     '<div class="fg">'+
       '<div class="fl">Adjuntar archivo (foto o PDF) para leer con IA</div>'+
       '<div style="display:flex;gap:8px;align-items:center">'+
@@ -2326,32 +2316,44 @@ function agregarCorrespondencia(){
       '<div id="es-corr-file-status-'+idx+'" style="font-size:11px;color:var(--text3);margin-top:4px"></div>'+
     '</div>'+
     '<div class="fg"><div class="fl">Contenido (transcripción)</div><textarea class="fta" id="es-corr-contenido-'+idx+'" style="min-height:100px" placeholder="Se completa solo al leer el archivo, o pegalo/tipealo acá. Revisalo siempre contra el original."></textarea></div>'+
-    '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin:10px 0;border-top:1px solid var(--border);padding-top:10px">'+
-      '<input type="checkbox" id="es-corr-hubo-respuesta-'+idx+'" onchange="toggleRespuestaEmpresa('+idx+')"> ¿La empresa respondió este telegrama?'+
-    '</label>'+
-    '<div id="es-corr-respuesta-'+idx+'" style="display:none;background:var(--bg2);border-radius:8px;padding:10px;margin-bottom:10px">'+
-      '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Respuesta de la empresa</div>'+
-      '<div class="g2">'+
-        '<div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="es-corr-resp-fecha-'+idx+'" placeholder="Ej: 24/07/2026"></div>'+
-        '<div class="fg"><div class="fl">Número de CD (opcional)</div><input class="fi" id="es-corr-resp-numero-'+idx+'"></div>'+
-      '</div>'+
-      '<div class="fg"><div class="fl">Fecha de recepción (opcional)</div><input class="fi" id="es-corr-resp-recepcion-'+idx+'"></div>'+
-      '<div class="fg">'+
-        '<div class="fl">Adjuntar archivo (foto o PDF) para leer con IA</div>'+
-        '<div style="display:flex;gap:8px;align-items:center">'+
-          '<input type="file" id="es-corr-resp-file-'+idx+'" accept=".pdf,image/*" style="flex:1;font-size:12px">'+
-          '<button class="btn-sm" onclick="leerArchivoCorrespondencia('+idx+',\'respuesta\')">📎 Leer con IA</button>'+
+    '<div id="es-corr-respuesta-wrap-'+idx+'">'+
+      '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin:10px 0;border-top:1px solid var(--border);padding-top:10px">'+
+        '<input type="checkbox" id="es-corr-hubo-respuesta-'+idx+'" onchange="toggleRespuestaEmpresa('+idx+')"> ¿La empresa respondió este telegrama?'+
+      '</label>'+
+      '<div id="es-corr-no-respuesta-'+idx+'" style="font-size:12px;color:var(--text3);margin-bottom:10px">No hubo respuesta a este telegrama.</div>'+
+      '<div id="es-corr-respuesta-'+idx+'" style="display:none;background:var(--bg2);border-radius:8px;padding:10px;margin-bottom:10px">'+
+        '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Respuesta de la empresa</div>'+
+        '<div class="g2">'+
+          '<div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="es-corr-resp-fecha-'+idx+'" placeholder="Ej: 24/07/2026"></div>'+
+          '<div class="fg"><div class="fl">Número de CD (opcional)</div><input class="fi" id="es-corr-resp-numero-'+idx+'"></div>'+
         '</div>'+
-        '<div id="es-corr-resp-file-status-'+idx+'" style="font-size:11px;color:var(--text3);margin-top:4px"></div>'+
+        '<div class="fg"><div class="fl">Fecha de recepción (opcional)</div><input class="fi" id="es-corr-resp-recepcion-'+idx+'"></div>'+
+        '<div class="fg">'+
+          '<div class="fl">Adjuntar archivo (foto o PDF) para leer con IA</div>'+
+          '<div style="display:flex;gap:8px;align-items:center">'+
+            '<input type="file" id="es-corr-resp-file-'+idx+'" accept=".pdf,image/*" style="flex:1;font-size:12px">'+
+            '<button class="btn-sm" onclick="leerArchivoCorrespondencia('+idx+',\'respuesta\')">📎 Leer con IA</button>'+
+          '</div>'+
+          '<div id="es-corr-resp-file-status-'+idx+'" style="font-size:11px;color:var(--text3);margin-top:4px"></div>'+
+        '</div>'+
+        '<div class="fg"><div class="fl">Contenido (transcripción)</div><textarea class="fta" id="es-corr-resp-contenido-'+idx+'" style="min-height:100px" placeholder="Se completa solo al leer el archivo, o pegalo/tipealo acá."></textarea></div>'+
       '</div>'+
-      '<div class="fg"><div class="fl">Contenido (transcripción)</div><textarea class="fta" id="es-corr-resp-contenido-'+idx+'" style="min-height:100px" placeholder="Se completa solo al leer el archivo, o pegalo/tipealo acá."></textarea></div>'+
     '</div>'+
-    '<button class="btn-sm" onclick="document.getElementById(\'es-corr-'+idx+'\').remove()" style="color:var(--red);border-color:var(--red-bg)">✕ Quitar este telegrama</button>';
+    '<button class="btn-sm" onclick="document.getElementById(\'es-corr-'+idx+'\').remove()" style="color:var(--red);border-color:var(--red-bg)">✕ Quitar este ítem</button>';
   document.getElementById('es-corr-list').appendChild(wrap);
+}
+function toggleEmisorCorrespondencia(idx){
+  var esEmpresa=document.getElementById('es-corr-emisor-'+idx).value==='empresa';
+  document.getElementById('es-corr-respuesta-wrap-'+idx).style.display=esEmpresa?'none':'block';
+  if(esEmpresa){
+    document.getElementById('es-corr-hubo-respuesta-'+idx).checked=false;
+    document.getElementById('es-corr-respuesta-'+idx).style.display='none';
+  }
 }
 function toggleRespuestaEmpresa(idx){
   var checked=document.getElementById('es-corr-hubo-respuesta-'+idx).checked;
   document.getElementById('es-corr-respuesta-'+idx).style.display=checked?'block':'none';
+  document.getElementById('es-corr-no-respuesta-'+idx).style.display=checked?'none':'block';
 }
 function leerArchivoCorrespondencia(idx,cual){
   var prefijo=cual==='respuesta'?'es-corr-resp-':'es-corr-';
@@ -2412,9 +2414,10 @@ function generarEscrito(){
   var correspondencia=[];
   document.querySelectorAll('#es-corr-list > div').forEach(function(block){
     var idx=block.id.replace('es-corr-','');
-    var huboRespuesta=document.getElementById('es-corr-hubo-respuesta-'+idx).checked;
+    var emisor=v('es-corr-emisor-'+idx)||'nuestra_parte';
+    var huboRespuesta=emisor==='nuestra_parte'&&document.getElementById('es-corr-hubo-respuesta-'+idx).checked;
     var item={
-      tipo:v('es-corr-tipo-'+idx),
+      emisor:emisor,
       fechaEnvio:v('es-corr-fecha-'+idx),
       numero:v('es-corr-numero-'+idx),
       fechaRecepcion:v('es-corr-recepcion-'+idx),
