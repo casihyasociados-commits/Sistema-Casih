@@ -560,7 +560,8 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="page-sub">Genera un primer borrador con el estilo del estudio — siempre revisar antes de presentar</div>
     </div>
   </div>
-  <div class="card" style="max-width:720px">
+
+  <div class="card" style="max-width:760px">
     <div class="fg">
       <div class="fl">Tipo de escrito</div>
       <select class="fs" id="es-tipo">
@@ -568,24 +569,90 @@ input.currency-input{letter-spacing:0.5px;}
       </select>
     </div>
     <div class="fg">
-      <div class="fl">Cliente *</div>
-      <div style="position:relative">
-        <input class="fi" id="es-cliente-search" placeholder="Escribí para buscar..." oninput="filtrarClientes('es-cliente-search','es-cliente-dropdown')" onfocus="filtrarClientes('es-cliente-search','es-cliente-dropdown')" autocomplete="off">
-        <input type="hidden" id="es-cliente" value="">
-        <div id="es-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      <div class="fl">Representación legal</div>
+      <select class="fs" id="es-representacion">
+        <option value="ciardiello">Dra. Ciardiello María Paula</option>
+        <option value="casih">Dr. Pablo Casih</option>
+        <option value="ambos">Ambos</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:760px;margin-top:16px">
+    <div class="card-title">Datos del cliente</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="es-cl-nombre"></div>
+      <div class="fg"><div class="fl">CUIT</div><input class="fi" id="es-cl-cuit" placeholder="20-12345678-9"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="es-cl-estado-civil"></div>
+      <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="es-cl-nacionalidad" value="Argentina"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="es-cl-domicilio"></div>
+      <div class="fg"><div class="fl">Ciudad</div><input class="fi" id="es-cl-ciudad" value="Córdoba"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="es-cl-telefono"></div>
+      <div class="fg"><div class="fl">Correo electrónico</div><input class="fi" id="es-cl-email"></div>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:760px;margin-top:16px">
+    <div class="card-title">Datos del denunciado</div>
+    <div style="display:flex;gap:18px;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="es-den-es-persona" onchange="toggleDenunciadoFields()"> Persona física</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="es-den-es-empresa" onchange="toggleDenunciadoFields()"> Empresa</label>
+    </div>
+    <div id="es-den-persona-fields" style="display:none">
+      <div class="g2">
+        <div class="fg"><div class="fl">Empleador/a (nombre)</div><input class="fi" id="es-den-nombre"></div>
+        <div class="fg"><div class="fl">CUIT empleador/a</div><input class="fi" id="es-den-cuit-persona"></div>
       </div>
     </div>
+    <div id="es-den-empresa-fields" style="display:none">
+      <div class="g2">
+        <div class="fg"><div class="fl">Empresa (razón social o nombre de fantasía)</div><input class="fi" id="es-den-empresa"></div>
+        <div class="fg"><div class="fl">CUIT empresa</div><input class="fi" id="es-den-cuit-empresa"></div>
+      </div>
+      <div class="fg"><div class="fl">Rubro de la empresa</div><input class="fi" id="es-den-rubro" placeholder="Ej: fabricación y venta de productos alimenticios sin gluten"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="es-den-domicilio"></div>
+      <div class="fg"><div class="fl">Ciudad</div><input class="fi" id="es-den-ciudad" value="Córdoba"></div>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:760px;margin-top:16px">
+    <div class="card-title">Relación laboral</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha de ingreso</div><input class="fi" id="es-rl-fecha-ingreso" placeholder="Ej: 01/11/2024"></div>
+      <div class="fg"><div class="fl">Categoría</div><input class="fi" id="es-rl-categoria"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Jornada</div><input class="fi" id="es-rl-jornada" placeholder="Ej: tres días fijos por semana: martes, miércoles y jueves"></div>
+      <div class="fg"><div class="fl">Horarios</div><input class="fi" id="es-rl-horarios" placeholder="Ej: turno mañana de 8 a 14 hs"></div>
+    </div>
     <div class="fg">
-      <div class="fl">Hechos del caso *</div>
-      <textarea class="fta" id="es-hechos" style="min-height:160px" placeholder="Contá el caso como se lo explicarías a un colega: cuándo ingresó, qué pasó, si mandó cartas documento y qué decían, si hubo respuesta, qué se reclama..."></textarea>
+      <div class="fl">Tareas *</div>
+      <textarea class="fta" id="es-rl-tareas" style="min-height:100px" placeholder="Contalas en primera persona, como se lo dirías a un colega. La IA las redacta en estilo formal — no hace falta que lo escribas ya en formato legal."></textarea>
+    </div>
+    <div class="fg"><div class="fl">Fecha de despido / desvinculación</div><input class="fi" id="es-rl-fecha-despido" placeholder="Ej: 12/06/2026"></div>
+  </div>
+
+  <div class="card" style="max-width:760px;margin-top:16px">
+    <div class="card-title">Hechos posteriores al despido</div>
+    <div class="fg">
+      <div class="fl">Contá qué pasó después *</div>
+      <textarea class="fta" id="es-hechos" style="min-height:160px" placeholder="Intimaciones, cartas documento (con fecha y número), qué decían, si hubo respuesta o rechazo, qué se reclama..."></textarea>
     </div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">
-      El escrito se genera con IA a partir de los datos del cliente y lo que describas acá. Revisalo y corregilo siempre antes de presentarlo — es un primer borrador, no un documento final.
+      El escrito se genera con IA solo para el párrafo de tareas y el de hechos posteriores — el resto del escrito se arma automáticamente con los datos que cargaste, sin pasar por la IA. Revisalo siempre antes de presentarlo.
     </div>
     <button class="btn-primary" id="es-btn-generar" onclick="generarEscrito()" style="width:100%;padding:12px">✨ Generar con IA</button>
   </div>
 
-  <div class="card" id="es-resultado-card" style="max-width:720px;display:none;margin-top:16px">
+  <div class="card" id="es-resultado-card" style="max-width:760px;display:none;margin-top:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="card-title" style="margin-bottom:0">Borrador generado</div>
       <button class="btn-sm" onclick="copiarEscrito()">📋 Copiar texto</button>
@@ -2220,14 +2287,37 @@ function filtrarClientes(inputId,dropdownId){
 }
 
 // ─── ESCRITOS CON IA ───
+function toggleDenunciadoFields(){
+  document.getElementById('es-den-persona-fields').style.display=document.getElementById('es-den-es-persona').checked?'block':'none';
+  document.getElementById('es-den-empresa-fields').style.display=document.getElementById('es-den-es-empresa').checked?'block':'none';
+}
 function generarEscrito(){
-  var nombre=document.getElementById('es-cliente').value.trim();
-  var hechos=document.getElementById('es-hechos').value.trim();
-  var tipo=document.getElementById('es-tipo').value;
-  if(!nombre){alert('Seleccioná un cliente de la lista.');return;}
-  if(!hechos){alert('Describí los hechos del caso.');return;}
-  var cliente=CLIENTES_CACHE.find(function(c){return c.nombre===nombre;});
-  if(!cliente){alert('No encontré ese cliente en el sistema. Elegilo de la lista desplegable.');return;}
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var tipo=v('es-tipo');
+  var cliente={
+    nombre:v('es-cl-nombre'),cuit:v('es-cl-cuit'),estadoCivil:v('es-cl-estado-civil'),
+    nacionalidad:v('es-cl-nacionalidad'),domicilio:v('es-cl-domicilio'),ciudad:v('es-cl-ciudad'),
+    telefono:v('es-cl-telefono'),email:v('es-cl-email'),representacion:v('es-representacion')
+  };
+  var esPersona=document.getElementById('es-den-es-persona').checked;
+  var esEmpresa=document.getElementById('es-den-es-empresa').checked;
+  var denunciado={
+    esPersona:esPersona,esEmpresa:esEmpresa,
+    nombre:v('es-den-nombre'),cuitPersona:v('es-den-cuit-persona'),
+    empresa:v('es-den-empresa'),cuitEmpresa:v('es-den-cuit-empresa'),rubro:v('es-den-rubro'),
+    domicilio:v('es-den-domicilio'),ciudad:v('es-den-ciudad')
+  };
+  var relacion={
+    fechaIngreso:v('es-rl-fecha-ingreso'),categoria:v('es-rl-categoria'),
+    jornada:v('es-rl-jornada'),horarios:v('es-rl-horarios'),
+    tareas:v('es-rl-tareas'),fechaDespido:v('es-rl-fecha-despido')
+  };
+  var hechos=v('es-hechos');
+
+  if(!cliente.nombre){alert('Falta el nombre y apellido del cliente.');return;}
+  if(!esPersona&&!esEmpresa){alert('Marcá si el denunciado es persona física, empresa, o ambas.');return;}
+  if(!relacion.tareas){alert('Describí las tareas del cliente.');return;}
+  if(!hechos){alert('Contá qué pasó después del despido.');return;}
 
   var btn=document.getElementById('es-btn-generar');
   btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
@@ -2236,11 +2326,7 @@ function generarEscrito(){
   fetch(BOT_URL+'/generar-escrito',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      tipo:tipo,
-      hechos:hechos,
-      cliente:{nombre:cliente.nombre,cuil:cliente.cuil,edad:cliente.edad,domicilio:cliente.domicilio,tel:cliente.tel,empleador:cliente.empleador,motivo:cliente.motivo,antiguedad:cliente.antiguedad}
-    })
+    body:JSON.stringify({tipo:tipo,cliente:cliente,denunciado:denunciado,relacion:relacion,hechos:hechos})
   }).then(function(r){return r.json();}).then(function(data){
     if(data.status==='ok'){
       document.getElementById('es-resultado').value=data.texto;

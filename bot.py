@@ -574,45 +574,101 @@ def revisar_correo_individual():
     return resp, 200
 
 # --- ESCRITOS CON IA ---
-# Plantilla anonimizada (sin datos reales de ningun cliente) que le muestra a
-# Claude la estructura y el registro formal que usa el estudio. El contenido
-# especifico del caso nuevo se agrega aparte, en PROMPT_HECHOS.
-PLANTILLA_DENUNCIA_LABORAL = """FORMULA DENUNCIA.
+# Todo lo que es fijo (representacion legal, encabezado, formulas de cierre)
+# se arma con texto literal, sin pasar por el modelo: asi los datos duros
+# (nombres, CUIT, fechas) nunca corren riesgo de ser alterados por la IA.
+# Claude solo redacta dos parrafos puntuales, donde hace falta traducir
+# lenguaje informal a estilo formal: la descripcion de tareas y el relato de
+# los hechos posteriores al despido.
+
+BLOQUES_REPRESENTACION = {
+    'ciardiello': (
+        'acompañado por la Dra. Ciardiello María Paula M.P. 1-41227, CIDI NIVEL 2, '
+        'CUIT 27-38003502-8, correo electrónico paulaciardiello@hotmail.com, '
+        'cel. 3517541685, constituyendo domicilio a los efectos procesales en calle '
+        'Arturo M. Bas Nº 389 1º Piso Oficina "A"'
+    ),
+    'casih': (
+        'acompañado por el Dr. Pablo CASIH M.P. 1-31142 CIDI NIVEL 2, '
+        'CUIT 20-22220869-7, correo electrónico pcasih@hotmail.com, '
+        'cel. 3515102323, constituyendo domicilio a los efectos procesales en calle '
+        'Arturo M. Bas Nº 389 1º Piso Oficina "A"'
+    ),
+    'ambos': (
+        'acompañado por la Dra. Ciardiello María Paula M.P. 1-41227, CIDI NIVEL 2, '
+        'CUIT 27-38003502-8, correo electrónico paulaciardiello@hotmail.com, '
+        'cel. 3517541685 y por el Dr. Pablo CASIH M.P. 1-31142 CIDI NIVEL 2, '
+        'CUIT 20-22220869-7, correo electrónico pcasih@hotmail.com, '
+        'cel. 3515102323, constituyendo domicilio a los efectos procesales en calle '
+        'Arturo M. Bas Nº 389 1º Piso Oficina "A"'
+    ),
+}
+
+def armar_bloque_denunciado(den):
+    persona = (den.get('esPersona') and (den.get('nombre') or '').strip())
+    empresa = (den.get('esEmpresa') and (den.get('empresa') or '').strip())
+    domicilio = (den.get('domicilio') or '').strip()
+    ciudad = (den.get('ciudad') or '').strip()
+
+    if persona and empresa:
+        base = 'mi empleador/a %s CUIT %s, titular y/o responsable de la empresa %s CUIT %s, dedicada a %s' % (
+            den.get('nombre', ''), den.get('cuitPersona', ''),
+            den.get('empresa', ''), den.get('cuitEmpresa', ''), den.get('rubro', '')
+        )
+    elif persona:
+        base = 'mi empleador/a %s CUIT %s' % (den.get('nombre', ''), den.get('cuitPersona', ''))
+    elif empresa:
+        base = 'la empresa %s CUIT %s, dedicada a %s' % (
+            den.get('empresa', ''), den.get('cuitEmpresa', ''), den.get('rubro', '')
+        )
+    else:
+        base = 'la parte denunciada'
+
+    if domicilio or ciudad:
+        base += ', con domicilio en %s%s' % (
+            domicilio, (' de la ciudad de %s' % ciudad) if ciudad else ''
+        )
+    return base
+
+def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, parrafo_tareas, parrafo_hechos):
+    bloque_rep = BLOQUES_REPRESENTACION.get(cliente.get('representacion'), BLOQUES_REPRESENTACION['ciardiello'])
+    bloque_den = armar_bloque_denunciado(denunciado)
+
+    return """FORMULA DENUNCIA.
 
 Sr. Director de Reclamaciones Individuales
 Departamento Provincial del Trabajo.
 S___________________/____________D
 
-[NOMBRE Y APELLIDO DEL DENUNCIANTE], CUIL [CUIL], [EDAD] años de edad, de estado civil [ESTADO CIVIL], de nacionalidad [NACIONALIDAD], actualmente [SITUACION LABORAL ACTUAL], con domicilio real en [DOMICILIO], Ciudad de Córdoba. Celular [TELEFONO], correo electrónico: [EMAIL], acompañado por la Dra. Ciardiello María Paula M.P. 1-41227, paulaciardiello@hotmail.com, CIDI NIVEL 2, CUIT 27-38003502-8, cel. 3517541685, constituyendo domicilio a los efectos procesales en calle Arturo M. Bas Nº 389 1º Piso Oficina "A", ambos de esta ciudad, ante S.S. respetuosamente comparezco y digo:
+%s, CUIT %s, de estado civil %s, de nacionalidad %s, con domicilio real en %s, Ciudad de %s. Celular %s, correo electrónico: %s, %s, ambos de esta ciudad, ante S.S. respetuosamente comparezco y digo:
 
-Que vengo a formular denuncia en contra de mi empleadora [NOMBRE DEL EMPLEADOR] CUIL/CUIT [CUIL EMPLEADOR], titular y/o responsable de [DESCRIPCION DEL COMERCIO/EMPRESA] con domicilio en [DOMICILIO EMPLEADOR], comparecemos y decimos:
+Que vengo a formular denuncia en contra de %s, comparezco y digo:
 
-Que ingresé a trabajar bajo las órdenes de la denunciada el [FECHA DE INGRESO], cumpliendo tareas acordes con la categoría [CATEGORIA LABORAL].
+Que ingresé a trabajar bajo las órdenes de la denunciada el %s, cumpliendo tareas acordes con la categoría %s.
 
-Que mi jornada de trabajo era [DESCRIPCION DE LA JORNADA: días y horarios].
+Que mi jornada de trabajo era %s, %s.
 
-Que las tareas desempeñadas por mi parte consistían en [DESCRIPCION DETALLADA DE LAS TAREAS].
+%s
 
-Que durante toda la relación laboral presté servicios de manera personal, habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral se encontrara debidamente registrado ante los organismos correspondientes, en violación a la normativa laboral vigente. [Omitir este párrafo de "sin registración" si el caso es de un trabajador SÍ registrado.]
+Que durante toda la relación laboral presté servicios de manera personal, habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral se encontrara debidamente registrado ante los organismos correspondientes, en violación a la normativa laboral vigente.
 
-Que la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta [DESARROLLO DE LOS HECHOS QUE MOTIVAN LA DENUNCIA: despido, impedimento de ingreso, falta de pago, acoso, etc. — este es el núcleo narrativo del caso, se redacta a partir de los hechos concretos que aporte el usuario].
+Que la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta el día %s.
 
-[Si corresponde: descripción de intimaciones previas, cartas documento o telegramas enviados, con fecha y número, y su contenido resumido en discurso indirecto o citado entre comillas cuando el usuario aporte el texto exacto.]
-
-[Si corresponde: respuesta de la contraparte, rechazo, o silencio.]
-
-Que al día de la fecha la denunciada no ha dado cumplimiento a [LO RECLAMADO], ni ha hecho entrega de la certificación de servicios y remuneraciones prevista en el art. 80 LCT [si aplica].
+%s
 
 Por los motivos expuestos, se solicita la intervención de esta Autoridad de Aplicación.
 
-En definitiva, ante el incumplimiento de la normativa vigente por parte del Empleador, solicitó que el mismo sea citado, quien deberá concurrir con toda la documentación laboral, legajo personal, además de las constancias de pago de los aportes y contribuciones sindicales, sociales y previsionales, y los importes correspondientes a Liquidación Final e indemnizaciones de ley, a cuyo fin deberá fijar día y hora de audiencia de conciliación. Sin otro particular. Saludo a Ud. muy atte."""
-
-TIPOS_ESCRITO = {
-    'denuncia_trabajo': {
-        'nombre': 'Denuncia laboral — Ministerio de Trabajo',
-        'plantilla': PLANTILLA_DENUNCIA_LABORAL
-    }
-}
+En definitiva, ante el incumplimiento de la normativa vigente por parte del Empleador, solicitó que el mismo sea citado, quien deberá concurrir con toda la documentación laboral, legajo personal, además de las constancias de pago de los aportes y contribuciones sindicales, sociales y previsionales, y los importes correspondientes a Liquidación Final e indemnizaciones de ley, a cuyo fin deberá fijar día y hora de audiencia de conciliación. Sin otro particular. Saludo a Ud. muy atte.""" % (
+        cliente.get('nombre', ''), cliente.get('cuit', ''), cliente.get('estadoCivil', ''),
+        cliente.get('nacionalidad', ''), cliente.get('domicilio', ''), cliente.get('ciudad', ''),
+        cliente.get('telefono', ''), cliente.get('email', ''), bloque_rep,
+        bloque_den,
+        relacion.get('fechaIngreso', ''), relacion.get('categoria', ''),
+        relacion.get('jornada', ''), relacion.get('horarios', ''),
+        parrafo_tareas,
+        relacion.get('fechaDespido', ''),
+        parrafo_hechos
+    )
 
 @app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
 def generar_escrito():
@@ -626,6 +682,8 @@ def generar_escrito():
     body = request.get_json(silent=True) or {}
     tipo = body.get('tipo')
     cliente = body.get('cliente') or {}
+    denunciado = body.get('denunciado') or {}
+    relacion = body.get('relacion') or {}
     hechos = (body.get('hechos') or '').strip()
 
     def error(msg, code=400):
@@ -633,70 +691,78 @@ def generar_escrito():
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, code
 
-    if tipo not in TIPOS_ESCRITO:
+    if tipo != 'denuncia_trabajo':
         return error('Tipo de escrito no reconocido.')
     if not cliente.get('nombre'):
-        return error('Falta seleccionar un cliente.')
+        return error('Faltan los datos del cliente.')
+    if not denunciado.get('esPersona') and not denunciado.get('esEmpresa'):
+        return error('Marcá si el denunciado es persona física, empresa, o ambas.')
+    if not (relacion.get('tareas') or '').strip():
+        return error('Falta la descripción de las tareas.')
     if not hechos:
-        return error('Falta describir los hechos del caso.')
+        return error('Falta describir los hechos posteriores al despido.')
 
     api_key = os.environ.get('ANTHROPIC_API_KEY')
     if not api_key:
         return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
 
-    datos_cliente = "\n".join([
-        "Nombre completo: %s" % cliente.get('nombre', ''),
-        "CUIL: %s" % cliente.get('cuil', ''),
-        "Edad: %s" % cliente.get('edad', ''),
-        "Domicilio: %s" % cliente.get('domicilio', ''),
-        "Teléfono: %s" % cliente.get('tel', ''),
-        "Empleador: %s" % cliente.get('empleador', ''),
-        "Categoría / motivo: %s" % cliente.get('motivo', ''),
-        "Antigüedad: %s" % cliente.get('antiguedad', ''),
-    ])
-
     system_prompt = (
-        "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina "
-        "(CASIH & Asociados). Tu tarea es redactar un escrito legal nuevo siguiendo EXACTAMENTE la "
-        "estructura, el registro formal y las fórmulas jurídicas de la plantilla que se te da a "
-        "continuación, pero reemplazando los datos del cliente y redactando de nuevo el relato de "
-        "los hechos a partir de la información real del caso nuevo que te va a dar el usuario.\n\n"
+        "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina. "
+        "Vas a recibir dos textos informales y tenés que convertir cada uno en un párrafo formal, "
+        "en primera persona, con el registro de una denuncia laboral ante el Ministerio de Trabajo "
+        "(el mismo tono de 'Que las tareas desempeñadas por mi parte consistían en...', "
+        "'Que, con fecha..., envié...').\n\n"
         "Reglas:\n"
-        "- Mantené el mismo tono formal, las mismas fórmulas de estilo ('Que vengo a...', 'Que, "
-        "ante ello...', 'Sin otro particular. Saludo a Ud. muy atte.') y la misma estructura de "
-        "párrafos que la plantilla.\n"
-        "- Los textos entre corchetes [ASI] son instrucciones para vos, no van en el resultado: "
-        "reemplazalos por el dato real, o si el dato no fue provisto, redactá la oración sin ese "
-        "dato en vez de dejar el corchete o inventar información.\n"
-        "- El párrafo del relato de los hechos (motivo de la denuncia, intimaciones previas, "
-        "rechazos, etc.) no es un molde a completar: redactalo de cero en el mismo estilo formal, "
-        "a partir de los hechos que te cuenta el usuario en su propio lenguaje.\n"
-        "- Nunca inventes fechas, montos, números de carta documento ni nombres que el usuario no "
-        "haya mencionado.\n"
-        "- Devolvé únicamente el texto final del escrito, sin comentarios tuyos antes o después."
+        "- Nunca inventes fechas, montos, números de carta documento, nombres ni ningún dato que "
+        "no esté en el texto que te pasaron.\n"
+        "- No repitas datos que van a ir en otras partes del escrito (nombre del cliente, del "
+        "empleador, categoría, fecha de ingreso) salvo que hagan falta para que la oración tenga "
+        "sentido.\n"
+        "- El párrafo de tareas es uno solo, arranca de forma natural (podés usar 'Que las tareas "
+        "desempeñadas por mi parte consistían en...' o una fórmula equivalente).\n"
+        "- El párrafo de hechos puede ser más de un párrafo si el relato lo amerita (por ejemplo, "
+        "un párrafo por cada carta documento enviada). Cada párrafo nuevo debe arrancar con 'Que'.\n"
+        "- Devolvé el resultado únicamente como un objeto JSON con dos campos: \"tareas\" y "
+        "\"hechos\", sin texto adicional antes o después."
     )
 
     user_prompt = (
-        "PLANTILLA DE REFERENCIA (estructura y estilo a seguir):\n\n%s\n\n"
-        "DATOS DEL CLIENTE PARA ESTE ESCRITO:\n%s\n\n"
-        "HECHOS DEL CASO (tal como los describió quien carga el sistema):\n%s\n\n"
-        "Redactá el escrito completo aplicando la plantilla de arriba a este cliente y estos hechos."
-    ) % (TIPOS_ESCRITO[tipo]['plantilla'], datos_cliente, hechos)
+        "TEXTO INFORMAL DE LAS TAREAS:\n%s\n\n"
+        "TEXTO INFORMAL DE LOS HECHOS POSTERIORES AL DESPIDO (intimaciones, cartas documento, "
+        "rechazos, qué se reclama):\n%s"
+    ) % (relacion.get('tareas', ''), hechos)
 
     try:
         client = anthropic.Anthropic(api_key=api_key)
         response = client.messages.create(
             model="claude-sonnet-5",
-            max_tokens=4096,
+            max_tokens=2048,
             system=system_prompt,
+            output_config={"format": {
+                "type": "json_schema",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "tareas": {"type": "string"},
+                        "hechos": {"type": "string"}
+                    },
+                    "required": ["tareas", "hechos"],
+                    "additionalProperties": False
+                }
+            }},
             messages=[{"role": "user", "content": user_prompt}]
         )
-        texto = "".join([b.text for b in response.content if b.type == "text"])
+        texto_json = "".join([b.text for b in response.content if b.type == "text"])
+        parrafos = json.loads(texto_json)
     except Exception as e:
-        print("Error generando escrito:", str(e))
+        print("Error generando parrafos del escrito:", str(e))
         return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
 
-    resp = jsonify({"status": "ok", "texto": texto})
+    texto_final = armar_escrito_denuncia_trabajo(
+        cliente, denunciado, relacion, parrafos.get('tareas', ''), parrafos.get('hechos', '')
+    )
+
+    resp = jsonify({"status": "ok", "texto": texto_final})
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp, 200
 
