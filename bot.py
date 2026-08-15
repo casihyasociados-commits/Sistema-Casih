@@ -676,18 +676,17 @@ def armar_item_correspondencia(item):
         texto += '\n\nDicha intimación fue debidamente recibida por la denunciada con fecha %s conforme constancia del Correo Argentino.' % recepcion
     return texto
 
-def armar_bloque_correspondencia(correspondencia):
+def armar_bloque_correspondencia(correspondencia, no_hubo_respuesta):
     partes = [armar_item_correspondencia(item) for item in correspondencia]
-    hubo_respuesta_empresa = any((item.get('remitente') == 'empresa') for item in correspondencia)
-    if not hubo_respuesta_empresa:
+    if no_hubo_respuesta:
         partes.append('Al día de la fecha la denunciada no ha contestado ninguna de las intimaciones remitidas por esta parte.')
     return '\n\n'.join(partes)
 
-def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas):
+def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, no_hubo_respuesta, parrafo_tareas):
     bloque_rep = BLOQUES_REPRESENTACION.get(cliente.get('representacion'), BLOQUES_REPRESENTACION['ciardiello'])
     bloque_den = armar_bloque_denunciado(denunciado)
     bloque_relato = BLOQUE_IMPEDIMENTO_INGRESO % relacion.get('fechaDespido', '')
-    bloque_corr = armar_bloque_correspondencia(correspondencia)
+    bloque_corr = armar_bloque_correspondencia(correspondencia, no_hubo_respuesta)
 
     return """FORMULA DENUNCIA.
 
@@ -743,11 +742,14 @@ def generar_escrito():
     denunciado = body.get('denunciado') or {}
     relacion = body.get('relacion') or {}
     correspondencia = body.get('correspondencia') or []
+    no_hubo_respuesta = bool(body.get('noHuboRespuesta'))
 
     def error(msg, code=400):
         resp = jsonify({"status": "error", "detalle": msg})
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, code
+
+    hay_item_empresa = any((item.get('remitente') == 'empresa') for item in correspondencia)
 
     if tipo != 'denuncia_trabajo':
         return error('Tipo de escrito no reconocido.')
@@ -759,6 +761,10 @@ def generar_escrito():
         return error('Falta la descripción de las tareas.')
     if not correspondencia:
         return error('Agregá al menos un telegrama o carta documento.')
+    if not no_hubo_respuesta and not hay_item_empresa:
+        return error('Agregá la respuesta de la empresa, o marcá que no hubo respuesta.')
+    if no_hubo_respuesta and hay_item_empresa:
+        return error('Marcaste que no hubo respuesta pero cargaste una respuesta de la empresa. Sacá una de las dos cosas.')
 
     api_key = os.environ.get('ANTHROPIC_API_KEY')
     if not api_key:
@@ -789,7 +795,7 @@ def generar_escrito():
         print("Error generando parrafo de tareas:", str(e))
         return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
 
-    texto_final = armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas)
+    texto_final = armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, no_hubo_respuesta, parrafo_tareas)
 
     resp = jsonify({"status": "ok", "texto": texto_final})
     resp.headers['Access-Control-Allow-Origin'] = '*'

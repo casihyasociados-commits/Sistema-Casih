@@ -654,6 +654,12 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div id="es-corr-list"></div>
     <button class="btn-sm" onclick="agregarCorrespondencia()" style="margin-top:8px">+ Agregar telegrama / CD</button>
+    <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:12px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" id="es-no-hubo-respuesta">
+        La empresa no respondió a ninguna intimación
+      </label>
+    </div>
   </div>
 
   <div class="card" style="max-width:760px;margin-top:16px">
@@ -2401,10 +2407,15 @@ function generarEscrito(){
     });
   });
 
+  var noHuboRespuesta=document.getElementById('es-no-hubo-respuesta').checked;
+  var hayItemEmpresa=correspondencia.some(function(c){return c.remitente==='empresa';});
+
   if(!cliente.nombre){alert('Falta el nombre y apellido del cliente.');return;}
   if(!esPersona&&!esEmpresa){alert('Marcá si el denunciado es persona física, empresa, o ambas.');return;}
   if(!relacion.tareas){alert('Describí las tareas del cliente.');return;}
   if(correspondencia.length===0){alert('Agregá al menos un telegrama o carta documento.');return;}
+  if(!noHuboRespuesta&&!hayItemEmpresa){alert('Agregá la respuesta de la empresa, o marcá el casillero "La empresa no respondió a ninguna intimación".');return;}
+  if(noHuboRespuesta&&hayItemEmpresa){alert('Marcaste "La empresa no respondió" pero también cargaste una respuesta suya. Sacá una de las dos cosas.');return;}
 
   var btn=document.getElementById('es-btn-generar');
   btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
@@ -2413,7 +2424,7 @@ function generarEscrito(){
   fetch(BOT_URL+'/generar-escrito',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({tipo:tipo,cliente:cliente,denunciado:denunciado,relacion:relacion,correspondencia:correspondencia})
+    body:JSON.stringify({tipo:tipo,cliente:cliente,denunciado:denunciado,relacion:relacion,correspondencia:correspondencia,noHuboRespuesta:noHuboRespuesta})
   }).then(function(r){return r.json();}).then(function(data){
     if(data.status==='ok'){
       document.getElementById('es-resultado').value=data.texto;
