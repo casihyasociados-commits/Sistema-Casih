@@ -630,9 +630,64 @@ def armar_bloque_denunciado(den):
         )
     return base
 
-def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, parrafo_tareas, parrafo_hechos):
+# Relato fijo para el motivo "impedimento de ingreso" (el empleador no deja
+# volver a trabajar). Otros motivos (accidente, falta de pago, etc.) van a
+# necesitar su propio bloque el dia que se agreguen.
+BLOQUE_IMPEDIMENTO_INGRESO = """Qué la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta el día %s, fecha a partir de la cual se me impidió de manera injustificada el ingreso a mi lugar habitual de trabajo, sin mediar causa válida ni comunicación previa, circunstancia que me imposibilitó continuar prestando tareas con normalidad.
+
+Que dicho impedimento se materializó mediante la negativa a permitirme el ingreso y a asignarme tareas propias de mi categoría y especialidad, pese a presentarme en el lugar y horario habitual de trabajo, configurando una situación de hecho que vulnera mis derechos laborales.
+
+Qué, asimismo, como expresé anteriormente, el empleador nunca regularizó correctamente mi situación laboral, encontrándome sin la debida registración ante los organismos correspondientes, pese a haber prestado tareas de manera personal, habitual y bajo relación de dependencia.
+
+Que, ante la falta de respuesta y la persistencia de dicha situación, me vi obligado a intimar fehacientemente a fin de que se aclare mi situación laboral, se regularice mi registración y se me permita retomar mis tareas habituales, bajo apercibimiento de accionar conforme a derecho.
+
+Que, pese a mis reiterados reclamos verbales, los denunciados persistieron en su conducta de impedirme trabajar, colocándome en una situación de absoluta incertidumbre respecto de mi continuidad laboral."""
+
+BLOQUE_CIERRE_RECLAMO = """Que conforme lo acontecido, las injurias ocasionadas, intimo a que me abone Liquidación Final, conforme la verdadera relación fáctica laboral y haberes adeudados y diferencias de haberes, SAC y Vacaciones No Gozadas por el plazo de prescripción, Indemnización por despido sin causa, antigüedad (art. 245 LCT), sustitutiva de preaviso (art. 232 LCT), Integración mes de despido (art. 233 LCT) y haga entrega de Certificaciones de Servicios y Remuneraciones estipuladas en Art. 80 LCT, sirviendo el presente como emplazamiento de dicha entrega."""
+
+# Cada item de correspondencia se arma con una formula fija segun su tipo; el
+# contenido transcripto (cita textual del telegrama) nunca pasa por la IA en
+# este paso, solo se inserta tal cual lo cargo/leyo el usuario.
+INTROS_CORRESPONDENCIA_NUESTRA = {
+    'intimacion_inicial': 'Atento a las circunstancias relatadas, con fecha %s envié TCL CD Nº %s, mediante el cual intimé a la parte denunciada, en los siguientes términos:',
+    'nuevo_reclamo': 'Ante la falta de respuesta a mis reclamos, con fecha %s remití nuevo TCL CD Nº %s, en los siguientes términos:',
+    'despido_indirecto': 'Transcurrido el plazo de ley sin obtener una respuesta a mis legítimos reclamos, y encontrándome configurada una injuria laboral de gravedad suficiente para impedir la prosecución de la relación de trabajo, con fecha %s remití nuevo TCL CD Nº %s, mediante el cual me consideré despedido/a por exclusiva culpa de la parte denunciada, reclamando el pago de las indemnizaciones legales correspondientes, en los siguientes términos:',
+    'rechazo_respuesta': 'Que ante ello, con fecha %s remití nuevo TCL CD Nº %s, mediante el cual rechacé en todos sus términos la comunicación de la denunciada, ratificando el contenido de mis intimaciones anteriores, en los siguientes términos:',
+}
+
+def armar_item_correspondencia(item):
+    remitente = item.get('remitente', 'nuestra_parte')
+    fecha = (item.get('fechaEnvio') or '').strip()
+    numero = (item.get('numero') or '').strip()
+    contenido = (item.get('contenido') or '').strip()
+    recepcion = (item.get('fechaRecepcion') or '').strip()
+
+    if remitente == 'empresa':
+        texto = 'Que, no obstante lo intimado, con fecha %s la parte denunciada remitió CD Nº %s' % (fecha, numero)
+        if recepcion:
+            texto += ', recibida por mi parte el día %s' % recepcion
+        texto += ', mediante la cual pretendió responder los reclamos, en los siguientes términos:\n\n"%s"' % contenido
+        return texto
+
+    tipo = item.get('tipo') or 'intimacion_inicial'
+    intro_fmt = INTROS_CORRESPONDENCIA_NUESTRA.get(tipo, INTROS_CORRESPONDENCIA_NUESTRA['intimacion_inicial'])
+    texto = (intro_fmt % (fecha, numero)) + '\n\n"%s"' % contenido
+    if recepcion:
+        texto += '\n\nDicha intimación fue debidamente recibida por la denunciada con fecha %s conforme constancia del Correo Argentino.' % recepcion
+    return texto
+
+def armar_bloque_correspondencia(correspondencia):
+    partes = [armar_item_correspondencia(item) for item in correspondencia]
+    hubo_respuesta_empresa = any((item.get('remitente') == 'empresa') for item in correspondencia)
+    if not hubo_respuesta_empresa:
+        partes.append('Al día de la fecha la denunciada no ha contestado ninguna de las intimaciones remitidas por esta parte.')
+    return '\n\n'.join(partes)
+
+def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas):
     bloque_rep = BLOQUES_REPRESENTACION.get(cliente.get('representacion'), BLOQUES_REPRESENTACION['ciardiello'])
     bloque_den = armar_bloque_denunciado(denunciado)
+    bloque_relato = BLOQUE_IMPEDIMENTO_INGRESO % relacion.get('fechaDespido', '')
+    bloque_corr = armar_bloque_correspondencia(correspondencia)
 
     return """FORMULA DENUNCIA.
 
@@ -652,7 +707,9 @@ Que mi jornada de trabajo era %s, %s.
 
 Que durante toda la relación laboral presté servicios de manera personal, habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral se encontrara debidamente registrado ante los organismos correspondientes, en violación a la normativa laboral vigente.
 
-Que la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta el día %s.
+%s
+
+%s
 
 %s
 
@@ -666,8 +723,9 @@ En definitiva, ante el incumplimiento de la normativa vigente por parte del Empl
         relacion.get('fechaIngreso', ''), relacion.get('categoria', ''),
         relacion.get('jornada', ''), relacion.get('horarios', ''),
         parrafo_tareas,
-        relacion.get('fechaDespido', ''),
-        parrafo_hechos
+        bloque_relato,
+        bloque_corr,
+        BLOQUE_CIERRE_RECLAMO
     )
 
 @app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
@@ -684,7 +742,7 @@ def generar_escrito():
     cliente = body.get('cliente') or {}
     denunciado = body.get('denunciado') or {}
     relacion = body.get('relacion') or {}
-    hechos = (body.get('hechos') or '').strip()
+    correspondencia = body.get('correspondencia') or []
 
     def error(msg, code=400):
         resp = jsonify({"status": "error", "detalle": msg})
@@ -699,8 +757,8 @@ def generar_escrito():
         return error('Marcá si el denunciado es persona física, empresa, o ambas.')
     if not (relacion.get('tareas') or '').strip():
         return error('Falta la descripción de las tareas.')
-    if not hechos:
-        return error('Falta describir los hechos posteriores al despido.')
+    if not correspondencia:
+        return error('Agregá al menos un telegrama o carta documento.')
 
     api_key = os.environ.get('ANTHROPIC_API_KEY')
     if not api_key:
@@ -708,29 +766,80 @@ def generar_escrito():
 
     system_prompt = (
         "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina. "
-        "Vas a recibir dos textos informales y tenés que convertir cada uno en un párrafo formal, "
-        "en primera persona, con el registro de una denuncia laboral ante el Ministerio de Trabajo "
-        "(el mismo tono de 'Que las tareas desempeñadas por mi parte consistían en...', "
-        "'Que, con fecha..., envié...').\n\n"
+        "Vas a recibir una descripción informal de las tareas que hacía un trabajador y tenés que "
+        "convertirla en UN párrafo formal, en primera persona, con el registro de una denuncia "
+        "laboral ante el Ministerio de Trabajo, arrancando de forma natural (por ejemplo: 'Que las "
+        "tareas desempeñadas por mi parte consistían en...').\n\n"
         "Reglas:\n"
-        "- Nunca inventes fechas, montos, números de carta documento, nombres ni ningún dato que "
-        "no esté en el texto que te pasaron.\n"
-        "- No repitas datos que van a ir en otras partes del escrito (nombre del cliente, del "
-        "empleador, categoría, fecha de ingreso) salvo que hagan falta para que la oración tenga "
-        "sentido.\n"
-        "- El párrafo de tareas es uno solo, arranca de forma natural (podés usar 'Que las tareas "
-        "desempeñadas por mi parte consistían en...' o una fórmula equivalente).\n"
-        "- El párrafo de hechos puede ser más de un párrafo si el relato lo amerita (por ejemplo, "
-        "un párrafo por cada carta documento enviada). Cada párrafo nuevo debe arrancar con 'Que'.\n"
-        "- Devolvé el resultado únicamente como un objeto JSON con dos campos: \"tareas\" y "
-        "\"hechos\", sin texto adicional antes o después."
+        "- Nunca inventes datos que no estén en el texto que te pasaron.\n"
+        "- Devolvé únicamente el párrafo final, sin comentarios antes o después."
     )
+    user_prompt = "TEXTO INFORMAL DE LAS TAREAS:\n%s" % relacion.get('tareas', '')
 
-    user_prompt = (
-        "TEXTO INFORMAL DE LAS TAREAS:\n%s\n\n"
-        "TEXTO INFORMAL DE LOS HECHOS POSTERIORES AL DESPIDO (intimaciones, cartas documento, "
-        "rechazos, qué se reclama):\n%s"
-    ) % (relacion.get('tareas', ''), hechos)
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}]
+        )
+        parrafo_tareas = "".join([b.text for b in response.content if b.type == "text"]).strip()
+    except Exception as e:
+        print("Error generando parrafo de tareas:", str(e))
+        return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
+
+    texto_final = armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas)
+
+    resp = jsonify({"status": "ok", "texto": texto_final})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+# Lee un telegrama/CD adjunto (foto o PDF) y extrae fecha, numero de
+# seguimiento y contenido. Es una transcripcion asistida: el frontend siempre
+# la muestra en un campo editable para que se revise contra el original antes
+# de usarla en un escrito.
+@app.route('/extraer-telegrama', methods=['POST', 'OPTIONS'])
+def extraer_telegrama():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    body = request.get_json(silent=True) or {}
+    archivo_b64 = body.get('archivo')
+    media_type = body.get('mediaType') or 'application/pdf'
+
+    if not archivo_b64:
+        return error('Falta el archivo.')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    if media_type == 'application/pdf':
+        content_block = {"type": "document", "source": {"type": "base64", "media_type": media_type, "data": archivo_b64}}
+    elif media_type.startswith('image/'):
+        content_block = {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": archivo_b64}}
+    else:
+        return error('Formato de archivo no soportado. Subí una foto o un PDF.')
+
+    system_prompt = (
+        "Sos un asistente que transcribe telegramas y cartas documento (CD) de Correo Argentino "
+        "para un estudio jurídico. Te paso una imagen o PDF del documento. Extraé exactamente: "
+        "la fecha de envío (formato DD/MM/AAAA si figura), el número de seguimiento/CD, y el "
+        "contenido textual completo del mensaje enviado (no incluyas datos del formulario de "
+        "Correo Argentino que no sean parte del texto del mensaje, como códigos de barra). "
+        "Transcribí el contenido exactamente como está escrito, sin resumir ni corregir. Si algún "
+        "dato no se puede leer con confianza, dejalo vacío en vez de adivinar."
+    )
 
     try:
         client = anthropic.Anthropic(api_key=api_key)
@@ -743,26 +852,26 @@ def generar_escrito():
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "tareas": {"type": "string"},
-                        "hechos": {"type": "string"}
+                        "fecha": {"type": "string"},
+                        "numero": {"type": "string"},
+                        "contenido": {"type": "string"}
                     },
-                    "required": ["tareas", "hechos"],
+                    "required": ["fecha", "numero", "contenido"],
                     "additionalProperties": False
                 }
             }},
-            messages=[{"role": "user", "content": user_prompt}]
+            messages=[{"role": "user", "content": [
+                content_block,
+                {"type": "text", "text": "Extraé fecha, número de seguimiento y contenido de este documento."}
+            ]}]
         )
         texto_json = "".join([b.text for b in response.content if b.type == "text"])
-        parrafos = json.loads(texto_json)
+        datos = json.loads(texto_json)
     except Exception as e:
-        print("Error generando parrafos del escrito:", str(e))
-        return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
+        print("Error leyendo telegrama:", str(e))
+        return error('No se pudo leer el archivo. Probá con otra foto/escaneo, o cargá los datos a mano.', 500)
 
-    texto_final = armar_escrito_denuncia_trabajo(
-        cliente, denunciado, relacion, parrafos.get('tareas', ''), parrafos.get('hechos', '')
-    )
-
-    resp = jsonify({"status": "ok", "texto": texto_final})
+    resp = jsonify({"status": "ok", "fecha": datos.get('fecha', ''), "numero": datos.get('numero', ''), "contenido": datos.get('contenido', '')})
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp, 200
 
