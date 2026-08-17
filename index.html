@@ -582,15 +582,20 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="card-title">Datos del cliente</div>
     <div class="g2">
       <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="es-cl-nombre"></div>
-      <div class="fg"><div class="fl">CUIT</div><input class="fi" id="es-cl-cuit" placeholder="20-12345678-9"></div>
+      <div class="fg"><div class="fl">DNI</div><input class="fi" id="es-cl-dni" placeholder="20.123.456"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">CUIL</div><input class="fi" id="es-cl-cuit" placeholder="20-12345678-9"></div>
+      <div class="fg"><div class="fl">Edad</div><input class="fi" id="es-cl-edad" type="number" placeholder="Ej: 35"></div>
     </div>
     <div class="g2">
       <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="es-cl-estado-civil"></div>
       <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="es-cl-nacionalidad" value="Argentina"></div>
     </div>
+    <div class="fg"><div class="fl">Situación laboral actual (opcional)</div><input class="fi" id="es-cl-situacion-laboral" placeholder="Ej: desempleada / empleada en otra relación de dependencia"></div>
     <div class="g2">
       <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="es-cl-domicilio"></div>
-      <div class="fg"><div class="fl">Ciudad</div><input class="fi" id="es-cl-ciudad" value="Córdoba"></div>
+      <div class="fg"><div class="fl">Ciudad / Provincia</div><input class="fi" id="es-cl-ciudad" value="Ciudad de Córdoba" placeholder="Ej: Ciudad de Córdoba, o Prov. de Córdoba si no vive en la Capital"></div>
     </div>
     <div class="g2">
       <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="es-cl-telefono"></div>
@@ -607,8 +612,9 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="es-den-persona-fields" style="display:none">
       <div class="g2">
         <div class="fg"><div class="fl">Empleador/a (nombre)</div><input class="fi" id="es-den-nombre"></div>
-        <div class="fg"><div class="fl">CUIT empleador/a</div><input class="fi" id="es-den-cuit-persona"></div>
+        <div class="fg"><div class="fl">CUIL empleador/a</div><input class="fi" id="es-den-cuit-persona"></div>
       </div>
+      <div class="fg"><div class="fl">Nombre de fantasía del comercio (opcional)</div><input class="fi" id="es-den-fantasia" placeholder='Ej: "TODO MAS QUE SUELTO" — completá solo si el empleador es una persona física que opera un local con nombre propio'></div>
     </div>
     <div id="es-den-empresa-fields" style="display:none">
       <div class="g2">
@@ -621,13 +627,14 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="es-den-domicilio"></div>
       <div class="fg"><div class="fl">Ciudad</div><input class="fi" id="es-den-ciudad" value="Córdoba"></div>
     </div>
+    <div class="fg"><div class="fl">Correo electrónico del empleador (opcional)</div><input class="fi" id="es-den-email" placeholder='Dejalo vacío si no corresponde, o escribí "desconocido" si hace falta dejarlo asentado'></div>
   </div>
 
   <div class="card" style="max-width:760px;margin-top:16px">
     <div class="card-title">Relación laboral</div>
     <div class="g2">
       <div class="fg"><div class="fl">Fecha de ingreso</div><input class="fi" id="es-rl-fecha-ingreso" placeholder="Ej: 01/11/2024"></div>
-      <div class="fg"><div class="fl">Categoría</div><input class="fi" id="es-rl-categoria"></div>
+      <div class="fg"><div class="fl">Categoría</div><input class="fi" id="es-rl-categoria" placeholder='Usá la misma redacción que figura en los telegramas (ej: VENDEDORA "B")'></div>
     </div>
     <div class="g2">
       <div class="fg"><div class="fl">Jornada</div><input class="fi" id="es-rl-jornada" placeholder="Ej: tres días fijos por semana: martes, miércoles y jueves"></div>
@@ -638,6 +645,10 @@ input.currency-input{letter-spacing:0.5px;}
       <textarea class="fta" id="es-rl-tareas" style="min-height:100px" placeholder="Contalas en primera persona, como se lo dirías a un colega. La IA las redacta en estilo formal — no hace falta que lo escribas ya en formato legal."></textarea>
     </div>
     <div class="fg"><div class="fl">Fecha de despido / desvinculación</div><input class="fi" id="es-rl-fecha-despido" placeholder="Ej: 12/06/2026"></div>
+    <div class="fg">
+      <div class="fl">Observación sobre registración (opcional)</div>
+      <textarea class="fta" id="es-rl-registro-parcial" style="min-height:60px" placeholder='Completá solo si hubo un período de registración parcial (ej. a través de un programa estatal). Se agrega como párrafo aparte, justo después del párrafo de "sin registración".'></textarea>
+    </div>
   </div>
 
   <div class="card" style="max-width:760px;margin-top:16px">
@@ -2393,22 +2404,25 @@ function generarEscrito(){
   var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
   var tipo=v('es-tipo');
   var cliente={
-    nombre:v('es-cl-nombre'),cuit:v('es-cl-cuit'),estadoCivil:v('es-cl-estado-civil'),
-    nacionalidad:v('es-cl-nacionalidad'),domicilio:v('es-cl-domicilio'),ciudad:v('es-cl-ciudad'),
+    nombre:v('es-cl-nombre'),dni:v('es-cl-dni'),cuit:v('es-cl-cuit'),edad:v('es-cl-edad'),
+    estadoCivil:v('es-cl-estado-civil'),nacionalidad:v('es-cl-nacionalidad'),
+    situacionLaboral:v('es-cl-situacion-laboral'),
+    domicilio:v('es-cl-domicilio'),ciudad:v('es-cl-ciudad'),
     telefono:v('es-cl-telefono'),email:v('es-cl-email'),representacion:v('es-representacion')
   };
   var esPersona=document.getElementById('es-den-es-persona').checked;
   var esEmpresa=document.getElementById('es-den-es-empresa').checked;
   var denunciado={
     esPersona:esPersona,esEmpresa:esEmpresa,
-    nombre:v('es-den-nombre'),cuitPersona:v('es-den-cuit-persona'),
+    nombre:v('es-den-nombre'),cuitPersona:v('es-den-cuit-persona'),nombreFantasia:v('es-den-fantasia'),
     empresa:v('es-den-empresa'),cuitEmpresa:v('es-den-cuit-empresa'),rubro:v('es-den-rubro'),
-    domicilio:v('es-den-domicilio'),ciudad:v('es-den-ciudad')
+    domicilio:v('es-den-domicilio'),ciudad:v('es-den-ciudad'),email:v('es-den-email')
   };
   var relacion={
     fechaIngreso:v('es-rl-fecha-ingreso'),categoria:v('es-rl-categoria'),
     jornada:v('es-rl-jornada'),horarios:v('es-rl-horarios'),
-    tareas:v('es-rl-tareas'),fechaDespido:v('es-rl-fecha-despido')
+    tareas:v('es-rl-tareas'),fechaDespido:v('es-rl-fecha-despido'),
+    registroParcial:v('es-rl-registro-parcial')
   };
 
   var correspondencia=[];

@@ -609,14 +609,23 @@ def armar_bloque_denunciado(den):
     empresa = (den.get('esEmpresa') and (den.get('empresa') or '').strip())
     domicilio = (den.get('domicilio') or '').strip()
     ciudad = (den.get('ciudad') or '').strip()
+    fantasia = (den.get('nombreFantasia') or '').strip()
+    email = (den.get('email') or '').strip()
 
-    if persona and empresa:
-        base = 'mi empleador/a %s CUIT %s, titular y/o responsable de la empresa %s CUIT %s, dedicada a %s' % (
+    # Persona fisica que opera un comercio con nombre de fantasia propio
+    # (sin ser una empresa/CUIT aparte): usamos esta forma en vez de la de
+    # "persona + empresa" para no pedirle un segundo CUIT que no existe.
+    if persona and fantasia:
+        base = 'mi empleador/a %s CUIL %s, titular y/o responsable del local comercial que gira bajo el nombre de fantasía: "%s"' % (
+            den.get('nombre', ''), den.get('cuitPersona', ''), fantasia
+        )
+    elif persona and empresa:
+        base = 'mi empleador/a %s CUIL %s, titular y/o responsable de la empresa %s CUIT %s, dedicada a %s' % (
             den.get('nombre', ''), den.get('cuitPersona', ''),
             den.get('empresa', ''), den.get('cuitEmpresa', ''), den.get('rubro', '')
         )
     elif persona:
-        base = 'mi empleador/a %s CUIT %s' % (den.get('nombre', ''), den.get('cuitPersona', ''))
+        base = 'mi empleador/a %s CUIL %s' % (den.get('nombre', ''), den.get('cuitPersona', ''))
     elif empresa:
         base = 'la empresa %s CUIT %s, dedicada a %s' % (
             den.get('empresa', ''), den.get('cuitEmpresa', ''), den.get('rubro', '')
@@ -628,7 +637,23 @@ def armar_bloque_denunciado(den):
         base += ', con domicilio en %s%s' % (
             domicilio, (' de la ciudad de %s' % ciudad) if ciudad else ''
         )
+    if email:
+        base += ', correo electrónico %s' % email
     return base
+
+BLOQUE_SIN_REGISTRACION = (
+    "Que durante toda la relación laboral presté servicios de manera personal, "
+    "habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral "
+    "se encontrara debidamente registrado ante los organismos correspondientes, "
+    "en violación a la normativa laboral vigente."
+)
+
+def armar_bloque_registro(relacion):
+    texto = BLOQUE_SIN_REGISTRACION
+    extra = (relacion.get('registroParcial') or '').strip()
+    if extra:
+        texto += '\n\n' + extra
+    return texto
 
 # Relato fijo para el motivo "impedimento de ingreso" (el empleador no deja
 # volver a trabajar). Otros motivos (accidente, falta de pago, etc.) van a
@@ -696,9 +721,39 @@ def armar_bloque_correspondencia(correspondencia):
         partes.append('Al día de la fecha la denunciada no ha contestado ninguna de las intimaciones remitidas por esta parte.')
     return '\n\n'.join(partes)
 
-def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas):
+def armar_encabezado_cliente(cliente):
+    nombre = (cliente.get('nombre') or '').strip()
+    dni = (cliente.get('dni') or '').strip()
+    cuit = (cliente.get('cuit') or '').strip()
+    edad = (cliente.get('edad') or '').strip()
+    estado_civil = (cliente.get('estadoCivil') or '').strip()
+    nacionalidad = (cliente.get('nacionalidad') or '').strip()
+    situacion = (cliente.get('situacionLaboral') or '').strip()
+    domicilio = (cliente.get('domicilio') or '').strip()
+    ciudad = (cliente.get('ciudad') or '').strip()
+    telefono = (cliente.get('telefono') or '').strip()
+    email = (cliente.get('email') or '').strip()
     bloque_rep = BLOQUES_REPRESENTACION.get(cliente.get('representacion'), BLOQUES_REPRESENTACION['ciardiello'])
+
+    texto = nombre
+    if dni:
+        texto += ' DNI %s' % dni
+    texto += ', CUIL %s' % cuit
+    if edad:
+        texto += ', %s años de edad' % edad
+    texto += ', de estado civil %s, de nacionalidad %s' % (estado_civil, nacionalidad)
+    if situacion:
+        texto += ', actualmente %s' % situacion
+    texto += (
+        ', con domicilio real en %s, %s. Celular %s, correo electrónico: %s, %s, '
+        'ambos de esta ciudad, ante S.S. respetuosamente comparezco y digo:'
+    ) % (domicilio, ciudad, telefono, email, bloque_rep)
+    return texto
+
+def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas):
+    encabezado_cliente = armar_encabezado_cliente(cliente)
     bloque_den = armar_bloque_denunciado(denunciado)
+    bloque_registro = armar_bloque_registro(relacion)
     bloque_relato = BLOQUE_IMPEDIMENTO_INGRESO % relacion.get('fechaDespido', '')
     bloque_corr = armar_bloque_correspondencia(correspondencia)
 
@@ -708,9 +763,9 @@ Sr. Director de Reclamaciones Individuales
 Departamento Provincial del Trabajo.
 S___________________/____________D
 
-%s, CUIT %s, de estado civil %s, de nacionalidad %s, con domicilio real en %s, Ciudad de %s. Celular %s, correo electrónico: %s, %s, ambos de esta ciudad, ante S.S. respetuosamente comparezco y digo:
+%s
 
-Que vengo a formular denuncia en contra de %s, comparezco y digo:
+Que vengo a formular denuncia en contra de %s, comparecemos y decimos:
 
 Que ingresé a trabajar bajo las órdenes de la denunciada el %s, cumpliendo tareas acordes con la categoría %s.
 
@@ -718,7 +773,7 @@ Que mi jornada de trabajo era %s, %s.
 
 %s
 
-Que durante toda la relación laboral presté servicios de manera personal, habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral se encontrara debidamente registrado ante los organismos correspondientes, en violación a la normativa laboral vigente.
+%s
 
 %s
 
@@ -729,13 +784,12 @@ Que durante toda la relación laboral presté servicios de manera personal, habi
 Por los motivos expuestos, se solicita la intervención de esta Autoridad de Aplicación.
 
 En definitiva, ante el incumplimiento de la normativa vigente por parte del Empleador, solicitó que el mismo sea citado, quien deberá concurrir con toda la documentación laboral, legajo personal, además de las constancias de pago de los aportes y contribuciones sindicales, sociales y previsionales, y los importes correspondientes a Liquidación Final e indemnizaciones de ley, a cuyo fin deberá fijar día y hora de audiencia de conciliación. Sin otro particular. Saludo a Ud. muy atte.""" % (
-        cliente.get('nombre', ''), cliente.get('cuit', ''), cliente.get('estadoCivil', ''),
-        cliente.get('nacionalidad', ''), cliente.get('domicilio', ''), cliente.get('ciudad', ''),
-        cliente.get('telefono', ''), cliente.get('email', ''), bloque_rep,
+        encabezado_cliente,
         bloque_den,
         relacion.get('fechaIngreso', ''), relacion.get('categoria', ''),
         relacion.get('jornada', ''), relacion.get('horarios', ''),
         parrafo_tareas,
+        bloque_registro,
         bloque_relato,
         bloque_corr,
         BLOQUE_CIERRE_RECLAMO
