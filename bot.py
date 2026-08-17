@@ -167,8 +167,10 @@ def responder_whatsapp(chat_id, texto):
     try:
         r = requests.post(url, json={"chatId": chat_id, "message": texto}, timeout=15)
         print("[GREEN-API sendMessage] status=%s body=%s" % (r.status_code, r.text[:300]))
+        return r.status_code == 200
     except Exception as e:
         print("[GREEN-API sendMessage] ERROR:", str(e))
+        return False
 
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
@@ -380,12 +382,18 @@ def revisar_recordatorios():
                 programado = tz.localize(datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M"))
 
                 if ahora >= programado:
-                    responder_whatsapp(
+                    ok = responder_whatsapp(
                         data['chatId'],
                         f"⏰ *Recordatorio:*\n{data['texto']}"
                     )
-                    doc.reference.update({'enviado': True, 'enviadoEn': firestore.SERVER_TIMESTAMP})
-                    enviados += 1
+                    if ok:
+                        doc.reference.update({'enviado': True, 'enviadoEn': firestore.SERVER_TIMESTAMP})
+                        enviados += 1
+                    else:
+                        # No se pudo confirmar la entrega (ej. cupo de Green API agotado):
+                        # se deja pendiente para reintentar en la proxima corrida del cron.
+                        print("Recordatorio no confirmado, se reintenta:", doc.id)
+                        errores += 1
             except Exception as e_inner:
                 print("Error procesando recordatorio", doc.id, str(e_inner))
                 errores += 1
