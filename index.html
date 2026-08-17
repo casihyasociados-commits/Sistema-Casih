@@ -668,7 +668,10 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="card" id="es-resultado-card" style="max-width:760px;display:none;margin-top:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="card-title" style="margin-bottom:0">Borrador generado</div>
-      <button class="btn-sm" onclick="copiarEscrito()">📋 Copiar texto</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm" onclick="copiarEscrito()">📋 Copiar texto</button>
+        <button class="btn-sm" id="es-btn-docx" onclick="descargarEscritoDocx()">⬇️ Descargar Word (.docx)</button>
+      </div>
     </div>
     <textarea class="fta" id="es-resultado" style="min-height:420px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
   </div>
@@ -2487,6 +2490,38 @@ function copiarEscrito(){
   var ta=document.getElementById('es-resultado');
   ta.select();
   navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado al portapapeles ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
+}
+
+function descargarEscritoDocx(){
+  var texto=document.getElementById('es-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var cliente={nombre:g('es-cl-nombre'),dni:g('es-cl-dni'),representacion:g('es-representacion')};
+
+  var btn=document.getElementById('es-btn-docx');
+  var textoOriginal=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+
+  fetch(BOT_URL+'/generar-escrito-docx',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({texto:texto,cliente:cliente})
+  }).then(function(r){
+    if(!r.ok)throw new Error('error');
+    return r.blob();
+  }).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;
+    a.download=(cliente.nombre?('Denuncia - '+cliente.nombre):'Denuncia')+'.docx';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Word generado ✓');
+  }).catch(function(){
+    showToast('⚠ No se pudo generar el Word.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent=textoOriginal;
+  });
 }
 
 function filterClientSearch(q,selectId){

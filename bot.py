@@ -2,14 +2,18 @@ import os
 import json
 import re
 import pytz
+from io import BytesIO
 from datetime import datetime, timedelta
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import requests
 import anthropic
+from docx import Document
+from docx.shared import Pt, Cm
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 app = Flask(__name__)
 
@@ -794,6 +798,140 @@ En definitiva, ante el incumplimiento de la normativa vigente por parte del Empl
         bloque_corr,
         BLOQUE_CIERRE_RECLAMO
     )
+
+# --- EXPORTAR A WORD (.docx) ---
+# Toma el texto ya generado (y eventualmente editado a mano en el textarea)
+# y lo pasa a un documento .docx con tipografia, tamano, justificado y
+# sangria acordes al modelo aprobado por el estudio, listo para retocar en
+# Word antes de exportar a PDF.
+
+FIRMAS_ABOGADOS = {
+    'ciardiello': [('Ma. Paula Ciardiello', 'Abogada', 'M.P. 1-41227')],
+    'casih': [('Pablo Casih', 'Abogado', 'M.P. 1-31142')],
+    'ambos': [('Ma. Paula Ciardiello', 'Abogada', 'M.P. 1-41227'), ('Pablo Casih', 'Abogado', 'M.P. 1-31142')],
+}
+
+def _agregar_firma(celda, nombre, subt1='', subt2=''):
+    celda.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+    celda.paragraphs[0].add_run('_______________________')
+    p_nombre = celda.add_paragraph(nombre)
+    p_nombre.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    if p_nombre.runs:
+        p_nombre.runs[0].bold = True
+    for sub in (subt1, subt2):
+        if sub:
+            p_sub = celda.add_paragraph(sub)
+            p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+def construir_docx_denuncia(texto, cliente):
+    doc = Document()
+
+    section = doc.sections[0]
+    section.left_margin = Cm(3)
+    section.right_margin = Cm(2.5)
+    section.top_margin = Cm(2.5)
+    section.bottom_margin = Cm(2.5)
+
+    estilo = doc.styles['Normal']
+    estilo.font.name = 'Times New Roman'
+    estilo.font.size = Pt(12)
+    estilo.paragraph_format.line_spacing = 1.15
+    estilo.paragraph_format.space_after = Pt(0)
+
+    marcador_cierre = 'Sin otro particular. Saludo a Ud. muy atte.'
+    bloques = [b.strip('\n') for b in texto.split('\n\n') if b.strip()]
+
+    for bloque in bloques:
+        if bloque.strip() == 'FORMULA DENUNCIA.':
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.add_run('FORMULA DENUNCIA.').bold = True
+            continue
+
+        if bloque.startswith('Sr. Director'):
+            p = doc.add_paragraph()
+            for i, linea in enumerate(bloque.split('\n')):
+                if i > 0:
+                    p.add_run().add_break()
+                p.add_run(linea)
+            continue
+
+        if bloque.startswith('"') and bloque.endswith('"'):
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.paragraph_format.left_indent = Cm(1.5)
+            p.paragraph_format.right_indent = Cm(1.5)
+            p.add_run(bloque).italic = True
+            continue
+
+        if marcador_cierre in bloque:
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.paragraph_format.first_line_indent = Cm(1.25)
+            antes, _, despues = bloque.partition(marcador_cierre)
+            if antes:
+                p.add_run(antes)
+            p.add_run(marcador_cierre + despues).bold = True
+            continue
+
+        p = doc.add_paragraph(bloque)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p.paragraph_format.first_line_indent = Cm(1.25)
+
+    doc.add_paragraph()
+    doc.add_paragraph()
+
+    abogados = FIRMAS_ABOGADOS.get(cliente.get('representacion'), FIRMAS_ABOGADOS['ciardiello'])
+    tabla = doc.add_table(rows=1, cols=1 + len(abogados))
+    celdas = tabla.rows[0].cells
+
+    nombre_cliente = (cliente.get('nombre') or '').strip()
+    dni_cliente = (cliente.get('dni') or '').strip()
+    _agregar_firma(celdas[0], nombre_cliente, ('DNI %s' % dni_cliente) if dni_cliente else '')
+    for i, (nombre_ab, titulo_ab, mp_ab) in enumerate(abogados):
+        _agregar_firma(celdas[1 + i], nombre_ab, titulo_ab, mp_ab)
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+@app.route('/generar-escrito-docx', methods=['POST', 'OPTIONS'])
+def generar_escrito_docx():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    body = request.get_json(silent=True) or {}
+    texto = (body.get('texto') or '').strip()
+    cliente = body.get('cliente') or {}
+
+    if not texto:
+        resp = jsonify({"status": "error", "detalle": "Falta el texto del escrito."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    try:
+        buffer = construir_docx_denuncia(texto, cliente)
+    except Exception as e:
+        print("Error generando docx:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo generar el archivo Word."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    nombre_archivo = 'Denuncia - %s.docx' % ((cliente.get('nombre') or 'escrito').strip() or 'escrito')
+
+    resp = send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        as_attachment=True,
+        download_name=nombre_archivo
+    )
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 @app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
 def generar_escrito():
