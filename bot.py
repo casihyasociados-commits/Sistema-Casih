@@ -164,12 +164,17 @@ def responder_whatsapp(chat_id, texto):
     instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
     token = os.environ.get("GREEN_API_TOKEN")
     url = f"https://api.green-api.com/waInstance{instance_id}/sendMessage/{token}"
-    requests.post(url, json={"chatId": chat_id, "message": texto})
+    try:
+        r = requests.post(url, json={"chatId": chat_id, "message": texto}, timeout=15)
+        print("[GREEN-API sendMessage] status=%s body=%s" % (r.status_code, r.text[:300]))
+    except Exception as e:
+        print("[GREEN-API sendMessage] ERROR:", str(e))
 
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
+    print("[WEBHOOK recibido]", json.dumps(data)[:600] if data else "sin body/JSON")
     try:
         type_webhook = data.get('typeWebhook')
         if type_webhook == 'incomingMessageReceived':
