@@ -580,6 +580,11 @@ input.currency-input{letter-spacing:0.5px;}
 
   <div class="card" style="max-width:760px;margin-top:16px">
     <div class="card-title">Datos del cliente</div>
+    <div class="fg" style="position:relative">
+      <div class="fl">Buscar cliente existente (opcional)</div>
+      <input class="fi" id="es-cl-search" placeholder="Escribí para buscar y autocompletar los datos..." oninput="filtrarClientes('es-cl-search','es-cl-dropdown')" onfocus="filtrarClientes('es-cl-search','es-cl-dropdown')" autocomplete="off">
+      <div id="es-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+    </div>
     <div class="g2">
       <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="es-cl-nombre"></div>
       <div class="fg"><div class="fl">DNI</div><input class="fi" id="es-cl-dni" placeholder="20.123.456"></div>
@@ -691,12 +696,24 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Apellido *</div><input class="fi" id="cn-apellido" placeholder="Apellido"></div>
     </div>
     <div class="g2">
+      <div class="fg"><div class="fl">DNI</div><input class="fi" id="cn-dni" placeholder="Ej: 20.123.456"></div>
+      <div class="fg"><div class="fl">CUIL</div><input class="fi" id="cn-cuil" placeholder="Ej: 20-30123456-1"></div>
+    </div>
+    <div class="g2">
       <div class="fg"><div class="fl">Edad</div><input class="fi" id="cn-edad" placeholder="Ej: 35" type="number"></div>
-      <div class="fg"><div class="fl">CUIT</div><input class="fi" id="cn-cuil" placeholder="Ej: 20-30123456-1"></div>
+      <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="cn-estado-civil" placeholder="Ej: soltero/a"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="cn-nacionalidad" value="Argentina"></div>
+      <div class="fg"><div class="fl">Situación laboral actual</div><input class="fi" id="cn-situacion-laboral" placeholder="Ej: desempleado/a"></div>
     </div>
     <div class="g2">
       <div class="fg"><div class="fl">Teléfono</div><input class="fi" id="cn-tel" placeholder="Ej: 351 6154521"></div>
-      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="cn-dom" placeholder="Calle, número, ciudad"></div>
+      <div class="fg"><div class="fl">Correo electrónico</div><input class="fi" id="cn-email" placeholder="Ej: nombre@mail.com"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="cn-dom" placeholder="Calle, número"></div>
+      <div class="fg"><div class="fl">Ciudad / Provincia</div><input class="fi" id="cn-ciudad" value="Ciudad de Córdoba" placeholder="Ej: Ciudad de Córdoba, o Prov. de Córdoba"></div>
     </div>
     <div class="g2">
       <div class="fg"><div class="fl">Empresa / Empleador</div><input class="fi" id="cn-empleador" placeholder="Nombre de la empresa"></div>
@@ -1637,7 +1654,9 @@ function reactivarCliente(id){
 function convC(id,t){db.collection('clientes').doc(id).update({tipo:t}).then(function(){showToast('Cliente actualizado ✓');});}
 
 function resetClienteForm(){
-  ['cn-n','cn-apellido','cn-edad','cn-cuil','cn-tel','cn-dom','cn-empleador','cn-antiguedad','cn-no'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['cn-n','cn-apellido','cn-dni','cn-edad','cn-cuil','cn-estado-civil','cn-situacion-laboral','cn-email','cn-tel','cn-dom','cn-empleador','cn-antiguedad','cn-no'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var nac=document.getElementById('cn-nacionalidad');if(nac)nac.value='Argentina';
+  var ciu=document.getElementById('cn-ciudad');if(ciu)ciu.value='Ciudad de Córdoba';
   var m=document.getElementById('cn-m');if(m)m.selectedIndex=0;
   var tipo=document.getElementById('cn-tipo');if(tipo)tipo.value='posible';
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Nuevo cliente — Derecho Laboral';
@@ -1658,16 +1677,22 @@ function saveCliente(){
   var data={
     nombre:nombreCompleto,
     apellido:ap,
+    dni:document.getElementById('cn-dni')?document.getElementById('cn-dni').value.trim():'',
     edad:document.getElementById('cn-edad').value.trim(),
     cuil:document.getElementById('cn-cuil').value.trim(),
+    estadoCivil:document.getElementById('cn-estado-civil')?document.getElementById('cn-estado-civil').value.trim():'',
+    nacionalidad:document.getElementById('cn-nacionalidad')?document.getElementById('cn-nacionalidad').value.trim():'',
+    situacionLaboral:document.getElementById('cn-situacion-laboral')?document.getElementById('cn-situacion-laboral').value.trim():'',
+    email:document.getElementById('cn-email')?document.getElementById('cn-email').value.trim():'',
     domicilio:document.getElementById('cn-dom').value.trim(),
+    ciudad:document.getElementById('cn-ciudad')?document.getElementById('cn-ciudad').value.trim():'',
     empleador:document.getElementById('cn-empleador').value.trim(),
     antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',
     motivo:document.getElementById('cn-m').value,
     tipo:document.getElementById('cn-tipo').value,
     notas:document.getElementById('cn-no').value.trim(),
     tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',
-    dni:'',expte:'',etapa:'Cita',fecha:fmt(today),
+    expte:'',etapa:'Cita',fecha:fmt(today),
     drive:'',driveFolderId:'',
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -1687,7 +1712,9 @@ function editCliente(id){
   var partes=(c.nombre||'').trim().split(' ');
   setVal('cn-n',c.apellido||partes[0]||c.nombre);
   setVal('cn-apellido',c.apellido||(partes.length>1?partes.slice(1).join(' '):''));
-  setVal('cn-edad',c.edad);setVal('cn-cuil',c.cuil);setVal('cn-tel',c.tel);setVal('cn-dom',c.domicilio);
+  setVal('cn-dni',c.dni);setVal('cn-edad',c.edad);setVal('cn-cuil',c.cuil);setVal('cn-tel',c.tel);setVal('cn-dom',c.domicilio);
+  setVal('cn-estado-civil',c.estadoCivil);setVal('cn-nacionalidad',c.nacionalidad||'Argentina');
+  setVal('cn-situacion-laboral',c.situacionLaboral);setVal('cn-email',c.email);setVal('cn-ciudad',c.ciudad||'Ciudad de Córdoba');
   setVal('cn-empleador',c.empleador);setVal('cn-antiguedad',c.antiguedad);
   setVal('cn-m',c.motivo||'Despido');setVal('cn-tipo',c.tipo||'posible');setVal('cn-no',c.notas);
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Editar cliente';
@@ -1699,7 +1726,7 @@ function editCliente(id){
       var ap=document.getElementById('cn-apellido')?document.getElementById('cn-apellido').value.trim():'';
       var nombreCompleto=ap?n+' '+ap:n;
       if(!n){alert('El nombre es obligatorio.');return;}
-      var data={nombre:nombreCompleto,apellido:ap,edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',motivo:document.getElementById('cn-m').value,tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
+      var data={nombre:nombreCompleto,apellido:ap,dni:document.getElementById('cn-dni')?document.getElementById('cn-dni').value.trim():'',edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),estadoCivil:document.getElementById('cn-estado-civil')?document.getElementById('cn-estado-civil').value.trim():'',nacionalidad:document.getElementById('cn-nacionalidad')?document.getElementById('cn-nacionalidad').value.trim():'',situacionLaboral:document.getElementById('cn-situacion-laboral')?document.getElementById('cn-situacion-laboral').value.trim():'',email:document.getElementById('cn-email')?document.getElementById('cn-email').value.trim():'',ciudad:document.getElementById('cn-ciudad')?document.getElementById('cn-ciudad').value.trim():'',tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',motivo:document.getElementById('cn-m').value,tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
       db.collection('clientes').doc(id).update(data).then(function(){
         closeModal('m-cliente');showToast('Cliente actualizado ✓');
         var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
@@ -2298,11 +2325,28 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
 // ─── ESCRITOS CON IA ───
+function autocompletarClienteEscrito(c){
+  if(!c)return;
+  var setVal=function(id,val){var el=document.getElementById(id);if(el)el.value=val||'';};
+  setVal('es-cl-nombre',c.nombre);
+  setVal('es-cl-dni',c.dni);
+  setVal('es-cl-cuit',c.cuil);
+  setVal('es-cl-edad',c.edad);
+  setVal('es-cl-estado-civil',c.estadoCivil);
+  if(c.nacionalidad)setVal('es-cl-nacionalidad',c.nacionalidad);
+  setVal('es-cl-situacion-laboral',c.situacionLaboral);
+  setVal('es-cl-domicilio',c.domicilio);
+  if(c.ciudad)setVal('es-cl-ciudad',c.ciudad);
+  setVal('es-cl-telefono',c.tel);
+  setVal('es-cl-email',c.email);
+  showToast('Datos del cliente completados ✓');
+}
+
 function toggleDenunciadoFields(){
   document.getElementById('es-den-persona-fields').style.display=document.getElementById('es-den-es-persona').checked?'block':'none';
   document.getElementById('es-den-empresa-fields').style.display=document.getElementById('es-den-es-empresa').checked?'block':'none';
