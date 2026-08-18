@@ -688,24 +688,94 @@ def armar_bloque_registro(relacion, denunciado):
 # Relato fijo para el motivo "impedimento de ingreso" (el empleador no deja
 # volver a trabajar). Otros motivos (accidente, falta de pago, etc.) van a
 # necesitar su propio bloque el dia que se agreguen.
-def armar_bloque_relato_impedimento(fecha, denunciado):
-    return ("""Qué la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta el día %s, fecha a partir de la cual se me impidió de manera injustificada el ingreso a mi lugar habitual de trabajo, sin mediar causa válida ni comunicación previa, circunstancia que me imposibilitó continuar prestando tareas con normalidad.
-
-Que dicho impedimento se materializó mediante la negativa a permitirme el ingreso y a asignarme tareas propias de mi categoría y especialidad, pese a presentarme en el lugar y horario habitual de trabajo, configurando una situación de hecho que vulnera mis derechos laborales.
-
-Qué, asimismo, como expresé anteriormente, el empleador nunca regularizó correctamente mi situación laboral, encontrándome sin la debida registración ante los organismos correspondientes, pese a haber prestado tareas de manera personal, habitual y bajo relación de dependencia.
-
-Que, ante la falta de respuesta y la persistencia de dicha situación, me vi obligado a intimar fehacientemente a fin de que se aclare mi situación laboral, se regularice mi registración y se me permita retomar mis tareas habituales, bajo apercibimiento de accionar conforme a derecho.
-
-Que, pese a mis reiterados reclamos verbales, %s persistió en su conducta de impedirme trabajar, colocándome en una situación de absoluta incertidumbre respecto de mi continuidad laboral.""") % (fecha, articulo_denunciado(denunciado))
+#
+# La fecha del hecho queda en una oracion fija, separada, para que nunca
+# pase por la IA (es un dato duro como el CUIT o un nombre). El resto del
+# relato (que paso, como respondio el empleador) lo redacta la IA a partir
+# de un texto libre que carga el usuario, asi que sirve para cualquier
+# motivo de denuncia, no solo "impedimento de ingreso".
+def armar_bloque_relato(relacion, parrafo_relato):
+    fecha = (relacion.get('fechaDespido') or '').strip()
+    partes = []
+    if fecha:
+        partes.append(
+            'Que la relación laboral se desarrolló en los términos precedentemente expuestos '
+            'hasta el día %s, fecha desde la cual se originan los hechos que motivan la presente '
+            'denuncia.' % fecha
+        )
+    if parrafo_relato:
+        partes.append(parrafo_relato)
+    return '\n\n'.join(partes)
 
 BLOQUE_CIERRE_RECLAMO = """Que conforme lo acontecido, las injurias ocasionadas, intimo a que me abone Liquidación Final, conforme la verdadera relación fáctica laboral y haberes adeudados y diferencias de haberes, SAC y Vacaciones No Gozadas por el plazo de prescripción, Indemnización por despido sin causa, antigüedad (art. 245 LCT), sustitutiva de preaviso (art. 232 LCT), Integración mes de despido (art. 233 LCT) y haga entrega de Certificaciones de Servicios y Remuneraciones estipuladas en Art. 80 LCT, sirviendo el presente como emplazamiento de dicha entrega."""
+
+# --- REDACCION ASISTIDA POR IA ---
+# Estos son los unicos tres puntos del escrito donde entra la IA. En todos
+# los casos, los datos duros (fechas, numeros de CD, nombres) quedan afuera
+# del texto que le pasamos a la IA: o bien se insertan aparte en la plantilla
+# fija, o bien se le pide explicitamente que no invente ni repita datos.
+
+SYSTEM_PROMPT_TAREAS = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina. "
+    "Vas a recibir una descripción informal de las tareas que hacía un trabajador y tenés que "
+    "convertirla en UN párrafo formal, en primera persona, con el registro de una denuncia "
+    "laboral ante el Ministerio de Trabajo, arrancando de forma natural (por ejemplo: 'Que las "
+    "tareas desempeñadas por mi parte consistían en...').\n\n"
+    "Reglas:\n"
+    "- Nunca inventes datos que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente el párrafo final, sin comentarios antes o después."
+)
+
+SYSTEM_PROMPT_RELATO = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina. "
+    "Vas a recibir un relato informal de los hechos que motivan una denuncia laboral (impedimento "
+    "de ingreso, despido directo, falta de pago, accidente de trabajo, u otro motivo) y tenés que "
+    "convertirlo en uno o más párrafos formales, en primera persona, con el registro de una "
+    "denuncia laboral ante el Ministerio de Trabajo, arrancando cada párrafo de forma natural "
+    "(por ejemplo: 'Que...', 'Que, ante dicha situación...').\n\n"
+    "Justo antes de tu texto, el escrito ya incluye una oración fija que dice que la relación "
+    "laboral se desarrolló con normalidad hasta la fecha del hecho (la fecha ya quedó dicha ahí). "
+    "Tu redacción tiene que continuar directamente contando qué pasó a partir de ese momento, sin "
+    "repetir esa fecha ni reformular que 'la relación se desarrolló hasta tal fecha' — arrancá "
+    "directo en el hecho en sí (ej: 'Que a partir de ese momento comencé a sufrir...').\n\n"
+    "Reglas:\n"
+    "- Nunca inventes datos que no estén en el texto que te pasaron.\n"
+    "- No repitas fechas exactas salvo que te las hayan dado en el texto.\n"
+    "- Devolvé únicamente el/los párrafo(s) final(es), sin comentarios antes o después."
+)
+
+SYSTEM_PROMPT_RESUMEN_RESPUESTA = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina. "
+    "Vas a recibir un resumen informal de lo que respondió la empresa/denunciado mediante una "
+    "carta documento, y tenés que convertirlo en un fragmento formal, en discurso indirecto "
+    "(nunca cites textual ni uses comillas), que continúe naturalmente la frase: 'Que, no obstante "
+    "lo intimado, con fecha [FECHA] la parte denunciada remitió CD Nº [NUMERO], ...' — tu "
+    "respuesta se pega justo después de esa coma.\n\n"
+    "Ejemplo de respuesta esperada: 'mediante la cual reconoció la existencia de la relación "
+    "laboral, aunque en disconformidad con la fecha de ingreso, e intimó erróneamente a mi parte "
+    "a reintegrarse a sus tareas bajo apercibimiento de abandono, lo cual resulta a todas luces "
+    "falaz, contradictorio y contrario a derecho.'\n\n"
+    "Reglas:\n"
+    "- Arrancá siempre con 'mediante la cual...' o una construcción equivalente que continúe la oración.\n"
+    "- No repitas la fecha ni el número de CD: ya están en la frase anterior.\n"
+    "- Nunca inventes datos que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente el fragmento final, sin comentarios antes o después."
+)
+
+def redactar_con_ia(client, system_prompt, texto_informal):
+    response = client.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=1024,
+        system=system_prompt,
+        messages=[{"role": "user", "content": texto_informal}]
+    )
+    return "".join([b.text for b in response.content if b.type == "text"]).strip()
 
 # Cada item de correspondencia se arma con una formula fija, en orden
 # cronologico; el contenido transcripto (cita textual del telegrama) nunca
 # pasa por la IA en este paso, solo se inserta tal cual lo cargo/leyo el
 # usuario.
-def armar_telegrama_nuestro(item):
+def armar_telegrama_nuestro(item, denunciado):
     fecha = (item.get('fechaEnvio') or '').strip()
     numero = (item.get('numero') or '').strip()
     contenido = (item.get('contenido') or '').strip()
@@ -718,7 +788,7 @@ def armar_telegrama_nuestro(item):
 
     texto = intro + '\n\n"%s"' % contenido
     if recepcion:
-        texto += '\n\nDicha intimación fue debidamente recibida por la denunciada con fecha %s conforme constancia del Correo Argentino.' % recepcion
+        texto += '\n\nDicha intimación fue debidamente recibida por %s con fecha %s conforme constancia del Correo Argentino.' % (articulo_denunciado(denunciado), recepcion)
     return texto
 
 def armar_respuesta_empresa(resp):
@@ -726,21 +796,29 @@ def armar_respuesta_empresa(resp):
     numero = (resp.get('numero') or '').strip()
     contenido = (resp.get('contenido') or '').strip()
     recepcion = (resp.get('fechaRecepcion') or '').strip()
+    modo = (resp.get('modo') or 'citar').strip()
 
     texto = 'Que, no obstante lo intimado, con fecha %s la parte denunciada remitió CD' % fecha
     if numero:
         texto += ' Nº %s' % numero
     if recepcion:
         texto += ', recibida por mi parte el día %s' % recepcion
-    texto += ', mediante la cual pretendió responder los reclamos, en los siguientes términos:\n\n"%s"' % contenido
+
+    if modo == 'resumir':
+        # "contenido" ya viene redactado por la IA (ver redactar_con_ia con
+        # SYSTEM_PROMPT_RESUMEN_RESPUESTA) como un fragmento en discurso
+        # indirecto que continua esta misma oracion.
+        texto += ', %s' % contenido
+    else:
+        texto += ', mediante la cual pretendió responder los reclamos, en los siguientes términos:\n\n"%s"' % contenido
     return texto
 
-def armar_item_correspondencia(item, alguna_respuesta_ref):
+def armar_item_correspondencia(item, denunciado, alguna_respuesta_ref):
     if item.get('emisor') == 'empresa':
         alguna_respuesta_ref[0] = True
         return [armar_respuesta_empresa(item)]
 
-    partes = [armar_telegrama_nuestro(item)]
+    partes = [armar_telegrama_nuestro(item, denunciado)]
     if item.get('huboRespuesta') and item.get('respuesta'):
         partes.append(armar_respuesta_empresa(item['respuesta']))
         alguna_respuesta_ref[0] = True
@@ -750,7 +828,7 @@ def armar_bloque_correspondencia(correspondencia, denunciado):
     partes = []
     alguna_respuesta_ref = [False]
     for item in correspondencia:
-        partes.extend(armar_item_correspondencia(item, alguna_respuesta_ref))
+        partes.extend(armar_item_correspondencia(item, denunciado, alguna_respuesta_ref))
     if not alguna_respuesta_ref[0]:
         partes.append('Al día de la fecha %s no ha contestado ninguna de las intimaciones remitidas por esta parte.' % articulo_denunciado(denunciado))
     return '\n\n'.join(partes)
@@ -784,11 +862,11 @@ def armar_encabezado_cliente(cliente):
     ) % (domicilio, ciudad, telefono, email, bloque_rep)
     return texto
 
-def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas):
+def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas, parrafo_relato):
     encabezado_cliente = armar_encabezado_cliente(cliente)
     bloque_den = armar_bloque_denunciado(denunciado)
     bloque_registro = armar_bloque_registro(relacion, denunciado)
-    bloque_relato = armar_bloque_relato_impedimento(relacion.get('fechaDespido', ''), denunciado)
+    bloque_relato = armar_bloque_relato(relacion, parrafo_relato)
     bloque_corr = armar_bloque_correspondencia(correspondencia, denunciado)
 
     return """FORMULA DENUNCIA.
@@ -992,6 +1070,8 @@ def generar_escrito():
         return error('Marcá si el denunciado es persona física, empresa, o ambas.')
     if not (relacion.get('tareas') or '').strip():
         return error('Falta la descripción de las tareas.')
+    if not (relacion.get('relato') or '').strip():
+        return error('Falta el relato de los hechos.')
     if not correspondencia:
         return error('Agregá al menos un telegrama o carta documento.')
     for item in correspondencia:
@@ -1002,32 +1082,29 @@ def generar_escrito():
     if not api_key:
         return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
 
-    system_prompt = (
-        "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, Argentina. "
-        "Vas a recibir una descripción informal de las tareas que hacía un trabajador y tenés que "
-        "convertirla en UN párrafo formal, en primera persona, con el registro de una denuncia "
-        "laboral ante el Ministerio de Trabajo, arrancando de forma natural (por ejemplo: 'Que las "
-        "tareas desempeñadas por mi parte consistían en...').\n\n"
-        "Reglas:\n"
-        "- Nunca inventes datos que no estén en el texto que te pasaron.\n"
-        "- Devolvé únicamente el párrafo final, sin comentarios antes o después."
-    )
-    user_prompt = "TEXTO INFORMAL DE LAS TAREAS:\n%s" % relacion.get('tareas', '')
-
     try:
         client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model="claude-sonnet-5",
-            max_tokens=1024,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_prompt}]
+
+        parrafo_tareas = redactar_con_ia(
+            client, SYSTEM_PROMPT_TAREAS,
+            "TEXTO INFORMAL DE LAS TAREAS:\n%s" % relacion.get('tareas', '')
         )
-        parrafo_tareas = "".join([b.text for b in response.content if b.type == "text"]).strip()
+        parrafo_relato = redactar_con_ia(
+            client, SYSTEM_PROMPT_RELATO,
+            "RELATO INFORMAL DE LOS HECHOS:\n%s" % relacion.get('relato', '')
+        )
+
+        for item in correspondencia:
+            if item.get('emisor') == 'empresa' and item.get('modo') == 'resumir' and (item.get('contenido') or '').strip():
+                item['contenido'] = redactar_con_ia(client, SYSTEM_PROMPT_RESUMEN_RESPUESTA, item['contenido'])
+            respuesta = item.get('respuesta')
+            if respuesta and respuesta.get('modo') == 'resumir' and (respuesta.get('contenido') or '').strip():
+                respuesta['contenido'] = redactar_con_ia(client, SYSTEM_PROMPT_RESUMEN_RESPUESTA, respuesta['contenido'])
     except Exception as e:
-        print("Error generando parrafo de tareas:", str(e))
+        print("Error generando parrafos con IA:", str(e))
         return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
 
-    texto_final = armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas)
+    texto_final = armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas, parrafo_relato)
 
     resp = jsonify({"status": "ok", "texto": texto_final})
     resp.headers['Access-Control-Allow-Origin'] = '*'

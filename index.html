@@ -650,7 +650,11 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fl">Tareas *</div>
       <textarea class="fta" id="es-rl-tareas" style="min-height:100px" placeholder="Contalas en primera persona, como se lo dirías a un colega. La IA las redacta en estilo formal — no hace falta que lo escribas ya en formato legal."></textarea>
     </div>
-    <div class="fg"><div class="fl">Fecha de despido / desvinculación</div><input class="fi" id="es-rl-fecha-despido" placeholder="Ej: 12/06/2026"></div>
+    <div class="fg"><div class="fl">Fecha del hecho que motiva la denuncia</div><input class="fi" id="es-rl-fecha-despido" placeholder="Ej: 12/06/2026"></div>
+    <div class="fg">
+      <div class="fl">Relato de los hechos *</div>
+      <textarea class="fta" id="es-rl-relato" style="min-height:120px" placeholder="Contá qué pasó, en tus palabras: impedimento de ingreso, despido directo, falta de pago, accidente, etc. La IA lo redacta en estilo formal — no hace falta escribirlo ya en formato legal. La fecha de arriba se inserta aparte, no hace falta repetirla acá."></textarea>
+    </div>
     <div class="fg">
       <div class="fl">Observación sobre registración (opcional)</div>
       <textarea class="fta" id="es-rl-registro-parcial" style="min-height:60px" placeholder='Completá solo si hubo un período de registración parcial (ej. a través de un programa estatal). Se agrega como párrafo aparte, justo después del párrafo de "sin registración".'></textarea>
@@ -2361,6 +2365,7 @@ function agregarCorrespondencia(){
   wrap.style.cssText='border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--bg3)';
   wrap.innerHTML=
     '<div class="fg"><div class="fl">Emisor</div><select class="fs" id="es-corr-emisor-'+idx+'" onchange="toggleEmisorCorrespondencia('+idx+')"><option value="nuestra_parte">Nosotros (a favor del cliente)</option><option value="empresa">La empresa / denunciado</option></select></div>'+
+    '<div id="es-corr-modo-wrap-'+idx+'" style="display:none" class="fg"><div class="fl">¿Cómo se carga esta respuesta?</div><select class="fs" id="es-corr-modo-'+idx+'"><option value="citar">Citar textual (transcripción exacta)</option><option value="resumir">Resumir (la IA lo redacta en discurso indirecto)</option></select></div>'+
     '<div class="g2">'+
       '<div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="es-corr-fecha-'+idx+'" placeholder="Ej: 02/07/2026"></div>'+
       '<div class="fg"><div class="fl">Número de seguimiento</div><input class="fi" id="es-corr-numero-'+idx+'" placeholder="Ej: 371372272"></div>'+
@@ -2382,6 +2387,7 @@ function agregarCorrespondencia(){
       '<div id="es-corr-no-respuesta-'+idx+'" style="font-size:12px;color:var(--text3);margin-bottom:10px">No hubo respuesta a este telegrama.</div>'+
       '<div id="es-corr-respuesta-'+idx+'" style="display:none;background:var(--bg2);border-radius:8px;padding:10px;margin-bottom:10px">'+
         '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Respuesta de la empresa</div>'+
+        '<div class="fg"><div class="fl">¿Cómo se carga esta respuesta?</div><select class="fs" id="es-corr-resp-modo-'+idx+'"><option value="citar">Citar textual (transcripción exacta)</option><option value="resumir">Resumir (la IA lo redacta en discurso indirecto)</option></select></div>'+
         '<div class="g2">'+
           '<div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="es-corr-resp-fecha-'+idx+'" placeholder="Ej: 24/07/2026"></div>'+
           '<div class="fg"><div class="fl">Número de CD (opcional)</div><input class="fi" id="es-corr-resp-numero-'+idx+'"></div>'+
@@ -2404,6 +2410,7 @@ function agregarCorrespondencia(){
 function toggleEmisorCorrespondencia(idx){
   var esEmpresa=document.getElementById('es-corr-emisor-'+idx).value==='empresa';
   document.getElementById('es-corr-respuesta-wrap-'+idx).style.display=esEmpresa?'none':'block';
+  document.getElementById('es-corr-modo-wrap-'+idx).style.display=esEmpresa?'block':'none';
   if(esEmpresa){
     document.getElementById('es-corr-hubo-respuesta-'+idx).checked=false;
     document.getElementById('es-corr-respuesta-'+idx).style.display='none';
@@ -2471,6 +2478,7 @@ function generarEscrito(){
     fechaIngreso:v('es-rl-fecha-ingreso'),categoria:v('es-rl-categoria'),
     jornada:v('es-rl-jornada'),horarios:v('es-rl-horarios'),
     tareas:v('es-rl-tareas'),fechaDespido:v('es-rl-fecha-despido'),
+    relato:v('es-rl-relato'),
     registroParcial:v('es-rl-registro-parcial')
   };
 
@@ -2485,6 +2493,7 @@ function generarEscrito(){
       numero:v('es-corr-numero-'+idx),
       fechaRecepcion:v('es-corr-recepcion-'+idx),
       contenido:v('es-corr-contenido-'+idx),
+      modo:emisor==='empresa'?(v('es-corr-modo-'+idx)||'citar'):'citar',
       huboRespuesta:huboRespuesta
     };
     if(huboRespuesta){
@@ -2492,7 +2501,8 @@ function generarEscrito(){
         fechaEnvio:v('es-corr-resp-fecha-'+idx),
         numero:v('es-corr-resp-numero-'+idx),
         fechaRecepcion:v('es-corr-resp-recepcion-'+idx),
-        contenido:v('es-corr-resp-contenido-'+idx)
+        contenido:v('es-corr-resp-contenido-'+idx),
+        modo:v('es-corr-resp-modo-'+idx)||'citar'
       };
     }
     correspondencia.push(item);
@@ -2501,6 +2511,7 @@ function generarEscrito(){
   if(!cliente.nombre){alert('Falta el nombre y apellido del cliente.');return;}
   if(!esPersona&&!esEmpresa){alert('Marcá si el denunciado es persona física, empresa, o ambas.');return;}
   if(!relacion.tareas){alert('Describí las tareas del cliente.');return;}
+  if(!relacion.relato){alert('Contá el relato de los hechos.');return;}
   if(correspondencia.length===0){alert('Agregá al menos un telegrama.');return;}
   for(var i=0;i<correspondencia.length;i++){
     if(correspondencia[i].huboRespuesta&&!correspondencia[i].respuesta.contenido){
