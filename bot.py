@@ -621,6 +621,21 @@ BLOQUES_REPRESENTACION = {
     ),
 }
 
+# El formulario solo soporta un denunciado (persona, empresa, o una persona
+# titular de una empresa/comercio), asi que siempre es singular. Genero
+# correcto: si hay persona fisica, se usa el genero que cargo el usuario; si
+# es solo empresa, se trata como "la empresa" (sustantivo femenino).
+def denunciado_es_femenino(den):
+    if den.get('esPersona'):
+        return (den.get('genero') or '').strip().lower() == 'femenino'
+    return True
+
+def de_denunciado(den):
+    return 'de la denunciada' if denunciado_es_femenino(den) else 'del denunciado'
+
+def articulo_denunciado(den):
+    return 'la denunciada' if denunciado_es_femenino(den) else 'el denunciado'
+
 def armar_bloque_denunciado(den):
     persona = (den.get('esPersona') and (den.get('nombre') or '').strip())
     empresa = (den.get('esEmpresa') and (den.get('empresa') or '').strip())
@@ -658,15 +673,13 @@ def armar_bloque_denunciado(den):
         base += ', correo electrónico %s' % email
     return base
 
-BLOQUE_SIN_REGISTRACION = (
-    "Que durante toda la relación laboral presté servicios de manera personal, "
-    "habitual y bajo dependencia de los denunciados, sin que mi vínculo laboral "
-    "se encontrara debidamente registrado ante los organismos correspondientes, "
-    "en violación a la normativa laboral vigente."
-)
-
-def armar_bloque_registro(relacion):
-    texto = BLOQUE_SIN_REGISTRACION
+def armar_bloque_registro(relacion, denunciado):
+    texto = (
+        "Que durante toda la relación laboral presté servicios de manera personal, "
+        "habitual y bajo dependencia %s, sin que mi vínculo laboral "
+        "se encontrara debidamente registrado ante los organismos correspondientes, "
+        "en violación a la normativa laboral vigente."
+    ) % de_denunciado(denunciado)
     extra = (relacion.get('registroParcial') or '').strip()
     if extra:
         texto += '\n\n' + extra
@@ -675,7 +688,8 @@ def armar_bloque_registro(relacion):
 # Relato fijo para el motivo "impedimento de ingreso" (el empleador no deja
 # volver a trabajar). Otros motivos (accidente, falta de pago, etc.) van a
 # necesitar su propio bloque el dia que se agreguen.
-BLOQUE_IMPEDIMENTO_INGRESO = """Qué la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta el día %s, fecha a partir de la cual se me impidió de manera injustificada el ingreso a mi lugar habitual de trabajo, sin mediar causa válida ni comunicación previa, circunstancia que me imposibilitó continuar prestando tareas con normalidad.
+def armar_bloque_relato_impedimento(fecha, denunciado):
+    return ("""Qué la relación laboral continuó desarrollándose en los términos precedentemente expuestos hasta el día %s, fecha a partir de la cual se me impidió de manera injustificada el ingreso a mi lugar habitual de trabajo, sin mediar causa válida ni comunicación previa, circunstancia que me imposibilitó continuar prestando tareas con normalidad.
 
 Que dicho impedimento se materializó mediante la negativa a permitirme el ingreso y a asignarme tareas propias de mi categoría y especialidad, pese a presentarme en el lugar y horario habitual de trabajo, configurando una situación de hecho que vulnera mis derechos laborales.
 
@@ -683,7 +697,7 @@ Qué, asimismo, como expresé anteriormente, el empleador nunca regularizó corr
 
 Que, ante la falta de respuesta y la persistencia de dicha situación, me vi obligado a intimar fehacientemente a fin de que se aclare mi situación laboral, se regularice mi registración y se me permita retomar mis tareas habituales, bajo apercibimiento de accionar conforme a derecho.
 
-Que, pese a mis reiterados reclamos verbales, los denunciados persistieron en su conducta de impedirme trabajar, colocándome en una situación de absoluta incertidumbre respecto de mi continuidad laboral."""
+Que, pese a mis reiterados reclamos verbales, %s persistió en su conducta de impedirme trabajar, colocándome en una situación de absoluta incertidumbre respecto de mi continuidad laboral.""") % (fecha, articulo_denunciado(denunciado))
 
 BLOQUE_CIERRE_RECLAMO = """Que conforme lo acontecido, las injurias ocasionadas, intimo a que me abone Liquidación Final, conforme la verdadera relación fáctica laboral y haberes adeudados y diferencias de haberes, SAC y Vacaciones No Gozadas por el plazo de prescripción, Indemnización por despido sin causa, antigüedad (art. 245 LCT), sustitutiva de preaviso (art. 232 LCT), Integración mes de despido (art. 233 LCT) y haga entrega de Certificaciones de Servicios y Remuneraciones estipuladas en Art. 80 LCT, sirviendo el presente como emplazamiento de dicha entrega."""
 
@@ -691,15 +705,18 @@ BLOQUE_CIERRE_RECLAMO = """Que conforme lo acontecido, las injurias ocasionadas,
 # cronologico; el contenido transcripto (cita textual del telegrama) nunca
 # pasa por la IA en este paso, solo se inserta tal cual lo cargo/leyo el
 # usuario.
-INTRO_TELEGRAMA_NUESTRO = 'Que, con fecha %s, remití TCL CD Nº %s, en los siguientes términos:'
-
 def armar_telegrama_nuestro(item):
     fecha = (item.get('fechaEnvio') or '').strip()
     numero = (item.get('numero') or '').strip()
     contenido = (item.get('contenido') or '').strip()
     recepcion = (item.get('fechaRecepcion') or '').strip()
 
-    texto = (INTRO_TELEGRAMA_NUESTRO % (fecha, numero)) + '\n\n"%s"' % contenido
+    if numero:
+        intro = 'Que, con fecha %s, remití TCL CD Nº %s, en los siguientes términos:' % (fecha, numero)
+    else:
+        intro = 'Que, con fecha %s, remití TCL, en los siguientes términos:' % fecha
+
+    texto = intro + '\n\n"%s"' % contenido
     if recepcion:
         texto += '\n\nDicha intimación fue debidamente recibida por la denunciada con fecha %s conforme constancia del Correo Argentino.' % recepcion
     return texto
@@ -729,13 +746,13 @@ def armar_item_correspondencia(item, alguna_respuesta_ref):
         alguna_respuesta_ref[0] = True
     return partes
 
-def armar_bloque_correspondencia(correspondencia):
+def armar_bloque_correspondencia(correspondencia, denunciado):
     partes = []
     alguna_respuesta_ref = [False]
     for item in correspondencia:
         partes.extend(armar_item_correspondencia(item, alguna_respuesta_ref))
     if not alguna_respuesta_ref[0]:
-        partes.append('Al día de la fecha la denunciada no ha contestado ninguna de las intimaciones remitidas por esta parte.')
+        partes.append('Al día de la fecha %s no ha contestado ninguna de las intimaciones remitidas por esta parte.' % articulo_denunciado(denunciado))
     return '\n\n'.join(partes)
 
 def armar_encabezado_cliente(cliente):
@@ -770,9 +787,9 @@ def armar_encabezado_cliente(cliente):
 def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas):
     encabezado_cliente = armar_encabezado_cliente(cliente)
     bloque_den = armar_bloque_denunciado(denunciado)
-    bloque_registro = armar_bloque_registro(relacion)
-    bloque_relato = BLOQUE_IMPEDIMENTO_INGRESO % relacion.get('fechaDespido', '')
-    bloque_corr = armar_bloque_correspondencia(correspondencia)
+    bloque_registro = armar_bloque_registro(relacion, denunciado)
+    bloque_relato = armar_bloque_relato_impedimento(relacion.get('fechaDespido', ''), denunciado)
+    bloque_corr = armar_bloque_correspondencia(correspondencia, denunciado)
 
     return """FORMULA DENUNCIA.
 
@@ -784,7 +801,7 @@ S___________________/____________D
 
 Que vengo a formular denuncia en contra de %s, comparecemos y decimos:
 
-Que ingresé a trabajar bajo las órdenes de la denunciada el %s, cumpliendo tareas acordes con la categoría %s.
+Que ingresé a trabajar bajo las órdenes %s %s, cumpliendo tareas acordes con la categoría %s.
 
 Que mi jornada de trabajo era %s, %s.
 
@@ -803,7 +820,7 @@ Por los motivos expuestos, se solicita la intervención de esta Autoridad de Apl
 En definitiva, ante el incumplimiento de la normativa vigente por parte del Empleador, solicitó que el mismo sea citado, quien deberá concurrir con toda la documentación laboral, legajo personal, además de las constancias de pago de los aportes y contribuciones sindicales, sociales y previsionales, y los importes correspondientes a Liquidación Final e indemnizaciones de ley, a cuyo fin deberá fijar día y hora de audiencia de conciliación. Sin otro particular. Saludo a Ud. muy atte.""" % (
         encabezado_cliente,
         bloque_den,
-        relacion.get('fechaIngreso', ''), relacion.get('categoria', ''),
+        de_denunciado(denunciado), relacion.get('fechaIngreso', ''), relacion.get('categoria', ''),
         relacion.get('jornada', ''), relacion.get('horarios', ''),
         parrafo_tareas,
         bloque_registro,
