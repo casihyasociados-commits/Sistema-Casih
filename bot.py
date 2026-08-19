@@ -622,18 +622,22 @@ BLOQUES_REPRESENTACION = {
 }
 
 # El formulario solo soporta un denunciado (persona, empresa, o una persona
-# titular de una empresa/comercio), asi que siempre es singular. Genero
-# correcto: si hay persona fisica, se usa el genero que cargo el usuario; si
-# es solo empresa, se trata como "la empresa" (sustantivo femenino).
+# titular de una empresa/comercio), asi que siempre es singular. Si hay
+# persona fisica (sola o junto con una empresa), el sujeto es esa persona y
+# se usa su genero. Si es solo empresa, decimos "la empresa" explicitamente
+# en vez de "la denunciada" -- decir "la denunciada" ahi se lee como si
+# fuera una persona, cuando en realidad es una razon social.
 def denunciado_es_femenino(den):
-    if den.get('esPersona'):
-        return (den.get('genero') or '').strip().lower() == 'femenino'
-    return True
+    return (den.get('genero') or '').strip().lower() == 'femenino'
 
 def de_denunciado(den):
+    if not den.get('esPersona'):
+        return 'de la empresa'
     return 'de la denunciada' if denunciado_es_femenino(den) else 'del denunciado'
 
 def articulo_denunciado(den):
+    if not den.get('esPersona'):
+        return 'la empresa'
     return 'la denunciada' if denunciado_es_femenino(den) else 'el denunciado'
 
 def armar_bloque_denunciado(den):
@@ -762,6 +766,19 @@ SYSTEM_PROMPT_RESUMEN_RESPUESTA = (
     "- Devolvé únicamente el fragmento final, sin comentarios antes o después."
 )
 
+SYSTEM_PROMPT_NORMALIZAR_MAYUSCULAS = (
+    "Tu única tarea es corregir mayúsculas y minúsculas en un domicilio, sin cambiar nada más. "
+    "Convertí el texto a la capitalización normal de una dirección en español: primera letra en "
+    "mayúscula en cada palabra con sentido propio (calles, barrios, manzanas, lotes, nombres "
+    "propios); artículos y preposiciones como 'de', 'del', 'la', 'los' en minúscula salvo que "
+    "sean la primera palabra; abreviaturas de uso común (Nº, Bº, Mza., Dpto., Piso) tal como se "
+    "escriben habitualmente.\n\n"
+    "Reglas estrictas:\n"
+    "- No agregues ni quites palabras, números, ni signos de puntuación.\n"
+    "- No corrijas ortografía ni cambies ninguna palabra, solo su capitalización.\n"
+    "- Devolvé únicamente el texto corregido, sin comentarios antes o después."
+)
+
 def redactar_con_ia(client, system_prompt, texto_informal):
     response = client.messages.create(
         model="claude-sonnet-5",
@@ -770,6 +787,21 @@ def redactar_con_ia(client, system_prompt, texto_informal):
         messages=[{"role": "user", "content": texto_informal}]
     )
     return "".join([b.text for b in response.content if b.type == "text"]).strip()
+
+def normalizar_mayusculas_domicilio(client, texto):
+    texto = (texto or '').strip()
+    # Solo tocamos el texto si viene en mayusculas sostenidas (sin ninguna
+    # minuscula) -- si ya tiene una capitalizacion razonable, lo dejamos tal
+    # cual para no gastar una llamada a la IA de mas.
+    if not texto or texto == texto.upper() and texto == texto.lower():
+        return texto  # sin letras (solo numeros/simbolos), nada que normalizar
+    if texto != texto.upper():
+        return texto  # ya tiene minusculas, asumimos que esta bien escrito
+    try:
+        return redactar_con_ia(client, SYSTEM_PROMPT_NORMALIZAR_MAYUSCULAS, texto)
+    except Exception as e:
+        print("Error normalizando mayusculas de domicilio:", str(e))
+        return texto
 
 # Cada item de correspondencia se arma con una formula fija, en orden
 # cronologico; el contenido transcripto (cita textual del telegrama) nunca
@@ -829,7 +861,7 @@ def armar_bloque_correspondencia(correspondencia, denunciado):
     alguna_respuesta_ref = [False]
     for item in correspondencia:
         partes.extend(armar_item_correspondencia(item, denunciado, alguna_respuesta_ref))
-    if not alguna_respuesta_ref[0]:
+    if correspondencia and not alguna_respuesta_ref[0]:
         partes.append('Al día de la fecha %s no ha contestado ninguna de las intimaciones remitidas por esta parte.' % articulo_denunciado(denunciado))
     return '\n\n'.join(partes)
 
@@ -869,7 +901,7 @@ def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondenci
     bloque_relato = armar_bloque_relato(relacion, parrafo_relato)
     bloque_corr = armar_bloque_correspondencia(correspondencia, denunciado)
 
-    return """FORMULA DENUNCIA.
+    texto = """FORMULA DENUNCIA.
 
 Sr. Director de Reclamaciones Individuales
 Departamento Provincial del Trabajo.
@@ -906,6 +938,9 @@ En definitiva, ante el incumplimiento de la normativa vigente por parte del Empl
         bloque_corr,
         BLOQUE_CIERRE_RECLAMO
     )
+    # Si algun bloque quedo vacio (ej. sin correspondencia cargada), evita que
+    # queden lineas en blanco de mas entre parrafos.
+    return re.sub(r'\n{3,}', '\n\n', texto)
 
 # --- EXPORTAR A WORD (.docx) ---
 # Toma el texto ya generado (y eventualmente editado a mano en el textarea)
@@ -1072,8 +1107,6 @@ def generar_escrito():
         return error('Falta la descripción de las tareas.')
     if not (relacion.get('relato') or '').strip():
         return error('Falta el relato de los hechos.')
-    if not correspondencia:
-        return error('Agregá al menos un telegrama o carta documento.')
     for item in correspondencia:
         if item.get('huboRespuesta') and not (item.get('respuesta') or {}).get('contenido', '').strip():
             return error('Marcaste que hubo respuesta de la empresa en un telegrama pero falta el contenido de esa respuesta.')
@@ -1100,6 +1133,12 @@ def generar_escrito():
             respuesta = item.get('respuesta')
             if respuesta and respuesta.get('modo') == 'resumir' and (respuesta.get('contenido') or '').strip():
                 respuesta['contenido'] = redactar_con_ia(client, SYSTEM_PROMPT_RESUMEN_RESPUESTA, respuesta['contenido'])
+
+        # Si el domicilio vino en mayusculas sostenidas (comun al copiar de un
+        # DNI o formulario), se corrige solo la capitalizacion -- nunca las
+        # palabras, numeros o el contenido.
+        cliente['domicilio'] = normalizar_mayusculas_domicilio(client, cliente.get('domicilio', ''))
+        denunciado['domicilio'] = normalizar_mayusculas_domicilio(client, denunciado.get('domicilio', ''))
     except Exception as e:
         print("Error generando parrafos con IA:", str(e))
         return error('No se pudo generar el escrito. Intentá de nuevo en un momento.', 500)
