@@ -894,6 +894,16 @@ def armar_encabezado_cliente(cliente):
     ) % (domicilio, ciudad, telefono, email, bloque_rep)
     return texto
 
+# Si la fecha de ingreso es una fecha completa (dd/mm/aaaa), se le antepone
+# "el" para que la oracion se lea bien ("...el 05/03/2025"). Si el usuario
+# cargo otra cosa (ej. "en el mes de julio de 2020"), se deja tal cual la
+# escribio -- ya trae su propio conector.
+def formatear_fecha_ingreso(fecha):
+    fecha = (fecha or '').strip()
+    if re.match(r'^\d{1,2}/\d{1,2}/\d{2,4}$', fecha):
+        return 'el %s' % fecha
+    return fecha
+
 def armar_escrito_denuncia_trabajo(cliente, denunciado, relacion, correspondencia, parrafo_tareas, parrafo_relato):
     encabezado_cliente = armar_encabezado_cliente(cliente)
     bloque_den = armar_bloque_denunciado(denunciado)
@@ -930,7 +940,7 @@ Por los motivos expuestos, se solicita la intervención de esta Autoridad de Apl
 En definitiva, ante el incumplimiento de la normativa vigente por parte del Empleador, solicitó que el mismo sea citado, quien deberá concurrir con toda la documentación laboral, legajo personal, además de las constancias de pago de los aportes y contribuciones sindicales, sociales y previsionales, y los importes correspondientes a Liquidación Final e indemnizaciones de ley, a cuyo fin deberá fijar día y hora de audiencia de conciliación. Sin otro particular. Saludo a Ud. muy atte.""" % (
         encabezado_cliente,
         bloque_den,
-        de_denunciado(denunciado), relacion.get('fechaIngreso', ''), relacion.get('categoria', ''),
+        de_denunciado(denunciado), formatear_fecha_ingreso(relacion.get('fechaIngreso', '')), relacion.get('categoria', ''),
         relacion.get('jornada', ''), relacion.get('horarios', ''),
         parrafo_tareas,
         bloque_registro,
