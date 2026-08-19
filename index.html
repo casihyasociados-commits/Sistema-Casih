@@ -517,11 +517,11 @@ input.currency-input{letter-spacing:0.5px;}
       <button onclick="descargarResumenPDF()" style="font-size:12px;padding:6px 14px;border-radius:var(--radius);border:none;background:var(--red);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">⬇ PDF</button>
     </div>
     <div id="adm-ingresos">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Ingresos del mes</div><button class="btn-primary" onclick="openModal('m-ingreso')">+ Agregar ingreso</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Ingresos del mes</div><button class="btn-primary" onclick="prepararModalIngreso()">+ Agregar ingreso</button></div>
       <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Cliente</th><th>Categoría</th><th>Monto</th><th></th></tr><tbody id="ing-table"></tbody></table></div>
     </div>
     <div id="adm-gastos" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Todos los gastos del mes</div><button class="btn-primary" onclick="openModal('m-gasto')">+ Agregar gasto</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--text2)">Todos los gastos del mes</div><button class="btn-primary" onclick="prepararModalGasto()">+ Agregar gasto</button></div>
       <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Cargado por</th><th>Monto</th><th></th></tr><tbody id="gas-table"></tbody></table></div>
     </div>
     <div id="adm-analisis" style="display:none">
@@ -767,7 +767,7 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="modal-bg" id="m-ingreso" onclick="if(event.target===this)closeModal('m-ingreso')">
   <div class="modal"><h3>Agregar ingreso</h3>
     <div class="g2">
-      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="in-fe" type="date"></div>
+      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="in-fe" type="date" onchange="sincronizarMesAnio('in-fe','in-mes','in-anio')"></div>
       <div class="fg"><div class="fl">Monto *</div><input class="fi" id="in-mo" type="number" placeholder="0"></div>
     </div>
     <div class="g2">
@@ -784,7 +784,7 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="modal-bg" id="m-gasto" onclick="if(event.target===this)closeModal('m-gasto')">
   <div class="modal"><h3>Agregar gasto</h3>
     <div class="g2">
-      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="ga-fe" type="date"></div>
+      <div class="fg"><div class="fl">Fecha</div><input class="fi" id="ga-fe" type="date" onchange="sincronizarMesAnio('ga-fe','ga-mes','ga-anio')"></div>
       <div class="fg"><div class="fl">Monto *</div><input class="fi" id="ga-mo" type="number" placeholder="0"></div>
     </div>
     <div class="g2">
@@ -1185,6 +1185,27 @@ function renderHonTable(list){
     list.map(function(h){return '<tr><td>'+h.cliente+'</td><td style="color:var(--text3)">'+(h.causa||'')+'</td><td>'+fmtARS(h.total||0)+'</td><td style="color:var(--green)">'+fmtARS(h.cobrado||0)+'</td><td style="color:var(--orange);font-weight:600">'+fmtARS((h.total||0)-(h.cobrado||0))+'</td><td><span class="badge '+(eCls[h.estado]||'b-gray')+'">'+(eLbl[h.estado]||h.estado)+'</span></td><td><button class="btn-danger" onclick="delDoc(\'honorarios\',\''+h.id+'\')">✕</button></td></tr>';}).join(''));
 }
 
+function sincronizarMesAnio(fechaId,mesId,anioId){
+  var fe=document.getElementById(fechaId).value;
+  if(!fe)return;
+  var mesSel=document.getElementById(mesId),anioSel=document.getElementById(anioId);
+  if(mesSel)mesSel.value=fe.slice(5,7);
+  if(anioSel)anioSel.value=fe.slice(0,4);
+}
+function prepararModalIngreso(){
+  var hoy=fmt(today);
+  var fe=document.getElementById('in-fe');
+  if(fe&&!fe.value)fe.value=hoy;
+  sincronizarMesAnio('in-fe','in-mes','in-anio');
+  openModal('m-ingreso');
+}
+function prepararModalGasto(){
+  var hoy=fmt(today);
+  var fe=document.getElementById('ga-fe');
+  if(fe&&!fe.value)fe.value=hoy;
+  sincronizarMesAnio('ga-fe','ga-mes','ga-anio');
+  openModal('m-gasto');
+}
 function saveIngreso(){
   var co=document.getElementById('in-co').value.trim(),mo=getCurrencyValue(document.getElementById('in-mo'));
   if(!co||!mo){alert('Concepto y monto obligatorios.');return;}
