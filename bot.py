@@ -1099,15 +1099,22 @@ def generar_escrito_docx():
 TG_CM_EMU = 360000
 TG_CM_PT = 28.3465
 
-# Geometria del formulario (cm, medida sobre el XML del modelo)
-TG_LINEA = {'fila1': 2.04, 'fila2': 3.05, 'fila3': 6.16, 'fila4': 7.18}
+# Geometria del formulario, en cm respecto del borde de la hoja.
+#
+# La plantilla esta normalizada: todo el formulario quedo anclado a la pagina.
+# En el modelo original venia partido en tres sistemas de coordenadas — una
+# parte anclada a la pagina y otras dos ancladas a parrafos — y como cada
+# programa calcula distinto el alto del texto anterior, en Word, Pages y
+# Google Docs el encabezado se corria y el recuadro del cuerpo se subia dos
+# centimetros tapando la fila de Localidad/Provincia.
+TG_LINEA = {'fila1': 4.14, 'fila2': 5.15, 'fila3': 6.16, 'fila4': 7.18}
 TG_IZQ_X, TG_IZQ_AN = 1.09, 8.89
 TG_DER_X, TG_DER_AN = 10.98, 8.91
-TG_CUERPO = dict(x=1.11, y=8.86, an=18.82, al=16.14)
-# El logo del Correo ocupa el extremo derecho de la fila 1: el nombre del
-# remitente no puede invadirlo.
-TG_DER_AN_FILA1 = 4.30
+TG_CUERPO = dict(x=1.09, y=8.60, an=18.87, al=16.57)
 TG_ALTO_CAMPO = 0.50
+# Banda libre entre la fila 4 y el recuadro (debajo de las etiquetas
+# Localidad/Provincia): ahi entran el CUIL y la leyenda de mas de 30 palabras.
+TG_BANDA_LIBRE = 8.05
 
 PLANTILLA_TELEGRAMA = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'plantillas', 'modelo_telegrama.docx')
@@ -1118,11 +1125,16 @@ def _tg_emu(cm):
 
 
 def _tg_caja(idx, x_cm, y_cm, an_cm, al_cm, texto, tam_pt=10, negrita=False,
-             alineacion='left', anclaje='b'):
-    """Caja de texto anclada a la pagina, sin borde ni relleno.
+             alineacion='left', anclaje='b', relh='page', relv='page'):
+    """Caja de texto anclada, sin borde ni relleno.
 
     anclaje 'b' apoya el texto en el borde inferior (para que quede justo
     sobre la linea del formulario); 't' lo arranca desde arriba.
+
+    relh/relv definen respecto de que se posiciona. El formulario esta partido
+    en dos sistemas: la mitad de abajo esta anclada a la pagina y la de arriba
+    al parrafo, asi que cada dato tiene que usar el mismo que su parte del
+    formulario o se despegan al abrirlo en otro programa.
     """
     sz = int(round(tam_pt * 2))  # w:sz va en medios puntos
     parrafos = []
@@ -1146,8 +1158,8 @@ def _tg_caja(idx, x_cm, y_cm, an_cm, al_cm, texto, tam_pt=10, negrita=False,
         ' distL="0" distR="0" hidden="0" layoutInCell="1" locked="0" relativeHeight="%d"'
         ' simplePos="0">'
         '<wp:simplePos x="0" y="0"/>'
-        '<wp:positionH relativeFrom="page"><wp:posOffset>%d</wp:posOffset></wp:positionH>'
-        '<wp:positionV relativeFrom="page"><wp:posOffset>%d</wp:posOffset></wp:positionV>'
+        '<wp:positionH relativeFrom="%s"><wp:posOffset>%d</wp:posOffset></wp:positionH>'
+        '<wp:positionV relativeFrom="%s"><wp:posOffset>%d</wp:posOffset></wp:positionV>'
         '<wp:extent cx="%d" cy="%d"/>'
         '<wp:effectExtent b="0" l="0" r="0" t="0"/>'
         '<wp:wrapNone/>'
@@ -1163,8 +1175,8 @@ def _tg_caja(idx, x_cm, y_cm, an_cm, al_cm, texto, tam_pt=10, negrita=False,
         ' spcFirstLastPara="0" wrap="square"><a:noAutofit/></wps:bodyPr>'
         '</wps:wsp></a:graphicData></a:graphic>'
         '</wp:anchor></w:drawing></w:r>'
-        % (900 + idx, _tg_emu(x_cm), _tg_emu(y_cm), cx, cy, 9000 + idx, idx,
-           cx, cy, ''.join(parrafos), anclaje)
+        % (900 + idx, relh, _tg_emu(x_cm), relv, _tg_emu(y_cm), cx, cy,
+           9000 + idx, idx, cx, cy, ''.join(parrafos), anclaje)
     )
 
 
@@ -1189,24 +1201,27 @@ def _tg_sobre_linea(idx, x_cm, y_linea, an_cm, texto, tam_pt=10, **kw):
 
 
 def construir_cajas_telegrama(d):
+    """Devuelve el XML de todas las cajas, en coordenadas de pagina."""
     c = []
     n = iter(range(1, 999))
 
     # Fila 1: razon social del destinatario / apellido y nombre del remitente
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila1'], TG_IZQ_AN,
                              d.get('destNombre', ''), negrita=True))
-    c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila1'], TG_DER_AN_FILA1,
+    c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila1'], TG_DER_AN,
                              d.get('remNombre', ''), negrita=True))
-    # "Más de 30 palabras" es una anotacion del estudio que en el modelo cae
-    # justo sobre el renglon del ramo; la reubicamos en la banda libre.
-    c.append(_tg_caja(next(n), TG_IZQ_X, 4.20, 8.89, 0.55,
-                      'Más de 30 palabras', tam_pt=11, negrita=True, anclaje='t'))
 
     # Fila 2: ramo o actividad principal / DNI del remitente
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila2'], TG_IZQ_AN,
                              d.get('destRamo', ''), tam_pt=9))
     c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila2'], TG_DER_AN,
                              d.get('remDni', ''), negrita=True))
+
+    # "Más de 30 palabras" es una anotacion del estudio que en el modelo pisa
+    # el renglon del ramo; la reubicamos en la banda libre de arriba del
+    # recuadro, del lado derecho para no chocar con el CUIL.
+    c.append(_tg_caja(next(n), 11.0, TG_BANDA_LIBRE, 8.0, 0.55,
+                      'Más de 30 palabras', tam_pt=10, negrita=True))
 
     # Fila 3: domicilio + codigo postal (el CP va al final de cada columna)
     an_cp = 2.40
@@ -1236,7 +1251,7 @@ def construir_cajas_telegrama(d):
     if cuil:
         if not cuil.upper().startswith('CUIL'):
             cuil = 'CUIL ' + cuil
-        c.append(_tg_caja(next(n), TG_IZQ_X, TG_CUERPO['y'] - 0.62, 9.0, 0.55,
+        c.append(_tg_caja(next(n), TG_IZQ_X, TG_BANDA_LIBRE, 9.0, 0.55,
                           cuil, tam_pt=9, negrita=True))
 
     # Cuerpo del telegrama, dentro del recuadro
@@ -1252,25 +1267,31 @@ def construir_cajas_telegrama(d):
 _TG_RE_P = re.compile(r'<w:p(?=[ >/])|</w:p>')
 
 
-def _tg_fin_primer_parrafo(doc):
-    """Posicion del </w:p> que cierra el primer parrafo del body.
+def _tg_fin_parrafo(doc, indice):
+    """Posicion del </w:p> que cierra el parrafo de nivel superior nro `indice`.
 
-    No sirve buscar el primer "</w:p>" del archivo: el formulario tiene cajas
-    de texto con parrafos adentro, asi que ese cierre pertenece a un parrafo
-    anidado y las cajas terminarian dentro de otra caja.
+    No sirve contar "</w:p>" a secas: el formulario tiene cajas de texto con
+    parrafos adentro, asi que hay que llevar la cuenta de anidamiento y contar
+    solo los que cierran a nivel del body.
     """
     inicio = doc.index('<w:body>')
     nivel = 0
+    n = 0
     for m in _TG_RE_P.finditer(doc, inicio):
         if m.group(0) == '</w:p>':
             nivel -= 1
             if nivel == 0:
-                return m.start()
+                if n == indice:
+                    return m.start()
+                n += 1
         elif doc[m.start():m.end() + 40].split('>')[0].endswith('/'):
-            continue  # <w:p/> vacio: abre y cierra
+            if nivel == 0:            # <w:p/> vacio de nivel superior
+                if n == indice:
+                    return m.start()
+                n += 1
         else:
             nivel += 1
-    raise ValueError('No se encontro el cierre del primer parrafo del modelo.')
+    raise ValueError('No se encontro el parrafo %d del modelo.' % indice)
 
 
 def generar_telegrama_docx(datos):
@@ -1285,7 +1306,7 @@ def generar_telegrama_docx(datos):
     doc = doc.replace('<w:t xml:space="preserve">Más de 30 palabras</w:t>',
                       '<w:t xml:space="preserve"></w:t>')
 
-    corte = _tg_fin_primer_parrafo(doc)
+    corte = _tg_fin_parrafo(doc, 0)
     doc = doc[:corte] + construir_cajas_telegrama(datos) + doc[corte:]
 
     out = BytesIO()
