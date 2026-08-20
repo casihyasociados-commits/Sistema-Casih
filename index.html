@@ -564,8 +564,9 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="card" style="max-width:760px">
     <div class="fg">
       <div class="fl">Tipo de escrito</div>
-      <select class="fs" id="es-tipo">
+      <select class="fs" id="es-tipo" onchange="cambiarTipoEscrito()">
         <option value="denuncia_trabajo">Denuncia laboral — Ministerio de Trabajo</option>
+        <option value="telegrama_aclare">Telegrama (TCL) — Aclare situación laboral y blanqueo</option>
       </select>
     </div>
     <div class="fg">
@@ -578,6 +579,7 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
   </div>
 
+  <div id="es-form-denuncia">
   <div class="card" style="max-width:760px;margin-top:16px">
     <div class="card-title">Datos del cliente</div>
     <div class="fg" style="position:relative">
@@ -684,6 +686,100 @@ input.currency-input{letter-spacing:0.5px;}
       </div>
     </div>
     <textarea class="fta" id="es-resultado" style="min-height:420px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+  </div>
+  </div><!-- fin form denuncia -->
+
+  <div id="es-form-telegrama" style="display:none">
+    <div class="card" style="max-width:760px;margin-top:16px">
+      <div class="card-title">Destinatario (empleador)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente (opcional)</div>
+        <input class="fi" id="tg-cl-search" placeholder="Completa los datos del remitente desde la base..." oninput="filtrarClientes('tg-cl-search','tg-cl-dropdown')" onfocus="filtrarClientes('tg-cl-search','tg-cl-dropdown')" autocomplete="off">
+        <div id="tg-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Nombre o razón social *</div><input class="fi" id="tg-dest-nombre" placeholder="Ej: MARIA JORGELINA VILAS"></div>
+        <div class="fg"><div class="fl">CUIL / CUIT</div><input class="fi" id="tg-dest-cuil" placeholder="27-17391964-1"></div>
+      </div>
+      <div class="fg"><div class="fl">Ramo o actividad principal</div><input class="fi" id="tg-dest-ramo" placeholder='Ej: DIETETICA – "TODO MAS QUE SUELTO"'></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio laboral</div><input class="fi" id="tg-dest-domicilio" placeholder="Ej: Vélez Sarsfield Nº 639 local Nº 4"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="tg-dest-cp" placeholder="5151"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="tg-dest-localidad" placeholder="LA CALERA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="tg-dest-provincia" value="CÓRDOBA"></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Encabezado del texto</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Se lo intima como titular de…</div><input class="fi" id="tg-dest-descripcion" placeholder="Ej: LA DIETETICA / LA FABRICA DE PRODUCTOS ALIMENTICIOS SIN GLUTEN"></div>
+        <div class="fg"><div class="fl">Nombre de fantasía</div><input class="fi" id="tg-dest-fantasia" placeholder="Ej: TODO MAS QUE SUELTO"></div>
+      </div>
+      <div class="fg"><div class="fl">Extender el telegrama a otra persona (opcional)</div><input class="fi" id="tg-extension" placeholder="Ej: SE HACE EXTENSIVO EL PRESENTE AL SR. INSUA VICTOR DANIEL CUIL (20-16291898-3)"></div>
+    </div>
+
+    <div class="card" style="max-width:760px;margin-top:16px">
+      <div class="card-title">Remitente (el cliente)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Apellido y nombre *</div><input class="fi" id="tg-rem-nombre" placeholder="Ej: OLIVERA PAMELA VERONICA"></div>
+        <div class="fg"><div class="fl">DNI</div><input class="fi" id="tg-rem-dni" placeholder="27.695.078"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Género (para "despedido/a")</div><select class="fs" id="tg-rem-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+        <div class="fg"><div class="fl">Edad</div><input class="fi" id="tg-rem-edad" type="number" placeholder="46"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de nacimiento</div><input class="fi" id="tg-rem-nacimiento" placeholder="06/01/1980"></div>
+        <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="tg-rem-estado-civil" placeholder="soltera"></div>
+      </div>
+      <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="tg-rem-nacionalidad" value="Argentina"></div>
+      <div class="fg"><div class="fl">Domicilio real (va dentro del texto)</div><input class="fi" id="tg-rem-domicilio-real" placeholder="Ej: San Martin Nº 1001 Dpto. 1 Bº Centro, localidad de la Calera, Prov. de Córdoba"></div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-top:6px">
+        En el formulario, el remitente constituye domicilio en el estudio. Estos datos vienen cargados y normalmente no se tocan.
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio en el formulario</div><input class="fi" id="tg-rem-domicilio" value="Arturo M. Bas Nº 389 1º Piso Of. A"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="tg-rem-cp" value="5000"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="tg-rem-localidad" value="CÓRDOBA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="tg-rem-provincia" value="CÓRDOBA"></div>
+      </div>
+    </div>
+
+    <div class="card" style="max-width:760px;margin-top:16px">
+      <div class="card-title">Relación laboral</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Se le impide el ingreso desde *</div><input class="fi" id="tg-fecha-impedimento" placeholder="Ej: 01/07/2026"></div>
+        <div class="fg"><div class="fl">Fecha de ingreso</div><input class="fi" id="tg-fecha-ingreso" placeholder="Ej: 22/03/2022"></div>
+      </div>
+      <div class="fg"><div class="fl">Categoría</div><input class="fi" id="tg-categoria" placeholder='Ej: CCT130/75 VENDEDORA "B"'></div>
+      <div class="fg">
+        <div class="fl">Jornada de trabajo</div>
+        <textarea class="fta" id="tg-jornada" style="min-height:80px" placeholder="Contala como se la dirías a un colega. La IA la redacta en estilo formal."></textarea>
+      </div>
+      <div class="fg">
+        <div class="fl">Observaciones (opcional)</div>
+        <textarea class="fta" id="tg-observaciones" style="min-height:70px" placeholder="Ej: estuvo 6 meses en el Programa +26 del Gobierno. Se agrega como oración aparte, redactada en estilo formal."></textarea>
+      </div>
+    </div>
+
+    <div class="card" style="max-width:760px;margin-top:16px">
+      <button class="btn-primary" id="tg-btn-generar" onclick="generarTelegrama()" style="width:100%;padding:12px">✨ Generar telegrama con IA</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">La IA solo redacta la jornada y las observaciones. El resto se arma con los datos cargados — revisá siempre antes de despachar.</div>
+    </div>
+
+    <div class="card" id="tg-resultado-card" style="max-width:760px;display:none;margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Texto del telegrama</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm" onclick="copiarTelegrama()">📋 Copiar texto</button>
+          <button class="btn-sm" id="tg-btn-docx" onclick="descargarTelegramaDocx()">⬇️ Descargar formulario (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="tg-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
+    </div>
   </div>
 </div>
 
@@ -2351,11 +2447,115 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
 // ─── ESCRITOS CON IA ───
+function cambiarTipoEscrito(){
+  var tipo=document.getElementById('es-tipo').value;
+  var esTelegrama=tipo==='telegrama_aclare';
+  document.getElementById('es-form-denuncia').style.display=esTelegrama?'none':'block';
+  document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
+  // la representacion legal solo interviene en la denuncia
+  var rep=document.getElementById('es-representacion');
+  if(rep&&rep.parentNode)rep.parentNode.style.display=esTelegrama?'none':'block';
+}
+
+function autocompletarClienteTelegrama(c){
+  if(!c)return;
+  var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  setVal('tg-rem-nombre',c.nombre);
+  setVal('tg-rem-dni',c.dni);
+  setVal('tg-rem-edad',c.edad);
+  setVal('tg-rem-estado-civil',c.estadoCivil);
+  setVal('tg-rem-nacionalidad',c.nacionalidad);
+  setVal('tg-rem-domicilio-real',c.domicilio);
+  setVal('tg-dest-nombre',c.empleador);
+  showToast('Datos del cliente completados ✓');
+}
+
+function datosTelegrama(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  return {
+    destNombre:v('tg-dest-nombre'),destCuil:v('tg-dest-cuil'),destRamo:v('tg-dest-ramo'),
+    destDomicilio:v('tg-dest-domicilio'),destCp:v('tg-dest-cp'),
+    destLocalidad:v('tg-dest-localidad'),destProvincia:v('tg-dest-provincia'),
+    destDescripcion:v('tg-dest-descripcion'),destFantasia:v('tg-dest-fantasia'),
+    extension:v('tg-extension'),
+    remNombre:v('tg-rem-nombre'),remDni:v('tg-rem-dni'),remGenero:v('tg-rem-genero'),
+    remEdad:v('tg-rem-edad'),remNacimiento:v('tg-rem-nacimiento'),
+    remEstadoCivil:v('tg-rem-estado-civil'),remNacionalidad:v('tg-rem-nacionalidad'),
+    remDomicilioReal:v('tg-rem-domicilio-real'),
+    remDomicilio:v('tg-rem-domicilio'),remCp:v('tg-rem-cp'),
+    remLocalidad:v('tg-rem-localidad'),remProvincia:v('tg-rem-provincia'),
+    fechaImpedimento:v('tg-fecha-impedimento'),fechaIngreso:v('tg-fecha-ingreso'),
+    categoria:v('tg-categoria'),jornada:v('tg-jornada'),observaciones:v('tg-observaciones')
+  };
+}
+
+function generarTelegrama(){
+  var d=datosTelegrama();
+  if(!d.destNombre){alert('Falta el nombre o razón social del destinatario.');return;}
+  if(!d.remNombre){alert('Falta el nombre del remitente (el cliente).');return;}
+  if(!d.fechaImpedimento){alert('Falta la fecha desde la que se le impide el ingreso.');return;}
+
+  var btn=document.getElementById('tg-btn-generar');
+  btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
+  document.getElementById('tg-resultado-card').style.display='none';
+
+  fetch(BOT_URL+'/generar-telegrama',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('tg-resultado').value=data.texto;
+      document.getElementById('tg-resultado-card').style.display='block';
+      document.getElementById('tg-resultado-card').scrollIntoView({behavior:'smooth'});
+    }else{
+      alert('No se pudo generar el telegrama: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar telegrama con IA';
+  });
+}
+
+function copiarTelegrama(){
+  var ta=document.getElementById('tg-resultado');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
+}
+
+function descargarTelegramaDocx(){
+  var texto=document.getElementById('tg-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var d=datosTelegrama();
+  d.cuerpo=texto;
+
+  var btn=document.getElementById('tg-btn-docx');
+  var original=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+
+  fetch(BOT_URL+'/generar-telegrama-docx',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){
+    if(!r.ok)throw new Error('error');
+    return r.blob();
+  }).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Formulario generado ✓');
+  }).catch(function(){
+    showToast('⚠ No se pudo generar el Word.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent=original;
+  });
+}
+
 function autocompletarClienteEscrito(c){
   if(!c)return;
   var setVal=function(id,val){var el=document.getElementById(id);if(el)el.value=val||'';};

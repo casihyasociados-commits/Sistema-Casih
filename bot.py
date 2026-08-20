@@ -1,8 +1,10 @@
 import os
 import json
 import re
+import zipfile
 import pytz
 from io import BytesIO
+from xml.sax.saxutils import escape as xml_escape
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, send_file
 import firebase_admin
@@ -1085,6 +1087,400 @@ def generar_escrito_docx():
     )
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
+
+# --- TELEGRAMA (TCL) SOBRE EL FORMULARIO DE CORREO ARGENTINO ---
+# El modelo de Word del estudio escribia los datos como parrafos comunes
+# separados con espacios para simular las dos columnas. Como el formulario
+# esta anclado y el texto fluye, los datos terminaban encima de las lineas
+# impresas y las columnas se desbordaban al cambiar el largo de un dato.
+# Aca cada dato va en su propia caja anclada a la pagina, en coordenadas
+# absolutas medidas sobre el formulario, asi siempre cae donde corresponde.
+
+TG_CM_EMU = 360000
+TG_CM_PT = 28.3465
+
+# Geometria del formulario (cm, medida sobre el XML del modelo)
+TG_LINEA = {'fila1': 2.04, 'fila2': 3.05, 'fila3': 6.16, 'fila4': 7.18}
+TG_IZQ_X, TG_IZQ_AN = 1.09, 8.89
+TG_DER_X, TG_DER_AN = 10.98, 8.91
+TG_CUERPO = dict(x=1.11, y=8.86, an=18.82, al=16.14)
+# El logo del Correo ocupa el extremo derecho de la fila 1: el nombre del
+# remitente no puede invadirlo.
+TG_DER_AN_FILA1 = 4.30
+TG_ALTO_CAMPO = 0.50
+
+PLANTILLA_TELEGRAMA = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'plantillas', 'modelo_telegrama.docx')
+
+
+def _tg_emu(cm):
+    return int(round(cm * TG_CM_EMU))
+
+
+def _tg_caja(idx, x_cm, y_cm, an_cm, al_cm, texto, tam_pt=10, negrita=False,
+             alineacion='left', anclaje='b'):
+    """Caja de texto anclada a la pagina, sin borde ni relleno.
+
+    anclaje 'b' apoya el texto en el borde inferior (para que quede justo
+    sobre la linea del formulario); 't' lo arranca desde arriba.
+    """
+    sz = int(round(tam_pt * 2))  # w:sz va en medios puntos
+    parrafos = []
+    for linea in (texto or '').split('\n'):
+        parrafos.append(
+            '<w:p><w:pPr>'
+            '<w:spacing w:after="0" w:before="0" w:line="240" w:lineRule="auto"/>'
+            '<w:ind w:left="0" w:right="0" w:firstLine="0"/>'
+            '<w:jc w:val="%s"/></w:pPr>'
+            '<w:r><w:rPr>'
+            '<w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>'
+            '<w:sz w:val="%d"/><w:szCs w:val="%d"/>%s<w:rtl w:val="0"/></w:rPr>'
+            '<w:t xml:space="preserve">%s</w:t></w:r></w:p>'
+            % (alineacion, sz, sz,
+               '<w:b w:val="1"/><w:bCs w:val="1"/>' if negrita else '',
+               xml_escape(linea))
+        )
+    cx, cy = _tg_emu(an_cm), _tg_emu(al_cm)
+    return (
+        '<w:r><w:drawing><wp:anchor allowOverlap="1" behindDoc="0" distB="0" distT="0"'
+        ' distL="0" distR="0" hidden="0" layoutInCell="1" locked="0" relativeHeight="%d"'
+        ' simplePos="0">'
+        '<wp:simplePos x="0" y="0"/>'
+        '<wp:positionH relativeFrom="page"><wp:posOffset>%d</wp:posOffset></wp:positionH>'
+        '<wp:positionV relativeFrom="page"><wp:posOffset>%d</wp:posOffset></wp:positionV>'
+        '<wp:extent cx="%d" cy="%d"/>'
+        '<wp:effectExtent b="0" l="0" r="0" t="0"/>'
+        '<wp:wrapNone/>'
+        '<wp:docPr id="%d" name="campo%d"/>'
+        '<a:graphic><a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">'
+        '<wps:wsp>'
+        '<wps:cNvSpPr txBox="1"/>'
+        '<wps:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%d" cy="%d"/></a:xfrm>'
+        '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/>'
+        '<a:ln><a:noFill/></a:ln></wps:spPr>'
+        '<wps:txbx><w:txbxContent>%s</w:txbxContent></wps:txbx>'
+        '<wps:bodyPr anchor="%s" anchorCtr="0" bIns="0" lIns="0" rIns="0" tIns="0"'
+        ' spcFirstLastPara="0" wrap="square"><a:noAutofit/></wps:bodyPr>'
+        '</wps:wsp></a:graphicData></a:graphic>'
+        '</wp:anchor></w:drawing></w:r>'
+        % (900 + idx, _tg_emu(x_cm), _tg_emu(y_cm), cx, cy, 9000 + idx, idx,
+           cx, cy, ''.join(parrafos), anclaje)
+    )
+
+
+def _tg_ajustar_tam(texto, an_cm, tam_pt, minimo=6.0):
+    """Achica la tipografia lo justo para que el dato entre en su renglon."""
+    texto = (texto or '').strip()
+    if not texto:
+        return tam_pt
+    # Ancho medio de caracter en Arial, en "em": las mayusculas son bastante
+    # mas anchas, y estos campos suelen cargarse en mayusculas.
+    letras = [c for c in texto if c.isalpha()]
+    mayus = (sum(1 for c in letras if c.isupper()) / len(letras)) if letras else 0
+    em = 0.73 if mayus > 0.6 else 0.58
+    necesario = (an_cm * TG_CM_PT * 0.97) / (len(texto) * em)
+    return max(minimo, min(tam_pt, round(necesario, 1)))
+
+
+def _tg_sobre_linea(idx, x_cm, y_linea, an_cm, texto, tam_pt=10, **kw):
+    """Caja que apoya el texto justo por encima de una linea del formulario."""
+    return _tg_caja(idx, x_cm, y_linea - TG_ALTO_CAMPO, an_cm, TG_ALTO_CAMPO,
+                    texto, tam_pt=_tg_ajustar_tam(texto, an_cm, tam_pt), **kw)
+
+
+def construir_cajas_telegrama(d):
+    c = []
+    n = iter(range(1, 999))
+
+    # Fila 1: razon social del destinatario / apellido y nombre del remitente
+    c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila1'], TG_IZQ_AN,
+                             d.get('destNombre', ''), negrita=True))
+    c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila1'], TG_DER_AN_FILA1,
+                             d.get('remNombre', ''), negrita=True))
+    # "Más de 30 palabras" es una anotacion del estudio que en el modelo cae
+    # justo sobre el renglon del ramo; la reubicamos en la banda libre.
+    c.append(_tg_caja(next(n), TG_IZQ_X, 4.20, 8.89, 0.55,
+                      'Más de 30 palabras', tam_pt=11, negrita=True, anclaje='t'))
+
+    # Fila 2: ramo o actividad principal / DNI del remitente
+    c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila2'], TG_IZQ_AN,
+                             d.get('destRamo', ''), tam_pt=9))
+    c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila2'], TG_DER_AN,
+                             d.get('remDni', ''), negrita=True))
+
+    # Fila 3: domicilio + codigo postal (el CP va al final de cada columna)
+    an_cp = 2.40
+    an_dom = 6.30
+    c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila3'], an_dom,
+                             d.get('destDomicilio', ''), tam_pt=9))
+    c.append(_tg_sobre_linea(next(n), TG_IZQ_X + TG_IZQ_AN - an_cp, TG_LINEA['fila3'],
+                             an_cp, d.get('destCp', ''), tam_pt=9, alineacion='center'))
+    c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila3'], an_dom,
+                             d.get('remDomicilio', ''), tam_pt=9))
+    c.append(_tg_sobre_linea(next(n), TG_DER_X + TG_DER_AN - an_cp, TG_LINEA['fila3'],
+                             an_cp, d.get('remCp', ''), tam_pt=9, alineacion='center'))
+
+    # Fila 4: localidad + provincia (mitad y mitad de cada columna)
+    mitad = TG_IZQ_AN / 2 - 0.15
+    c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila4'], mitad,
+                             d.get('destLocalidad', ''), tam_pt=9))
+    c.append(_tg_sobre_linea(next(n), TG_IZQ_X + TG_IZQ_AN / 2, TG_LINEA['fila4'], mitad,
+                             d.get('destProvincia', ''), tam_pt=9))
+    c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila4'], mitad,
+                             d.get('remLocalidad', ''), tam_pt=9))
+    c.append(_tg_sobre_linea(next(n), TG_DER_X + TG_DER_AN / 2, TG_LINEA['fila4'], mitad,
+                             d.get('remProvincia', ''), tam_pt=9))
+
+    # CUIL del destinatario: espacio libre entre la fila 4 y el recuadro
+    cuil = (d.get('destCuil') or '').strip()
+    if cuil:
+        if not cuil.upper().startswith('CUIL'):
+            cuil = 'CUIL ' + cuil
+        c.append(_tg_caja(next(n), TG_IZQ_X, TG_CUERPO['y'] - 0.62, 9.0, 0.55,
+                          cuil, tam_pt=9, negrita=True))
+
+    # Cuerpo del telegrama, dentro del recuadro
+    cuerpo = d.get('cuerpo', '') or ''
+    # si el texto es muy largo, achicamos un punto para que entre en el recuadro
+    tam_cuerpo = 9 if len(cuerpo) <= 3600 else 8
+    c.append(_tg_caja(next(n), TG_CUERPO['x'] + 0.20, TG_CUERPO['y'] + 0.18,
+                      TG_CUERPO['an'] - 0.40, TG_CUERPO['al'] - 0.30,
+                      cuerpo, tam_pt=tam_cuerpo, alineacion='both', anclaje='t'))
+    return ''.join(c)
+
+
+_TG_RE_P = re.compile(r'<w:p(?=[ >/])|</w:p>')
+
+
+def _tg_fin_primer_parrafo(doc):
+    """Posicion del </w:p> que cierra el primer parrafo del body.
+
+    No sirve buscar el primer "</w:p>" del archivo: el formulario tiene cajas
+    de texto con parrafos adentro, asi que ese cierre pertenece a un parrafo
+    anidado y las cajas terminarian dentro de otra caja.
+    """
+    inicio = doc.index('<w:body>')
+    nivel = 0
+    for m in _TG_RE_P.finditer(doc, inicio):
+        if m.group(0) == '</w:p>':
+            nivel -= 1
+            if nivel == 0:
+                return m.start()
+        elif doc[m.start():m.end() + 40].split('>')[0].endswith('/'):
+            continue  # <w:p/> vacio: abre y cierra
+        else:
+            nivel += 1
+    raise ValueError('No se encontro el cierre del primer parrafo del modelo.')
+
+
+def generar_telegrama_docx(datos):
+    """Devuelve los bytes de un .docx: formulario oficial + datos ubicados."""
+    with open(PLANTILLA_TELEGRAMA, 'rb') as f:
+        modelo = f.read()
+    zin = zipfile.ZipFile(BytesIO(modelo))
+    doc = zin.read('word/document.xml').decode('utf-8')
+
+    # "Más de 30 palabras" viene como texto que fluye y cae justo sobre el
+    # renglon del ramo; lo sacamos del flujo y se repone como caja ubicada.
+    doc = doc.replace('<w:t xml:space="preserve">Más de 30 palabras</w:t>',
+                      '<w:t xml:space="preserve"></w:t>')
+
+    corte = _tg_fin_primer_parrafo(doc)
+    doc = doc[:corte] + construir_cajas_telegrama(datos) + doc[corte:]
+
+    out = BytesIO()
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as zout:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            if item.filename == 'word/document.xml':
+                data = doc.encode('utf-8')
+            zout.writestr(item, data)
+    out.seek(0)
+    return out.read()
+
+
+# El cuerpo se arma con texto fijo + los datos cargados. La IA solo redacta
+# los tramos que vienen en lenguaje informal (jornada y observaciones), igual
+# que en la denuncia: los datos duros nunca pasan por el modelo.
+CIERRE_TELEGRAMA = (
+    'La intimación efectuada es bajo apercibimiento del reclamo de daños y perjuicios '
+    'por el perjuicio irreparable al estar la relación laboral de manera informal. Hago '
+    'reserva de ampliar argumentos en la etapa correspondiente. Todo bajo apercibimiento '
+    'de considerar su silencio o desconocimiento insincero de las circunstancias fácticas '
+    'de la relación laboral como grave injuria a mis derechos laborales y colocarme en '
+    'situación de despido indirecto. Hago reservas de salarios caídos. A los fines del '
+    'presente constituyo domicilio legal en Arturo M. Bas Nº 389 Piso 1º Of. “A”, Ciudad '
+    'de Córdoba “ESTUDIO JURIDICO CASIH Y ASOC.” Tel. 3516327201. Queda Uds. debidamente '
+    'notificados y constituidos en mora.'
+)
+
+
+def armar_cuerpo_telegrama(d, jornada_redactada, observaciones_redactadas):
+    fem = (d.get('remGenero') or '').strip().lower() == 'femenino'
+    despedido = 'despedida' if fem else 'despedido'
+
+    encabezado = 'EN CARÁCTER DE TITULAR'
+    descripcion = (d.get('destDescripcion') or '').strip()
+    if descripcion:
+        encabezado += ' DE %s' % descripcion
+    fantasia = (d.get('destFantasia') or '').strip()
+    if fantasia:
+        encabezado += ' QUE GIRA BAJO EL NOMBRE DE FANTASIA : “%s”' % fantasia
+    extension = (d.get('extension') or '').strip()
+    if extension:
+        encabezado += ' - %s' % extension
+
+    partes = []
+    partes.append(
+        '%s: Atento al impedimento injustificado que existe a que ingrese a mi lugar '
+        'habitual de trabajo, desde el día %s, dando respuestas dilatorias y evasivas, '
+        'negándose a asignarme las tareas propias de mi categoría y especialidad, los '
+        'EMPLAZO para que en el término de dos (2) días hábiles aclaren fehacientemente '
+        'mi situación laboral permitiéndome el ingreso a mi lugar de trabajo y '
+        'proporcionándome las tareas propias de mi categoría en lugar y horario habitual '
+        'de trabajo, bajo apercibimiento de considerar su silencio o desconocimiento una '
+        'injuria grave y considerarme %s por su exclusiva culpa.'
+        % (encabezado, d.get('fechaImpedimento', ''), despedido)
+    )
+    partes.append(
+        'Asimismo, a no tener constancia que mi relación de dependencia, económica, '
+        'técnica y jurídica para con Ud. se encuentre debidamente registrada ante los '
+        'organismos pertinentes, a pesar de mis pedidos en tal sentido, lo EMPLAZO E '
+        'INTIMO para que en el plazo de treinta (30) días proceda a registrarla en forma '
+        'correcta, a cuyo fin aporto los siguientes datos:'
+    )
+
+    datos = []
+    def agregar(etiqueta, valor, sep='.'):
+        valor = (valor or '').strip()
+        if valor:
+            datos.append('%s: %s%s' % (etiqueta, valor, sep))
+    agregar('Nombre y Apellido', d.get('remNombre', ''), '')
+    agregar('DNI', d.get('remDni', ''))
+    edad = (d.get('remEdad') or '').strip()
+    if edad:
+        datos.append('Edad: %s años.' % edad)
+    agregar('Fecha de Nacimiento', d.get('remNacimiento', ''), ';')
+    agregar('Estado Civil', d.get('remEstadoCivil', ''))
+    agregar('Nacionalidad', d.get('remNacionalidad', ''))
+    agregar('Domicilio', d.get('remDomicilioReal', ''))
+    agregar('Fecha de ingreso', d.get('fechaIngreso', ''))
+    agregar('Categoría', d.get('categoria', ''))
+    if jornada_redactada:
+        datos.append('Jornada de Trabajo: %s' % jornada_redactada.rstrip('.') + '.')
+    partes.append(' '.join(datos))
+
+    if observaciones_redactadas:
+        partes.append(observaciones_redactadas)
+    partes.append(CIERRE_TELEGRAMA)
+    return ' '.join(p.strip() for p in partes if p and p.strip())
+
+
+SYSTEM_PROMPT_TG_JORNADA = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir la descripción informal de la jornada de trabajo de una "
+    "persona y tenés que reescribirla en el registro formal de un telegrama laboral "
+    "(Ley 23.789), como una frase corrida que continúa la oración 'Jornada de Trabajo: '.\n\n"
+    "Ejemplo de salida: 'días fijos Martes, Viernes y Sábado, cubriendo además francos "
+    "cuando era requerido, con horarios rotativos, cumpliendo turnos de mañana de 09:30 a "
+    "13:30 horas y turnos de tarde de 17:00 a 21:00 horas'\n\n"
+    "Reglas:\n"
+    "- No agregues 'Jornada de Trabajo:' al principio, eso ya está.\n"
+    "- Nunca inventes días, horarios ni datos que no estén en el texto.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+SYSTEM_PROMPT_TG_OBSERVACIONES = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir una observación informal sobre la relación laboral y tenés "
+    "que convertirla en una o dos oraciones formales, en primera persona, para incluir en "
+    "un telegrama laboral (Ley 23.789), arrancando de forma natural (por ejemplo: "
+    "'Asimismo, hago saber que...').\n\n"
+    "Reglas:\n"
+    "- Nunca inventes datos que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente el texto final, sin comentarios antes o después."
+)
+
+
+@app.route('/generar-telegrama', methods=['POST', 'OPTIONS'])
+def generar_telegrama():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    if not (d.get('destNombre') or '').strip():
+        return error('Falta el nombre o razón social del destinatario.')
+    if not (d.get('remNombre') or '').strip():
+        return error('Falta el nombre del remitente (el cliente).')
+    if not (d.get('fechaImpedimento') or '').strip():
+        return error('Falta la fecha desde la que se le impide el ingreso.')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        jornada = ''
+        if (d.get('jornada') or '').strip():
+            jornada = redactar_con_ia(client, SYSTEM_PROMPT_TG_JORNADA, d['jornada'])
+        observaciones = ''
+        if (d.get('observaciones') or '').strip():
+            observaciones = redactar_con_ia(
+                client, SYSTEM_PROMPT_TG_OBSERVACIONES, d['observaciones'])
+    except Exception as e:
+        print("Error redactando telegrama con IA:", str(e))
+        return error('No se pudo generar el telegrama. Intentá de nuevo en un momento.', 500)
+
+    texto = armar_cuerpo_telegrama(d, jornada, observaciones)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+
+@app.route('/generar-telegrama-docx', methods=['POST', 'OPTIONS'])
+def generar_telegrama_docx_endpoint():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    if not (d.get('cuerpo') or '').strip():
+        resp = jsonify({"status": "error", "detalle": "Falta el texto del telegrama."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    try:
+        contenido = generar_telegrama_docx(d)
+    except Exception as e:
+        print("Error generando telegrama docx:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo generar el archivo Word."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    nombre = (d.get('remNombre') or 'telegrama').strip() or 'telegrama'
+    resp = send_file(
+        BytesIO(contenido),
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        as_attachment=True,
+        download_name='Telegrama - %s.docx' % nombre
+    )
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 
 @app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
 def generar_escrito():
