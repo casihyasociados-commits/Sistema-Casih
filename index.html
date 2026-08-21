@@ -1464,19 +1464,19 @@ function renderDashNuevosClientes(){
       ['Empresa/Empleador',c.empleador],['Antigüedad',c.antiguedad]
     ].filter(function(p){return p[1];}).map(function(p){return '<div><b>'+p[0]+':</b> '+p[1]+'</div>';}).join('');
     var acciones=(c.servicios&&c.servicios.length)?(
-      '<div style="margin-top:8px;font-size:12px;color:var(--text2)"><b>Servicios:</b> '+c.servicios.join(', ')+'</div>'+
-      (c.notaAtencion?'<div style="margin-top:6px;padding:8px;background:var(--bg3);border-radius:8px;font-size:12px"><b>📌 '+c.notaAtencion+'</b></div>':'')+
-      '<div style="margin-top:10px;display:flex;gap:8px"><button class="btn-primary" onclick="archivarClienteDash(\''+c.id+'\')">📁 Archivar y avisar por WhatsApp</button></div>'
+      '<div style="margin-top:10px;font-size:15px;color:var(--text2)"><b>Servicios:</b> '+c.servicios.join(', ')+'</div>'+
+      (c.notaAtencion?'<div style="margin-top:8px;padding:10px;background:var(--bg3);border-radius:8px;font-size:15px"><b>📌 '+c.notaAtencion+'</b></div>':'')+
+      '<div style="margin-top:12px;display:flex;gap:8px"><button class="btn-primary" style="font-size:14px;padding:9px 18px" onclick="archivarClienteDash(\''+c.id+'\')">📁 Archivar y avisar por WhatsApp</button></div>'
     ):(
-      '<div style="margin-top:10px;display:flex;gap:8px">'+
-      '<button class="btn-danger" onclick="descartarClienteDash(\''+c.id+'\',\''+nomEsc+'\')">🗑 Descartar</button>'+
-      '<button class="btn-primary" onclick="abrirAvanzarCliente(\''+c.id+'\')">✅ Avanzar</button>'+
+      '<div style="margin-top:12px;display:flex;gap:8px">'+
+      '<button class="btn-danger" style="font-size:14px;padding:9px 18px" onclick="descartarClienteDash(\''+c.id+'\',\''+nomEsc+'\')">🗑 Descartar</button>'+
+      '<button class="btn-primary" style="font-size:14px;padding:9px 18px" onclick="abrirAvanzarCliente(\''+c.id+'\')">✅ Avanzar</button>'+
       '</div>'
     );
-    return '<div class="card" style="margin-bottom:10px;border:1px solid var(--border2)">'+
-      '<div style="font-size:14px;font-weight:600;margin-bottom:6px">'+c.nombre+'</div>'+
-      '<div style="font-size:12px;color:var(--text2);display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">'+campos+'</div>'+
-      (c.notas?'<div style="margin-top:8px;font-size:12px;color:var(--text2)"><b>Descripción:</b> '+c.notas+'</div>':'')+
+    return '<div class="card" style="margin-bottom:12px;border:1px solid var(--border2)">'+
+      '<div style="font-size:18px;font-weight:600;margin-bottom:8px">'+c.nombre+'</div>'+
+      '<div style="font-size:15px;line-height:1.6;color:var(--text2);display:grid;grid-template-columns:1fr 1fr;gap:6px 16px">'+campos+'</div>'+
+      (c.notas?'<div style="margin-top:10px;font-size:15px;line-height:1.5;color:var(--text2)"><b>Descripción:</b> '+c.notas+'</div>':'')+
       acciones+
     '</div>';
   }).join('');
@@ -1510,7 +1510,7 @@ function guardarAvanzarCliente(){
   if(servicios.length===0){alert('Elegí al menos un servicio.');return;}
   var nota=document.getElementById('av-nota').value.trim();
   var origen=document.getElementById('av-origen')?document.getElementById('av-origen').value:'';
-  db.collection('clientes').doc(AVANZAR_CLIENTE_ID).update({servicios:servicios,notaAtencion:nota,origen:origen,tipo:'estudio'}).then(function(){
+  db.collection('clientes').doc(AVANZAR_CLIENTE_ID).update({servicios:servicios,notaAtencion:nota,origen:origen,tipo:origen||'estudio'}).then(function(){
     closeModal('m-avanzar-cliente');showToast('Servicios guardados ✓');AVANZAR_CLIENTE_ID=null;
   });
 }
