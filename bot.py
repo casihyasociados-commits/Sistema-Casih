@@ -174,6 +174,29 @@ def responder_whatsapp(chat_id, texto):
         print("[GREEN-API sendMessage] ERROR:", str(e))
         return False
 
+# --- AVISO DE CLIENTE NUEVO ARCHIVADO (grupo de WhatsApp) ---
+@app.route('/notificar-nuevo-cliente', methods=['POST'])
+def notificar_nuevo_cliente():
+    d = request.json or {}
+    servicios = ', '.join(d.get('servicios') or []) or '—'
+    telefono = d.get('telefono') or d.get('tel') or '—'
+    msg = (
+        "🆕 *Nuevo cliente*\n\n"
+        "👤 *Nombre:* %s\n" % d.get('nombre', '—') +
+        "🪪 *DNI:* %s\n" % d.get('dni', '—') +
+        "🎂 *Edad:* %s\n" % d.get('edad', '—') +
+        "💼 *Situación laboral:* %s\n" % d.get('situacionLaboral', '—') +
+        "🏠 *Domicilio:* %s, %s\n" % (d.get('domicilio', '—'), d.get('ciudad', '—')) +
+        "📞 *Teléfono:* %s\n" % telefono +
+        "⚖️ *Servicios:* %s\n" % servicios
+    )
+    nota = (d.get('notaAtencion') or '').strip()
+    if nota:
+        msg += "\n📌 *Documentación / a tener en cuenta:*\n*%s*" % nota
+    grupo = os.environ.get("GREEN_API_GROUP_ID")
+    ok = responder_whatsapp(grupo, msg)
+    return jsonify({"ok": ok})
+
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -925,7 +948,7 @@ Que vengo a formular denuncia en contra de %s, comparecemos y decimos:
 
 Que ingresé a trabajar bajo las órdenes %s %s, cumpliendo tareas acordes con la categoría %s.
 
-Que mi jornada de trabajo era %s, %s.
+Que mi jornada de trabajo era de %s de %s.
 
 %s
 

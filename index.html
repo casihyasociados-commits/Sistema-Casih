@@ -284,10 +284,12 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="section active" id="sec-dashboard">
   <div class="page-title">Panel general</div>
   <div class="page-sub" id="dash-fecha">Derecho laboral · Córdoba</div>
-  <div class="metrics" style="margin-bottom:1.5rem;grid-template-columns:repeat(3,minmax(0,1fr))">
-    <div class="metric"><div class="metric-label">Eventos hoy</div><div class="metric-val" id="dm-eventos-hoy">0</div><div class="metric-sub">en agenda</div></div>
-    <div class="metric"><div class="metric-label">Clientes totales</div><div class="metric-val" id="dm-clientes">—</div><div class="metric-sub">cargados</div></div>
-    <div class="metric"><div class="metric-label">Tareas hoy</div><div class="metric-val" id="dm-tareas">—</div><div class="metric-sub">para el equipo</div></div>
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--orange)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:15px;font-weight:600;color:var(--text)">🆕 Clientes nuevos por revisar</span>
+      <button class="btn-primary" onclick="abrirModalNuevoCliente()" style="font-size:13px;padding:7px 16px">+ Nuevo cliente</button>
+    </div>
+    <div id="dash-nuevos-clientes-list"><div style="font-size:13px;color:var(--text3);padding:6px 0">Sin clientes nuevos para revisar ✓</div></div>
   </div>
   <div class="card" style="margin-bottom:16px;padding:1rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -419,6 +421,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="tab" onclick="setCtab('posible')">Posibles clientes</button>
     <button class="tab" onclick="setCtab('consumidor')">⚖️ Defensa del Consumidor</button>
     <button class="tab" onclick="setCtab('finalizado')">✅ Finalizados</button>
+    <button class="tab" onclick="setCtab('descartado')">🗑 Descartados</button>
   </div>
   <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
   <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
@@ -820,19 +823,19 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Empresa / Empleador</div><input class="fi" id="cn-empleador" placeholder="Nombre de la empresa"></div>
       <div class="fg"><div class="fl">Antigüedad</div><input class="fi" id="cn-antiguedad" placeholder="Ej: 3 años y 2 meses"></div>
     </div>
-    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Servicio</div>
-    <div class="fg">
-      <select class="fs" id="cn-m">
-        <option value="Despido">Despido</option>
-        <option value="Accidente laboral">Accidente laboral</option>
-        <option value="Enfermedades profesionales">Enfermedades profesionales</option>
-        <option value="Jubilacion">Jubilaciones</option>
-      </select>
-    </div>
     <div class="fg"><div class="fl">Tipo de cliente</div><select class="fs" id="cn-tipo"><option value="posible">Posible cliente</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
     <div class="fg"><div class="fl">Descripción del caso</div><textarea class="fta" id="cn-no" placeholder="Descripción del caso, estado actual..."></textarea></div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-avanzar-cliente" onclick="if(event.target===this)closeModal('m-avanzar-cliente')">
+  <div class="modal" style="width:460px"><h3 id="m-avanzar-titulo">Avanzar con el cliente</h3>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px">Servicios a ofrecer</div>
+    <div id="av-servicios-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+    <div class="fg"><div class="fl">Documentación a pedir / datos útiles</div><textarea class="fta" id="av-nota" placeholder="Ej: traer telegramas, recibos de sueldo, alta temprana..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-avanzar-cliente')">Cancelar</button><button class="btn-primary" onclick="guardarAvanzarCliente()">Guardar</button></div>
   </div>
 </div>
 
@@ -1336,7 +1339,7 @@ function initClientes(){
     query.onSnapshot(function(snap){
       CLIENTES_CACHE=[];
       snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_CACHE.push(x);});
-      updCStats();renderClientes();updateClienteSelects();renderDashTareas();
+      updCStats();renderClientes();updateClienteSelects();renderDashTareas();renderDashNuevosClientes();
     },function(err){
       if(ordered&&err.code==='failed-precondition')startListener(false);
     });
@@ -1345,12 +1348,12 @@ function initClientes(){
 }
 
 function updCStats(){
-  document.getElementById('cs-total').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo!=='finalizado';}).length;
+  document.getElementById('cs-total').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo!=='finalizado'&&c.tipo!=='descartado';}).length;
   document.getElementById('cs-est').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='estudio';}).length;
   document.getElementById('cs-pub').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='publicidad';}).length;
   document.getElementById('cs-pos').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='posible';}).length;
   var conEl=document.getElementById('cs-consumidor');if(conEl)conEl.textContent=CLIENTES_CACHE.filter(function(c){return c.tipo==='consumidor';}).length;
-  document.getElementById('dm-clientes').textContent=CLIENTES_CACHE.filter(function(c){return c.tipo!=='finalizado';}).length;
+  var dmc=document.getElementById('dm-clientes');if(dmc)dmc.textContent=CLIENTES_CACHE.filter(function(c){return c.tipo!=='finalizado'&&c.tipo!=='descartado';}).length;
 }
 
 function updateClienteSelects(){
@@ -1360,13 +1363,18 @@ function updateClienteSelects(){
 
 function setCtab(t){
   curCtab=t;
-  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','consumidor','finalizado'][i]===t?' active':'');});
+  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','posible','consumidor','finalizado','descartado'][i]===t?' active':'');});
   var isConsumidor=t==='consumidor';
   document.getElementById('client-grid').style.display=isConsumidor?'none':'grid';
   document.getElementById('client-empty').style.display='none';
   document.getElementById('sec-consumidor-grid').style.display=isConsumidor?'block':'none';
   if(isConsumidor)renderConsumidorGrid();
   else renderClientes();
+}
+
+function servLbl(c){
+  if(c.servicios&&c.servicios.length)return c.servicios.join(', ');
+  return mLbl[c.motivo]||c.motivo||'';
 }
 
 function enviarFichaWhatsApp(id){
@@ -1383,7 +1391,7 @@ function enviarFichaWhatsApp(id){
   if(c.empleador)partes.push('*Empresa/Empleador:* '+c.empleador);
   if(c.antiguedad)partes.push('*Antigüedad:* '+c.antiguedad);
   partes.push('');
-  partes.push('*Motivo:* '+(mLbl[c.motivo]||c.motivo||'—'));
+  partes.push('*Motivo:* '+(servLbl(c)||'—'));
   if(c.etapa)partes.push('*Etapa:* '+(eLbl[c.etapa]||c.etapa));
   if(c.expte)partes.push('*Expediente:* '+c.expte);
   if(c.fecha)partes.push('*Primer contacto:* '+c.fecha);
@@ -1407,9 +1415,9 @@ function renderClientes(){
       '<a href="'+c.drive+'" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 10px;border:1px solid var(--blue-bg);border-radius:6px;font-weight:500">📁 Drive</a>'+
       '<button onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+c.nombre.replace(/'/g,"\\'")+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer">⬆ Subir</button>'
       :'<button onclick="vincularCarpeta(\''+c.id+'\',\''+c.nombre.replace(/'/g,"\\'")+'\')" style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--orange-bg);background:transparent;color:var(--orange);cursor:pointer">📁 Vincular Drive</button>';
-    var finBtn=c.tipo!=='finalizado'
-      ?'<button onclick="finalizarCliente(\''+c.id+'\',\''+c.nombre.replace(/'/g,"\\'")+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--text3);background:transparent;color:var(--text3);cursor:pointer">✓ Finalizar</button>'
-      :'<button onclick="reactivarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer">↩ Reactivar</button>';
+    var finBtn=(c.tipo==='finalizado'||c.tipo==='descartado')
+      ?'<button onclick="reactivarCliente(\''+c.id+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer">↩ Reactivar</button>'
+      :'<button onclick="finalizarCliente(\''+c.id+'\',\''+c.nombre.replace(/'/g,"\\'")+'\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--text3);background:transparent;color:var(--text3);cursor:pointer">✓ Finalizar</button>';
     // Fecha de carga para posibles
     var fechaCarga='';
     if(curCtab==='posible'&&c.creadoEn){
@@ -1419,7 +1427,7 @@ function renderClientes(){
       fechaCarga='<div style="font-size:10px;color:'+color+';margin-top:4px">📅 Cargado hace '+diffDias+' día'+(diffDias!==1?'s':'')+'</div>';
     }
     return '<div class="client-card '+c.tipo+'">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+(mLbl[c.motivo]||c.motivo||'')+(c.dni?' · DNI: '+c.dni:'')+'</div></div></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+servLbl(c)+(c.dni?' · DNI: '+c.dni:'')+'</div></div></div>'+
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa||'')+'</span><span style="font-size:11px;color:var(--text3)">'+c.tel+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       fechaCarga+
@@ -1427,6 +1435,86 @@ function renderClientes(){
       '<div style="display:flex;gap:4px;flex-wrap:wrap">'+cvBtns+driveBtn+'<button class="btn-sm" onclick="enviarFichaWhatsApp(\''+c.id+'\')" style="background:var(--green-bg);color:var(--green);border-color:#1E3A25">📤 Enviar ficha</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
+}
+
+// ─── DASHBOARD: CLIENTES NUEVOS POR REVISAR ───
+var SERVICIOS_OPCIONES=['Despido','ART','Jubilación','Accidente de trabajo','Diferencia de haberes'];
+
+function renderDashNuevosClientes(){
+  var cont=document.getElementById('dash-nuevos-clientes-list');
+  if(!cont)return;
+  var list=CLIENTES_CACHE.filter(function(c){return c.tipo==='posible'&&!c.revisado;});
+  if(list.length===0){cont.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0">Sin clientes nuevos para revisar ✓</div>';return;}
+  list.sort(function(a,b){var fa=a.creadoEn&&a.creadoEn.seconds?a.creadoEn.seconds:0;var fb=b.creadoEn&&b.creadoEn.seconds?b.creadoEn.seconds:0;return fa-fb;});
+  cont.innerHTML=list.map(function(c){
+    var nomEsc=(c.nombre||'').replace(/'/g,"\\'");
+    var campos=[
+      ['DNI',c.dni],['Edad',c.edad],['Estado civil',c.estadoCivil],['Situación laboral',c.situacionLaboral],
+      ['Domicilio',c.domicilio],['Ciudad',c.ciudad],['Teléfono',c.tel],['Email',c.email],
+      ['Empresa/Empleador',c.empleador],['Antigüedad',c.antiguedad]
+    ].filter(function(p){return p[1];}).map(function(p){return '<div><b>'+p[0]+':</b> '+p[1]+'</div>';}).join('');
+    var acciones=(c.servicios&&c.servicios.length)?(
+      '<div style="margin-top:8px;font-size:12px;color:var(--text2)"><b>Servicios:</b> '+c.servicios.join(', ')+'</div>'+
+      (c.notaAtencion?'<div style="margin-top:6px;padding:8px;background:var(--bg3);border-radius:8px;font-size:12px"><b>📌 '+c.notaAtencion+'</b></div>':'')+
+      '<div style="margin-top:10px;display:flex;gap:8px"><button class="btn-primary" onclick="archivarClienteDash(\''+c.id+'\')">📁 Archivar y avisar por WhatsApp</button></div>'
+    ):(
+      '<div style="margin-top:10px;display:flex;gap:8px">'+
+      '<button class="btn-danger" onclick="descartarClienteDash(\''+c.id+'\',\''+nomEsc+'\')">🗑 Descartar</button>'+
+      '<button class="btn-primary" onclick="abrirAvanzarCliente(\''+c.id+'\')">✅ Avanzar</button>'+
+      '</div>'
+    );
+    return '<div class="card" style="margin-bottom:10px;border:1px solid var(--border2)">'+
+      '<div style="font-size:14px;font-weight:600;margin-bottom:6px">'+c.nombre+'</div>'+
+      '<div style="font-size:12px;color:var(--text2);display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">'+campos+'</div>'+
+      (c.notas?'<div style="margin-top:8px;font-size:12px;color:var(--text2)"><b>Descripción:</b> '+c.notas+'</div>':'')+
+      acciones+
+    '</div>';
+  }).join('');
+}
+
+function descartarClienteDash(id,nombre){
+  if(!confirm('¿Descartar a '+nombre+'? No se le va a ofrecer servicio y sale del panel de revisión.'))return;
+  db.collection('clientes').doc(id).update({tipo:'descartado',revisado:true,fechaDescarte:fmt(today)}).then(function(){showToast('Cliente descartado');});
+}
+
+var AVANZAR_CLIENTE_ID=null;
+function abrirAvanzarCliente(id){
+  AVANZAR_CLIENTE_ID=id;
+  var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
+  if(!c)return;
+  var titulo=document.getElementById('m-avanzar-titulo');if(titulo)titulo.textContent='Avanzar con '+c.nombre;
+  var yaElegidos=c.servicios||[];
+  var cont=document.getElementById('av-servicios-list');
+  cont.innerHTML=SERVICIOS_OPCIONES.map(function(s){
+    var checked=yaElegidos.indexOf(s)>-1?'checked':'';
+    return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)"><input type="checkbox" class="av-serv-chk" value="'+s+'" '+checked+'> '+s+'</label>';
+  }).join('');
+  document.getElementById('av-nota').value=c.notaAtencion||'';
+  openModal('m-avanzar-cliente');
+}
+
+function guardarAvanzarCliente(){
+  if(!AVANZAR_CLIENTE_ID)return;
+  var servicios=Array.prototype.slice.call(document.querySelectorAll('.av-serv-chk:checked')).map(function(el){return el.value;});
+  if(servicios.length===0){alert('Elegí al menos un servicio.');return;}
+  var nota=document.getElementById('av-nota').value.trim();
+  db.collection('clientes').doc(AVANZAR_CLIENTE_ID).update({servicios:servicios,notaAtencion:nota}).then(function(){
+    closeModal('m-avanzar-cliente');showToast('Servicios guardados ✓');AVANZAR_CLIENTE_ID=null;
+  });
+}
+
+function archivarClienteDash(id){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
+  if(!c)return;
+  if(!confirm('¿Archivar a '+c.nombre+' y avisar al grupo de WhatsApp?'))return;
+  fetch(BOT_URL+'/notificar-nuevo-cliente',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nombre:c.nombre,dni:c.dni,edad:c.edad,situacionLaboral:c.situacionLaboral,domicilio:c.domicilio,ciudad:c.ciudad,telefono:c.tel,servicios:c.servicios||[],notaAtencion:c.notaAtencion||''})
+  }).then(function(r){return r.json();}).then(function(res){
+    if(!res||!res.ok)showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');
+  }).catch(function(){showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');}).finally(function(){
+    db.collection('clientes').doc(id).update({revisado:true,fechaArchivado:fmt(today)}).then(function(){showToast('Cliente archivado ✓');});
+  });
 }
 
 // ─── DEFENSA DEL CONSUMIDOR ───
@@ -1779,7 +1867,6 @@ function resetClienteForm(){
   ['cn-n','cn-apellido','cn-dni','cn-edad','cn-cuil','cn-estado-civil','cn-situacion-laboral','cn-email','cn-tel','cn-dom','cn-empleador','cn-antiguedad','cn-no'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var nac=document.getElementById('cn-nacionalidad');if(nac)nac.value='Argentina';
   var ciu=document.getElementById('cn-ciudad');if(ciu)ciu.value='Ciudad de Córdoba';
-  var m=document.getElementById('cn-m');if(m)m.selectedIndex=0;
   var tipo=document.getElementById('cn-tipo');if(tipo)tipo.value='posible';
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Nuevo cliente — Derecho Laboral';
   var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
@@ -1810,12 +1897,12 @@ function saveCliente(){
     ciudad:document.getElementById('cn-ciudad')?document.getElementById('cn-ciudad').value.trim():'',
     empleador:document.getElementById('cn-empleador').value.trim(),
     antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',
-    motivo:document.getElementById('cn-m').value,
     tipo:document.getElementById('cn-tipo').value,
     notas:document.getElementById('cn-no').value.trim(),
     tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',
     expte:'',etapa:'Cita',fecha:fmt(today),
     drive:'',driveFolderId:'',
+    revisado:false,
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
   };
   db.collection('clientes').add(data).then(function(docRef){
@@ -1838,7 +1925,7 @@ function editCliente(id){
   setVal('cn-estado-civil',c.estadoCivil);setVal('cn-nacionalidad',c.nacionalidad||'Argentina');
   setVal('cn-situacion-laboral',c.situacionLaboral);setVal('cn-email',c.email);setVal('cn-ciudad',c.ciudad||'Ciudad de Córdoba');
   setVal('cn-empleador',c.empleador);setVal('cn-antiguedad',c.antiguedad);
-  setVal('cn-m',c.motivo||'Despido');setVal('cn-tipo',c.tipo||'posible');setVal('cn-no',c.notas);
+  setVal('cn-tipo',c.tipo||'posible');setVal('cn-no',c.notas);
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Editar cliente';
   var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
   if(saveBtn){
@@ -1848,7 +1935,7 @@ function editCliente(id){
       var ap=document.getElementById('cn-apellido')?document.getElementById('cn-apellido').value.trim():'';
       var nombreCompleto=ap?n+' '+ap:n;
       if(!n){alert('El nombre es obligatorio.');return;}
-      var data={nombre:nombreCompleto,apellido:ap,dni:document.getElementById('cn-dni')?document.getElementById('cn-dni').value.trim():'',edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),estadoCivil:document.getElementById('cn-estado-civil')?document.getElementById('cn-estado-civil').value.trim():'',nacionalidad:document.getElementById('cn-nacionalidad')?document.getElementById('cn-nacionalidad').value.trim():'',situacionLaboral:document.getElementById('cn-situacion-laboral')?document.getElementById('cn-situacion-laboral').value.trim():'',email:document.getElementById('cn-email')?document.getElementById('cn-email').value.trim():'',ciudad:document.getElementById('cn-ciudad')?document.getElementById('cn-ciudad').value.trim():'',tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',motivo:document.getElementById('cn-m').value,tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
+      var data={nombre:nombreCompleto,apellido:ap,dni:document.getElementById('cn-dni')?document.getElementById('cn-dni').value.trim():'',edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),estadoCivil:document.getElementById('cn-estado-civil')?document.getElementById('cn-estado-civil').value.trim():'',nacionalidad:document.getElementById('cn-nacionalidad')?document.getElementById('cn-nacionalidad').value.trim():'',situacionLaboral:document.getElementById('cn-situacion-laboral')?document.getElementById('cn-situacion-laboral').value.trim():'',email:document.getElementById('cn-email')?document.getElementById('cn-email').value.trim():'',ciudad:document.getElementById('cn-ciudad')?document.getElementById('cn-ciudad').value.trim():'',tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',tipo:document.getElementById('cn-tipo').value,notas:document.getElementById('cn-no').value.trim()};
       db.collection('clientes').doc(id).update(data).then(function(){
         closeModal('m-cliente');showToast('Cliente actualizado ✓');
         var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
@@ -1991,7 +2078,7 @@ function initCalendar(){
   db.collection('eventos').orderBy('fecha').onSnapshot(function(snap){
     EVENTOS_CACHE=[];snap.forEach(function(d){var x=d.data();x.id=d.id;EVENTOS_CACHE.push(x);});
     renderEventos();renderDashEventos();
-    document.getElementById('dm-eventos-hoy').textContent=EVENTOS_CACHE.filter(function(e){return e.fecha===fmt(today);}).length;
+    var dme=document.getElementById('dm-eventos-hoy');if(dme)dme.textContent=EVENTOS_CACHE.filter(function(e){return e.fecha===fmt(today);}).length;
     var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
     ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
@@ -2022,7 +2109,7 @@ function setCalStatus(connected){
 function loadCalendarEvents(){
   if(!gapi.client||!gapi.client.calendar)return;
   gapi.client.calendar.events.list({calendarId:CALENDAR_ID,timeMin:new Date().toISOString(),timeMax:new Date(Date.now()+90*864e5).toISOString(),singleEvents:true,orderBy:'startTime',maxResults:50}).then(function(resp){
-    document.getElementById('dm-eventos-hoy').textContent=(resp.result.items||[]).filter(function(e){return (e.start.date||e.start.dateTime||'').slice(0,10)===fmt(today);}).length;
+    var dme2=document.getElementById('dm-eventos-hoy');if(dme2)dme2.textContent=(resp.result.items||[]).filter(function(e){return (e.start.date||e.start.dateTime||'').slice(0,10)===fmt(today);}).length;
   }).catch(function(){});
 }
 
