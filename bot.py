@@ -175,9 +175,16 @@ def responder_whatsapp(chat_id, texto):
         return False
 
 # --- AVISO DE CLIENTE NUEVO ARCHIVADO (grupo de WhatsApp) ---
-@app.route('/notificar-nuevo-cliente', methods=['POST'])
+@app.route('/notificar-nuevo-cliente', methods=['POST', 'OPTIONS'])
 def notificar_nuevo_cliente():
-    d = request.json or {}
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
     servicios = ', '.join(d.get('servicios') or []) or '—'
     telefono = d.get('telefono') or d.get('tel') or '—'
     msg = (
@@ -195,7 +202,9 @@ def notificar_nuevo_cliente():
         msg += "\n📌 *Documentación / a tener en cuenta:*\n*%s*" % nota
     grupo = os.environ.get("GREEN_API_GROUP_ID")
     ok = responder_whatsapp(grupo, msg)
-    return jsonify({"ok": ok})
+    resp = jsonify({"ok": ok})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
