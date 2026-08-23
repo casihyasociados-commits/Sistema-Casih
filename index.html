@@ -1463,12 +1463,14 @@ function renderDashNuevosClientes(){
       ['Domicilio',c.domicilio],['Ciudad',c.ciudad],['Teléfono',c.tel],['Email',c.email],
       ['Empresa/Empleador',c.empleador],['Antigüedad',c.antiguedad]
     ].filter(function(p){return p[1];}).map(function(p){return '<div><b>'+p[0]+':</b> '+p[1]+'</div>';}).join('');
+    var editBtn='<button class="btn-sm" style="font-size:14px;padding:9px 18px" onclick="editCliente(\''+c.id+'\')">✏️ Editar</button>';
     var acciones=(c.servicios&&c.servicios.length)?(
       '<div style="margin-top:10px;font-size:15px;color:var(--text2)"><b>Servicios:</b> '+c.servicios.join(', ')+'</div>'+
       (c.notaAtencion?'<div style="margin-top:8px;padding:10px;background:var(--bg3);border-radius:8px;font-size:15px"><b>📌 '+c.notaAtencion+'</b></div>':'')+
-      '<div style="margin-top:12px;display:flex;gap:8px"><button class="btn-primary" style="font-size:14px;padding:9px 18px" onclick="archivarClienteDash(\''+c.id+'\')">📁 Archivar y avisar por WhatsApp</button></div>'
+      '<div style="margin-top:12px;display:flex;gap:8px">'+editBtn+'<button class="btn-primary" style="font-size:14px;padding:9px 18px" onclick="archivarClienteDash(\''+c.id+'\')">📁 Archivar y avisar por WhatsApp</button></div>'
     ):(
       '<div style="margin-top:12px;display:flex;gap:8px">'+
+      editBtn+
       '<button class="btn-danger" style="font-size:14px;padding:9px 18px" onclick="descartarClienteDash(\''+c.id+'\',\''+nomEsc+'\')">🗑 Descartar</button>'+
       '<button class="btn-primary" style="font-size:14px;padding:9px 18px" onclick="abrirAvanzarCliente(\''+c.id+'\')">✅ Avanzar</button>'+
       '</div>'
@@ -1521,7 +1523,7 @@ function archivarClienteDash(id){
   if(!confirm('¿Archivar a '+c.nombre+' y avisar al grupo de WhatsApp?'))return;
   fetch(BOT_URL+'/notificar-nuevo-cliente',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({nombre:c.nombre,dni:c.dni,edad:c.edad,situacionLaboral:c.situacionLaboral,domicilio:c.domicilio,ciudad:c.ciudad,telefono:c.tel,servicios:c.servicios||[],notaAtencion:c.notaAtencion||''})
+    body:JSON.stringify({destino:'5493517631708@c.us',nombre:c.nombre,dni:c.dni,edad:c.edad,situacionLaboral:c.situacionLaboral,domicilio:c.domicilio,ciudad:c.ciudad,telefono:c.tel,servicios:c.servicios||[],notaAtencion:c.notaAtencion||''})
   }).then(function(r){return r.json();}).then(function(res){
     if(!res||!res.ok)showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');
   }).catch(function(){showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');}).finally(function(){
