@@ -200,9 +200,9 @@ def notificar_nuevo_cliente():
     nota = (d.get('notaAtencion') or '').strip()
     if nota:
         msg += "\n📌 *Documentación / a tener en cuenta:*\n*%s*" % nota
-    grupo = os.environ.get("GREEN_API_GROUP_ID")
-    ok = responder_whatsapp(grupo, msg)
-    resp = jsonify({"ok": ok, "grupo_configurado": bool(grupo)})
+    destino = (d.get('destino') or '').strip() or os.environ.get("GREEN_API_GROUP_ID")
+    ok = responder_whatsapp(destino, msg)
+    resp = jsonify({"ok": ok, "grupo_configurado": bool(destino)})
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
