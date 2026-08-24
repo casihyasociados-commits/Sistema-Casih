@@ -179,7 +179,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* ══════════ BOTONES ══════════
    Todos comparten la misma base para que tengan la misma altura,
    tipografía y radio. Solo cambian los colores. */
-.btn-primary,.btn-sm,.btn-danger,.btn-done,.btn-cal,.btn-cest,.btn-cpub,.btn-logout,
+.btn-primary,.btn-sm,.btn-danger,.btn-done,.btn-cal,.btn-cpub,.btn-logout,
 .btn-drive,.btn-wa,.btn-muted,.btn-ok{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   font-family:inherit;font-weight:500;line-height:1.2;
@@ -197,8 +197,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .btn-done:hover{background:#153020;}
 .btn-cal{font-size:var(--fs-sm);padding:9px 16px;border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
 .btn-cal:hover{background:#153020;}
-.btn-cest{font-size:var(--fs-xs);padding:7px 12px;border-color:var(--purple-bg);background:transparent;color:var(--purple);}
-.btn-cest:hover{background:var(--purple-bg);}
 .btn-cpub{font-size:var(--fs-xs);padding:7px 12px;border-color:var(--blue-bg);background:transparent;color:var(--blue);}
 .btn-cpub:hover{background:var(--blue-bg);}
 .btn-logout{font-size:var(--fs-xs);padding:6px 12px;border-color:var(--border2);background:transparent;color:var(--text3);}
@@ -936,6 +934,7 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Fecha de egreso</div><input class="fi" id="cn-fecha-egreso" placeholder="Ej: 22/05/2025 o Continúa"></div>
     </div>
     <div class="fg"><div class="fl">Jornada / Horario</div><input class="fi" id="cn-jornada" placeholder="Ej: Lunes a Viernes, 7 a 17 hs"></div>
+    <div class="fg" id="cn-tipo-wrap" style="display:none"><div class="fl">Carpeta</div><select class="fs" id="cn-tipo-edit"><option value="estudio">Del estudio</option><option value="publicidad">Publicidad</option></select></div>
     <div class="fg"><div class="fl">Descripción del caso</div><textarea class="fta" id="cn-no" placeholder="Descripción del caso, estado actual..."></textarea></div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
@@ -1520,21 +1519,18 @@ function renderClientes(){
     var avCls=t==='estudio'?'av-purple':t==='publicidad'?'av-blue':'av-orange';
     var nom=c.nombre.replace(/'/g,"\\'");
     var driveBtn=c.drive&&c.driveFolderId?
-      '<a class="btn-cpub" href="'+c.drive+'" target="_blank">📁 Drive</a>'+
-      '<button class="btn-sm" onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+nom+'\')">⬆ Subir</button>'
+      '<a class="btn-cpub" href="'+c.drive+'" target="_blank">📁 Ver carpeta en Drive</a>'+
+      '<button class="btn-sm" onclick="abrirSubirDoc(\''+c.id+'\',\''+c.driveFolderId+'\',\''+nom+'\')">⬆ Subir archivo a Drive</button>'
       :'<button class="btn-drive" onclick="vincularCarpeta(\''+c.id+'\',\''+nom+'\')">📁 Vincular Drive</button>';
-    var cvBtn=t==='estudio'
-      ?'<button class="btn-cpub" onclick="convC(\''+c.id+'\',\'publicidad\')">→ Publicidad</button>'
-      :t==='publicidad'?'<button class="btn-cest" onclick="convC(\''+c.id+'\',\'estudio\')">→ Del estudio</button>':'';
     var finBtn=t==='finalizado'
       ?'<button class="btn-ok" onclick="reactivarCliente(\''+c.id+'\')">↩ Reactivar</button>'
-      :'<button class="btn-muted" onclick="finalizarCliente(\''+c.id+'\',\''+nom+'\')">✓ Finalizar</button>';
+      :'<button class="btn-muted" onclick="finalizarCliente(\''+c.id+'\',\''+nom+'\')">✅ Cliente finalizado</button>';
     return '<div class="client-card '+t+'">'+
       '<div class="cc-head"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+servLbl(c)+(c.dni?' · DNI: '+c.dni:'')+'</div></div></div>'+
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa||'')+'</span><span class="cc-tel">'+(c.tel||'')+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       '<div class="cc-footer" style="margin-top:var(--sp-3)"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
-      '<div class="cc-actions">'+cvBtn+driveBtn+'<button class="btn-wa" onclick="enviarFichaWhatsApp(\''+c.id+'\')">📤 Enviar ficha</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">Editar</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
+      '<div class="cc-actions">'+driveBtn+'<button class="btn-wa" onclick="enviarFichaWhatsApp(\''+c.id+'\')">📤 Enviar ficha por WhatsApp</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">✏️ Editar información</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
 }
@@ -1966,12 +1962,12 @@ function reactivarCliente(id){
   db.collection('clientes').doc(id).update({tipo:'estudio'}).then(function(){showToast('Cliente reactivado ✓');});
 }
 
-function convC(id,t){db.collection('clientes').doc(id).update({tipo:t}).then(function(){showToast('Cliente actualizado ✓');});}
 
 function resetClienteForm(){
   ['cn-n','cn-apellido','cn-dni','cn-edad','cn-cuil','cn-estado-civil','cn-situacion-laboral','cn-email','cn-tel','cn-dom','cn-empleador','cn-antiguedad','cn-no','cn-fecha-nac','cn-categoria','cn-fecha-ingreso','cn-fecha-egreso','cn-jornada'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var nac=document.getElementById('cn-nacionalidad');if(nac)nac.value='Argentina';
   var ciu=document.getElementById('cn-ciudad');if(ciu)ciu.value='Ciudad de Córdoba';
+  var tipoWrap=document.getElementById('cn-tipo-wrap');if(tipoWrap)tipoWrap.style.display='none';
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Nuevo cliente — Derecho Laboral';
   var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
   if(saveBtn){saveBtn.textContent='Guardar';saveBtn.onclick=saveCliente;}
@@ -2037,6 +2033,10 @@ function editCliente(id){
   setVal('cn-fecha-nac',c.fechaNac);setVal('cn-categoria',c.categoria);
   setVal('cn-fecha-ingreso',c.fechaIngreso);setVal('cn-fecha-egreso',c.fechaEgreso);setVal('cn-jornada',c.jornada);
   setVal('cn-no',c.notas);
+  var tipoWrap=document.getElementById('cn-tipo-wrap');
+  var puedeElegirCarpeta=c.tipo==='estudio'||c.tipo==='publicidad';
+  if(tipoWrap)tipoWrap.style.display=puedeElegirCarpeta?'block':'none';
+  if(puedeElegirCarpeta)setVal('cn-tipo-edit',c.tipo);
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Editar cliente';
   var saveBtn=document.querySelector('#m-cliente .modal-footer .btn-primary');
   if(saveBtn){
@@ -2047,6 +2047,8 @@ function editCliente(id){
       var nombreCompleto=ap?n+' '+ap:n;
       if(!n){alert('El nombre es obligatorio.');return;}
       var data={nombre:nombreCompleto,apellido:ap,dni:document.getElementById('cn-dni')?document.getElementById('cn-dni').value.trim():'',edad:document.getElementById('cn-edad').value.trim(),cuil:document.getElementById('cn-cuil').value.trim(),estadoCivil:document.getElementById('cn-estado-civil')?document.getElementById('cn-estado-civil').value.trim():'',nacionalidad:document.getElementById('cn-nacionalidad')?document.getElementById('cn-nacionalidad').value.trim():'',situacionLaboral:document.getElementById('cn-situacion-laboral')?document.getElementById('cn-situacion-laboral').value.trim():'',email:document.getElementById('cn-email')?document.getElementById('cn-email').value.trim():'',ciudad:document.getElementById('cn-ciudad')?document.getElementById('cn-ciudad').value.trim():'',tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',domicilio:document.getElementById('cn-dom').value.trim(),empleador:document.getElementById('cn-empleador').value.trim(),antiguedad:document.getElementById('cn-antiguedad')?document.getElementById('cn-antiguedad').value.trim():'',fechaNac:document.getElementById('cn-fecha-nac')?document.getElementById('cn-fecha-nac').value.trim():'',categoria:document.getElementById('cn-categoria')?document.getElementById('cn-categoria').value.trim():'',fechaIngreso:document.getElementById('cn-fecha-ingreso')?document.getElementById('cn-fecha-ingreso').value.trim():'',fechaEgreso:document.getElementById('cn-fecha-egreso')?document.getElementById('cn-fecha-egreso').value.trim():'',jornada:document.getElementById('cn-jornada')?document.getElementById('cn-jornada').value.trim():'',notas:document.getElementById('cn-no').value.trim()};
+      var tipoWrapSave=document.getElementById('cn-tipo-wrap');
+      if(tipoWrapSave&&tipoWrapSave.style.display!=='none')data.tipo=document.getElementById('cn-tipo-edit').value;
       db.collection('clientes').doc(id).update(data).then(function(){
         closeModal('m-cliente');showToast('Cliente actualizado ✓');
         var existing=CLIENTES_CACHE.find(function(x){return x.id===id;});
