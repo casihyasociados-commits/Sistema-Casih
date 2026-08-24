@@ -513,14 +513,17 @@ input.currency-input{letter-spacing:0.5px;}
 
   <div class="card" style="margin-bottom:16px;border-left:3px solid var(--blue)">
     <div class="card-title">📌 Hoy</div>
-    <div id="hoy-agenda-list"><div class="hint">Sin eventos para hoy.</div></div>
+    <div id="hoy-agenda-list"><div class="hint">Conectá Google Calendar para ver los eventos de hoy.</div></div>
   </div>
-  <div class="card" style="margin-bottom:16px;padding:1rem">
+  <div class="card" style="margin-bottom:0;padding:1rem">
     <div class="card-head">
       <div class="card-title" style="margin-bottom:0">Calendario semanal</div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
-        <span id="cal-label2" class="hint">Conectando...</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-primary" onclick="openModal('m-evento-rapido')">Cargar en Google Calendar</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <span id="cal-label2" class="hint">Conectando...</span>
+        </div>
       </div>
     </div>
     <iframe id="dash-gcal-iframe"
@@ -528,13 +531,6 @@ input.currency-input{letter-spacing:0.5px;}
       style="width:100%;height:560px;border:none;border-radius:10px;display:block;"
       frameborder="0" scrolling="no">
     </iframe>
-  </div>
-  <div class="card" style="margin-bottom:0">
-    <div class="card-head">
-      <div class="card-title" style="margin-bottom:0">Próximos eventos</div>
-      <button class="btn-primary" onclick="openModal('m-evento-rapido')">Cargar en Google Calendar</button>
-    </div>
-    <div id="ev-list"><div class="empty-state">Sin eventos cargados.</div></div>
   </div>
 </div>
 
@@ -1205,8 +1201,7 @@ function goTo(s){
     document.getElementById('sec-consumidor-grid').style.display='none';
     renderClientes();
   }
-  if(s==='tareas'){renderEventos();renderHoyAgenda();}
-  if(s==='dashboard'){renderDashEventos();}
+  if(s==='tareas'){renderHoyAgenda();}
 }
 
 // ─── FECHA ───
@@ -2040,24 +2035,16 @@ var API_KEY='AIzaSyDrX1K5vTEPyt121qiWoYUWxi0u2N2MEy8';
 var CALENDAR_ID='casihyasociados@gmail.com';
 var SCOPES='https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.file';
 var calConnected=false,tokenClient;
-var EVENTOS_CACHE=[];
-var evColors={audiencia:PALETA.red,cita:PALETA.blue,vencimiento:PALETA.orange,reunion:PALETA.purple};
-var evLabels={audiencia:'Audiencia',cita:'Cita',vencimiento:'Vencimiento',reunion:'Reunión'};
-var evBadges={audiencia:'b-red',cita:'b-blue',vencimiento:'b-orange',reunion:'b-purple'};
 
 function initCalendar(){
-  db.collection('eventos').orderBy('fecha').onSnapshot(function(snap){
-    EVENTOS_CACHE=[];snap.forEach(function(d){var x=d.data();x.id=d.id;EVENTOS_CACHE.push(x);});
-    renderEventos();renderDashEventos();renderHoyAgenda();
-    var dme=document.getElementById('dm-eventos-hoy');if(dme)dme.textContent=EVENTOS_CACHE.filter(function(e){return e.fecha===fmt(today);}).length;
-  });
+  renderHoyAgenda();
 }
 
 function toggleCal(){
   if(!calConnected){
     gapi.load('client',function(){
       gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
-        tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:function(resp){if(resp.error)return;calConnected=true;setCalStatus(true);loadCalendarEvents();renderHoyAgenda();setTimeout(cargarModelosDesideDrive,500);}});
+        tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:function(resp){if(resp.error)return;calConnected=true;setCalStatus(true);renderHoyAgenda();setTimeout(cargarModelosDesideDrive,500);}});
         tokenClient.requestAccessToken();
       });
     });
@@ -2074,28 +2061,6 @@ function setCalStatus(connected){
   if(lbl2){lbl2.style.color=connected?'var(--green)':'var(--orange)';lbl2.textContent=connected?'Google conectado':'Conectar Google';}
   var btn=document.getElementById('cal-btn');
   if(btn&&connected){btn.textContent='Desconectar Calendar';btn.style.borderColor='var(--red-bg)';btn.style.color='var(--red)';}
-}
-
-function loadCalendarEvents(){
-  if(!gapi.client||!gapi.client.calendar)return;
-  gapi.client.calendar.events.list({calendarId:CALENDAR_ID,timeMin:new Date().toISOString(),timeMax:new Date(Date.now()+90*864e5).toISOString(),singleEvents:true,orderBy:'startTime',maxResults:50}).then(function(resp){
-    var dme2=document.getElementById('dm-eventos-hoy');if(dme2)dme2.textContent=(resp.result.items||[]).filter(function(e){return (e.start.date||e.start.dateTime||'').slice(0,10)===fmt(today);}).length;
-  }).catch(function(){});
-}
-
-function renderEventos(){
-  var hoy=fmt(today);
-  var list=EVENTOS_CACHE.filter(function(e){return e.fecha>=hoy;}).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
-  if(list.length===0){document.getElementById('ev-list').innerHTML='<div class="empty-state">Sin eventos próximos.</div>';return;}
-  var groups={};list.forEach(function(e){if(!groups[e.fecha])groups[e.fecha]=[];groups[e.fecha].push(e);});
-  var html='';Object.keys(groups).sort().forEach(function(d){
-    html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
-    groups[d].forEach(function(e){
-      var badge=e.tipo?'<span class="badge '+(evBadges[e.tipo]||'b-gray')+'">'+(evLabels[e.tipo]||e.tipo)+'</span>':'';
-      html+='<div class="ev-item"><div class="ev-dot" style="background:'+(evColors[e.tipo]||PALETA.text3)+'"></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+e.titulo+'</div><div class="hint">'+(e.hora?e.hora+'hs · ':'')+(evLabels[e.tipo]||e.tipo||'')+(e.cliente?' · '+e.cliente:'')+(e.lugar?' · '+e.lugar:'')+'</div></div>'+badge+'<button class="btn-danger" style="margin-left:6px" onclick="delEvento(\''+e.id+'\')">✕</button></div>';
-    });
-  });
-  document.getElementById('ev-list').innerHTML=html;
 }
 
 // Lee directo de Google Calendar (no de la coleccion 'eventos' propia), para
@@ -2121,20 +2086,6 @@ function renderHoyAgenda(){
   }).catch(function(){el.innerHTML='<div class="hint">No se pudo cargar la agenda de hoy.</div>';});
 }
 
-function renderDashEventos(){
-  if(!EVENTOS_CACHE||!EVENTOS_CACHE.length){var dmEv=document.getElementById('dm-eventos-hoy');if(dmEv)dmEv.textContent=0;return;}
-  var ts=fmt(today);
-  var hoyCount=EVENTOS_CACHE.filter(function(e){return e.fecha===ts;}).length;
-  var elHoy=document.getElementById('dm-eventos-hoy');if(elHoy)elHoy.textContent=hoyCount;
-}
-
-function delEvento(id){
-  db.collection('eventos').doc(id).get().then(function(doc){
-    if(doc.exists){var data=doc.data();if(data.gcId&&calConnected&&gapi.client.getToken())gapi.client.calendar.events.delete({calendarId:CALENDAR_ID,eventId:data.gcId}).catch(function(){});}
-    return db.collection('eventos').doc(id).delete();
-  }).then(function(){showToast('Evento eliminado ✓');});
-}
-
 function saveEventoRapido(){
   var ti=document.getElementById('er-desc').value.trim();
   var fecha=document.getElementById('er-fecha').value;
@@ -2148,7 +2099,7 @@ function saveEventoRapido(){
     var h1=hora?p2((parseInt(hora.split(':')[0])+1)%24)+':'+hora.split(':')[1]+':00':'';
     var start=hora?{dateTime:fecha+'T'+hora+':00',timeZone:'America/Argentina/Cordoba'}:{date:fecha};
     var end=hora?{dateTime:fecha+'T'+h1,timeZone:'America/Argentina/Cordoba'}:{date:fecha};
-    gapi.client.calendar.events.insert({calendarId:CALENDAR_ID,resource:{summary:ti,start:start,end:end}}).then(function(){var iframe=document.getElementById('dash-gcal-iframe');if(iframe){var src=iframe.src;iframe.src='';setTimeout(function(){iframe.src=src;},300);}}).catch(function(){});
+    gapi.client.calendar.events.insert({calendarId:CALENDAR_ID,resource:{summary:ti,start:start,end:end}}).then(function(){var iframe=document.getElementById('dash-gcal-iframe');if(iframe){var src=iframe.src;iframe.src='';setTimeout(function(){iframe.src=src;},300);}renderHoyAgenda();}).catch(function(){});
   }
   if(calConnected&&gapi.client.getToken()){guardarYEnviar();}
   else{
@@ -3106,7 +3057,6 @@ function initApp() {
   var mesActual = p2(today.getMonth() + 1);
   var sel = document.getElementById('adm-mes'); if (sel) sel.value = mesActual;
   initClientes();
-  renderDashEventos();
   setTimeout(function() {
     initLinksRapidos();
     initHonorariosDash();
