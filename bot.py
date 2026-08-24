@@ -1585,6 +1585,219 @@ def generar_telegrama_docx_endpoint():
     return resp
 
 
+# ─── Telegrama de despido indirecto ───
+# Mismo formulario físico que el telegrama de "aclare situación" (se reutiliza
+# generar_telegrama_docx / construir_cajas_telegrama sin cambios), pero con un
+# cuerpo distinto: acusa recibo de un TCL previo no contestado y notifica el
+# despido indirecto ya efectivizado, en lugar de solo intimar.
+
+TG_DESPIDO_INTIMACION_LCT = (
+    'INTIMOLE para que en el plazo perentorio de cuatro (4) días hábiles abonen las '
+    'indemnizaciones de ley: Liquidación final, Indemnización por despido indirecto, '
+    'antigüedad (art. 245 LCT), sustitutiva de preaviso (art. 232 LCT), Integración de '
+    'mes de despido (art. 233 LCT) con incidencia de horas extraordinarias y SAC, horas '
+    'extraordinarias, diferencias de haberes, SAC y Vacaciones no gozadas por el tiempo '
+    'no prescripto.'
+)
+
+def _tg_despido_intimacion_construccion(categoria, jornada):
+    return (
+        'Intimo tres días hábiles pago Liquidación Final debiendo incluir en ella los '
+        'jornales caídos, adicional por presentismo jamás abonado del que soy acreedor '
+        'por haber mantenido todo el vínculo asistencia perfecta, las diferencias de '
+        'haberes a mi favor por abonar Uds. menos horas de las efectivamente trabajadas '
+        'teniendo en cuenta mi real jornada de trabajo de %s, cumpliendo tareas de %s '
+        'según CCT 76/75, todo ello bajo apercibimiento Art. 19 Ley 22.250. Intimo en dos '
+        'días hábiles restitución Libreta de Aportes Ley 22.250 y pongan a disposición '
+        'las sumas en concepto de Fondo Cese Laboral, bajo apercibimiento Art. 18 Ley '
+        '22.250. Hago reservas de responsabilizar solidariamente a su comitente.'
+        % (jornada, categoria)
+    )
+
+TG_DESPIDO_NO_REGISTRADO = (
+    'Todo ello teniendo especialmente en consideración que la relación laboral se '
+    'desarrolló íntegramente sin registración alguna ante los organismos '
+    'correspondientes, en incumplimiento de las obligaciones legales a cargo del '
+    'empleador, se reclamará el pago de daños y perjuicios por el perjuicio irreparable '
+    'derivado de la informalidad de la relación laboral y su falta de registro ante los '
+    'organismos correspondientes.'
+)
+
+TG_DESPIDO_DIF_APORTES = (
+    'Por otro lado al tener constancia que las sumas retenidas de mis haberes en '
+    'concepto de Jubilación, Ley 19032, Obra Social, ANSSAL, Cuota Sindical y Seguro de '
+    'Vida no han sido efectivamente ingresadas a los organismos pertinentes lo intimo '
+    'para que, dentro del término de TREINTA (30) días corridos contados a partir de la '
+    'recepción de la presente, ingrese los importes adeudados, más los intereses y '
+    'multas que pudieren corresponder, a los respectivos Organismos recaudadores, bajo '
+    'apercibimiento del Art. 132 bis de la LCT.'
+)
+
+CIERRE_TELEGRAMA_DESPIDO = (
+    'Ratifico domicilio legal en calle Arturo M. Bas Nº 389 Piso 1º Of. “A”, Ciudad de '
+    'Córdoba “ESTUDIO JURIDICO CASIH Y ASOC.” Te. 3516327201. Queda Ud. debidamente '
+    'notificad%s y constituid%s en mora.'
+)
+
+
+def armar_apertura_despido_indirecto(d, relato_redactado):
+    descripcion = (d.get('destDescripcion') or '').strip()
+    fantasia = (d.get('destFantasia') or '').strip()
+    encabezado = ''
+    if descripcion or fantasia:
+        encabezado = 'EN CARÁCTER DE TITULAR'
+        if descripcion:
+            encabezado += ' DE %s' % descripcion
+        if fantasia:
+            encabezado += ' QUE GIRA BAJO EL NOMBRE DE FANTASIA: “%s”' % fantasia
+        extension = (d.get('extension') or '').strip()
+        if extension:
+            encabezado += ' - %s' % extension
+        encabezado += ': '
+
+    numero = (d.get('tclNumero') or '').strip()
+    fecha_envio = (d.get('tclFechaEnvio') or '').strip()
+    fecha_recepcion = (d.get('tclFechaRecepcion') or '').strip()
+    ref_tcl = 'Encontrándose vencidos los términos de mi TLC CD Nº %s' % numero
+    if fecha_envio:
+        ref_tcl += ' de fecha %s' % fecha_envio
+    if fecha_recepcion:
+        ref_tcl += ' entregado con fecha %s' % fecha_recepcion
+    ref_tcl += ', sin aclarar mi situación laboral'
+
+    fem_rem = (d.get('remGenero') or '').strip().lower() == 'femenino'
+    despedido = 'despedida' if fem_rem else 'despedido'
+
+    cierre_relato = (
+        ', le comunico que todo ello me ocasiona una injuria laboral tan grave que '
+        'imposibilita la prosecución del vínculo laboral, y conforme lo emplazado, hago '
+        'efectivo el apercibimiento cursado por lo cual me considero %s por su exclusiva '
+        'culpa.' % despedido
+    )
+
+    relato = (relato_redactado or '').strip().rstrip('.')
+    cuerpo = ref_tcl
+    if relato:
+        cuerpo += ', %s' % relato
+    cuerpo += cierre_relato
+
+    texto = encabezado + cuerpo
+    if not encabezado:
+        texto = texto[0].upper() + texto[1:]
+    return texto
+
+
+def armar_cuerpo_despido_indirecto(d, relato_redactado):
+    fem_dest = (d.get('destGenero') or '').strip().lower() == 'femenino'
+    sufijo = 'a' if fem_dest else 'o'
+
+    partes = [armar_apertura_despido_indirecto(d, relato_redactado)]
+
+    regimen = (d.get('regimen') or 'lct').strip().lower()
+    if regimen == 'construccion':
+        partes.append(_tg_despido_intimacion_construccion(
+            d.get('categoria', ''), d.get('jornada', '')))
+    else:
+        partes.append(TG_DESPIDO_INTIMACION_LCT)
+
+    if d.get('noRegistrado'):
+        partes.append(TG_DESPIDO_NO_REGISTRADO)
+    if d.get('difAportes'):
+        partes.append(TG_DESPIDO_DIF_APORTES)
+
+    partes.append(CIERRE_TELEGRAMA_DESPIDO % (sufijo, sufijo))
+
+    return ' '.join(p.strip() for p in partes if p and p.strip())
+
+
+SYSTEM_PROMPT_TG_INJURIA_DESPIDO = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir la descripción informal de los motivos por los que un "
+    "cliente se considera despedido en forma indirecta (impedimento de ingreso, falta de "
+    "tareas, respuestas evasivas, falta de registración, falta de pago de haberes, etc.) "
+    "y tenés que convertirla en una frase corrida, en primera persona, que continúa SIN "
+    "CORTE la oración: 'sin aclarar mi situación laboral, [TU TEXTO], le comunico que "
+    "todo ello me ocasiona...'.\n\n"
+    "Ejemplo de salida (para 'no me dejan entrar a trabajar hace un mes y no contestan "
+    "nada'): 'siendo que continúa impidiéndome el ingreso a mi lugar de trabajo, se sigue "
+    "negando a otorgarme tareas, con respuestas evasivas'\n\n"
+    "Reglas:\n"
+    "- Arrancá en minúscula y sin punto final: tu frase se inserta en medio de una "
+    "oración más larga que ya arranca en mayúscula y sigue después con otro tramo fijo.\n"
+    "- No repitas 'sin aclarar mi situación laboral', eso ya está antes de tu texto.\n"
+    "- No agregues 'le comunico que...' al final, eso ya está después.\n"
+    "- Nunca inventes hechos, fechas ni datos que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+SYSTEM_PROMPT_TG_JORNADA_DESPIDO = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir la descripción informal de la jornada de trabajo de una "
+    "persona del régimen de la construcción y tenés que reescribirla en el registro "
+    "formal de un telegrama laboral, como una frase corrida que continúa la oración "
+    "'teniendo en cuenta mi real jornada de trabajo de '.\n\n"
+    "Ejemplo de salida: 'Lunes a Viernes de 08:00 a 17:00 hs'\n\n"
+    "Reglas:\n"
+    "- No agregues 'jornada de trabajo de' al principio, eso ya está.\n"
+    "- Nunca inventes días, horarios ni datos que no estén en el texto.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+
+@app.route('/generar-telegrama-despido-indirecto', methods=['POST', 'OPTIONS'])
+def generar_telegrama_despido_indirecto():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    if not (d.get('destNombre') or '').strip():
+        return error('Falta el nombre o razón social del destinatario.')
+    if not (d.get('remNombre') or '').strip():
+        return error('Falta el nombre del remitente (el cliente).')
+    if not (d.get('tclNumero') or '').strip():
+        return error('Falta el número del TCL previo no contestado.')
+    regimen = (d.get('regimen') or 'lct').strip().lower()
+    if regimen == 'construccion':
+        if not (d.get('categoria') or '').strip():
+            return error('Falta la categoría (régimen de la construcción).')
+        if not (d.get('jornada') or '').strip():
+            return error('Falta la jornada de trabajo (régimen de la construcción).')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        relato = ''
+        if (d.get('relato') or '').strip():
+            relato = redactar_con_ia(client, SYSTEM_PROMPT_TG_INJURIA_DESPIDO, d['relato'])
+        jornada_redactada = d.get('jornada', '')
+        if regimen == 'construccion' and (d.get('jornada') or '').strip():
+            jornada_redactada = redactar_con_ia(
+                client, SYSTEM_PROMPT_TG_JORNADA_DESPIDO, d['jornada'])
+    except Exception as e:
+        print("Error redactando telegrama de despido indirecto con IA:", str(e))
+        return error('No se pudo generar el telegrama. Intentá de nuevo en un momento.', 500)
+
+    d2 = dict(d)
+    d2['jornada'] = jornada_redactada
+    texto = armar_cuerpo_despido_indirecto(d2, relato)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+
 @app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
 def generar_escrito():
     if request.method == 'OPTIONS':

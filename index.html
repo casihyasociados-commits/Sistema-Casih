@@ -663,6 +663,7 @@ input.currency-input{letter-spacing:0.5px;}
       <select class="fs" id="es-tipo" onchange="cambiarTipoEscrito()">
         <option value="denuncia_trabajo">Denuncia laboral — Ministerio de Trabajo</option>
         <option value="telegrama_aclare">Telegrama (TCL) — Aclare situación laboral y blanqueo</option>
+        <option value="telegrama_despido_indirecto">Telegrama (TCL) — Despido indirecto</option>
       </select>
     </div>
     <div class="fg">
@@ -874,6 +875,114 @@ input.currency-input{letter-spacing:0.5px;}
         </div>
       </div>
       <textarea class="fta" id="tg-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
+    </div>
+  </div>
+
+  <div id="es-form-despido-indirecto" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Destinatario (empleador)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente (opcional)</div>
+        <input class="fi" id="di-cl-search" placeholder="Completa los datos del remitente desde la base..." oninput="filtrarClientes('di-cl-search','di-cl-dropdown')" onfocus="filtrarClientes('di-cl-search','di-cl-dropdown')" autocomplete="off">
+        <div id="di-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Nombre o razón social *</div><input class="fi" id="di-dest-nombre" placeholder="Ej: MARIA JORGELINA VILAS"></div>
+        <div class="fg"><div class="fl">CUIL / CUIT</div><input class="fi" id="di-dest-cuil" placeholder="27-17391964-1"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Ramo o actividad principal</div><input class="fi" id="di-dest-ramo" placeholder='Ej: DIETETICA – "TODO MAS QUE SUELTO"'></div>
+        <div class="fg"><div class="fl">Género (para "notificado/a")</div><select class="fs" id="di-dest-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio laboral</div><input class="fi" id="di-dest-domicilio" placeholder="Ej: Vélez Sarsfield Nº 639 local Nº 4"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="di-dest-cp" placeholder="5151"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="di-dest-localidad" placeholder="LA CALERA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="di-dest-provincia" value="CÓRDOBA"></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Encabezado del texto (opcional — completar si es titular de un comercio con nombre de fantasía)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Se lo intima como titular de…</div><input class="fi" id="di-dest-descripcion" placeholder="Ej: LA DIETETICA / LA FABRICA DE PRODUCTOS ALIMENTICIOS SIN GLUTEN"></div>
+        <div class="fg"><div class="fl">Nombre de fantasía</div><input class="fi" id="di-dest-fantasia" placeholder="Ej: TODO MAS QUE SUELTO"></div>
+      </div>
+      <div class="fg"><div class="fl">Extender el telegrama a otra persona (opcional)</div><input class="fi" id="di-extension" placeholder="Ej: SE HACE EXTENSIVO EL PRESENTE AL SR. INSUA VICTOR DANIEL CUIL (20-16291898-3)"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Remitente (el cliente)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Apellido y nombre *</div><input class="fi" id="di-rem-nombre" placeholder="Ej: OLIVERA PAMELA VERONICA"></div>
+        <div class="fg"><div class="fl">DNI</div><input class="fi" id="di-rem-dni" placeholder="27.695.078"></div>
+      </div>
+      <div class="fg"><div class="fl">Género (para "despedido/a")</div><select class="fs" id="di-rem-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-top:6px">
+        En el formulario, el remitente constituye domicilio en el estudio. Estos datos vienen cargados y normalmente no se tocan.
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio en el formulario</div><input class="fi" id="di-rem-domicilio" value="Arturo M. Bas Nº 389 1º Piso Of. A"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="di-rem-cp" value="5000"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="di-rem-localidad" value="CÓRDOBA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="di-rem-provincia" value="CÓRDOBA"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">TCL previo no contestado</div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:14px">
+        Este telegrama da por vencidos los plazos del TCL anterior (el de "aclare situación laboral") que la empresa no contestó. Cargá sus datos acá.
+      </div>
+      <div class="fg"><div class="fl">Número del TCL previo *</div><input class="fi" id="di-tcl-numero" placeholder="Ej: 371372272"></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="di-tcl-fecha-envio" placeholder="Ej: 02/07/2026"></div>
+        <div class="fg"><div class="fl">Fecha de entrega/recepción</div><input class="fi" id="di-tcl-fecha-recepcion" placeholder="Ej: 08/07/2026"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Régimen laboral</div>
+      <div class="fg"><div class="fl">Régimen</div><select class="fs" id="di-regimen" onchange="toggleRegimenDespidoIndirecto()"><option value="lct">LCT (régimen general)</option><option value="construccion">Construcción (Ley 22.250 / CCT 76/75)</option></select></div>
+      <div id="di-regimen-construccion-fields" style="display:none">
+        <div class="fg"><div class="fl">Categoría *</div><input class="fi" id="di-categoria" placeholder="Ej: Oficial"></div>
+        <div class="fg">
+          <div class="fl">Jornada de trabajo *</div>
+          <textarea class="fta" id="di-jornada" style="min-height:70px" placeholder="Contala como se la dirías a un colega. La IA la redacta en estilo formal. Ej: de lunes a viernes de 8 a 17hs"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Reclamos adicionales</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="di-chk-no-registrado"> No estaba registrado (relación totalmente informal)</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="di-chk-dif-aportes"> Diferencia de aportes (retenciones no depositadas: jubilación, obra social, sindicato, etc.)</label>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Motivo del despido indirecto</div>
+      <div class="fg">
+        <div class="fl">Relato de los hechos *</div>
+        <textarea class="fta" id="di-relato" style="min-height:110px" placeholder="Contá en tus palabras por qué se considera despedido/a: impedimento de ingreso, falta de tareas, respuestas evasivas, falta de pago de haberes, negativa a registrar, etc. La IA lo redacta en estilo formal — no hace falta escribirlo ya en formato legal."></textarea>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <button class="btn-primary" id="di-btn-generar" onclick="generarTelegramaDespidoIndirecto()" style="width:100%;padding:12px">✨ Generar telegrama con IA</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">La IA solo redacta el relato (y la jornada, si es régimen de construcción). El resto se arma con los datos cargados — revisá siempre antes de despachar.</div>
+    </div>
+
+    <div class="card card-doc" id="di-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Texto del telegrama</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTelegramaDespidoIndirecto()">📋 Copiar texto</button>
+          <button class="btn-sm" id="di-btn-docx" onclick="descargarTelegramaDespidoIndirectoDocx()">⬇️ Descargar formulario (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="di-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
       <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
     </div>
   </div>
@@ -2464,7 +2573,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -2472,11 +2581,111 @@ function filtrarClientes(inputId,dropdownId){
 function cambiarTipoEscrito(){
   var tipo=document.getElementById('es-tipo').value;
   var esTelegrama=tipo==='telegrama_aclare';
-  document.getElementById('es-form-denuncia').style.display=esTelegrama?'none':'block';
+  var esDespidoIndirecto=tipo==='telegrama_despido_indirecto';
+  document.getElementById('es-form-denuncia').style.display=(esTelegrama||esDespidoIndirecto)?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
+  document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
   // la representacion legal solo interviene en la denuncia
   var rep=document.getElementById('es-representacion');
-  if(rep&&rep.parentNode)rep.parentNode.style.display=esTelegrama?'none':'block';
+  if(rep&&rep.parentNode)rep.parentNode.style.display=(esTelegrama||esDespidoIndirecto)?'none':'block';
+}
+
+function toggleRegimenDespidoIndirecto(){
+  var esConstruccion=document.getElementById('di-regimen').value==='construccion';
+  document.getElementById('di-regimen-construccion-fields').style.display=esConstruccion?'block':'none';
+}
+
+function autocompletarClienteDespidoIndirecto(c){
+  if(!c)return;
+  var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  setVal('di-rem-nombre',c.nombre);
+  setVal('di-rem-dni',c.dni);
+  setVal('di-dest-nombre',c.empleador);
+  showToast('Datos del cliente completados ✓');
+}
+
+function datosDespidoIndirecto(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var c=function(id){var el=document.getElementById(id);return el?el.checked:false;};
+  return {
+    destNombre:v('di-dest-nombre'),destCuil:v('di-dest-cuil'),destRamo:v('di-dest-ramo'),
+    destGenero:v('di-dest-genero'),
+    destDomicilio:v('di-dest-domicilio'),destCp:v('di-dest-cp'),
+    destLocalidad:v('di-dest-localidad'),destProvincia:v('di-dest-provincia'),
+    destDescripcion:v('di-dest-descripcion'),destFantasia:v('di-dest-fantasia'),
+    extension:v('di-extension'),
+    remNombre:v('di-rem-nombre'),remDni:v('di-rem-dni'),remGenero:v('di-rem-genero'),
+    remDomicilio:v('di-rem-domicilio'),remCp:v('di-rem-cp'),
+    remLocalidad:v('di-rem-localidad'),remProvincia:v('di-rem-provincia'),
+    tclNumero:v('di-tcl-numero'),tclFechaEnvio:v('di-tcl-fecha-envio'),
+    tclFechaRecepcion:v('di-tcl-fecha-recepcion'),
+    regimen:v('di-regimen'),categoria:v('di-categoria'),jornada:v('di-jornada'),
+    noRegistrado:c('di-chk-no-registrado'),difAportes:c('di-chk-dif-aportes'),
+    relato:v('di-relato')
+  };
+}
+
+function generarTelegramaDespidoIndirecto(){
+  var d=datosDespidoIndirecto();
+  if(!d.destNombre){alert('Falta el nombre o razón social del destinatario.');return;}
+  if(!d.remNombre){alert('Falta el nombre del remitente (el cliente).');return;}
+  if(!d.tclNumero){alert('Falta el número del TCL previo no contestado.');return;}
+  if(d.regimen==='construccion'&&(!d.categoria||!d.jornada)){alert('Régimen de la construcción: completá categoría y jornada.');return;}
+
+  var btn=document.getElementById('di-btn-generar');
+  btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
+  document.getElementById('di-resultado-card').style.display='none';
+
+  fetch(BOT_URL+'/generar-telegrama-despido-indirecto',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('di-resultado').value=data.texto;
+      document.getElementById('di-resultado-card').style.display='block';
+      document.getElementById('di-resultado-card').scrollIntoView({behavior:'smooth'});
+    }else{
+      alert('No se pudo generar el telegrama: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar telegrama con IA';
+  });
+}
+
+function copiarTelegramaDespidoIndirecto(){
+  var ta=document.getElementById('di-resultado');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
+}
+
+function descargarTelegramaDespidoIndirectoDocx(){
+  var texto=document.getElementById('di-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var d=datosDespidoIndirecto();
+  d.cuerpo=texto;
+
+  var btn=document.getElementById('di-btn-docx');
+  var original=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+
+  fetch(BOT_URL+'/generar-telegrama-docx',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){
+    if(!r.ok)throw new Error('error');
+    return r.blob();
+  }).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Formulario generado ✓');
+  }).catch(function(){
+    showToast('⚠ No se pudo generar el Word.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent=original;
+  });
 }
 
 function autocompletarClienteTelegrama(c){
