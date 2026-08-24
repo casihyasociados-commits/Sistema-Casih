@@ -2503,6 +2503,16 @@ function initRecordatorios(){
 }
 // Se muestra en dos lugares: el Dashboard y la seccion Clientes.
 var CONTENEDORES_RECORDATORIOS=['cli-recordatorios-list'];
+// Los recordatorios viejos se cargaron con Titulo (+ Descripcion y Cliente
+// opcionales), campos que ya no se piden. Se arma un texto equivalente para
+// que sigan viendose igual que antes.
+function textoRecordatorio(r){
+  if(!r.titulo)return r.desc||'';
+  var t=r.titulo;
+  if(r.desc)t+=' — '+r.desc;
+  if(r.cliente)t+=' (Cliente: '+r.cliente+')';
+  return t;
+}
 function renderRecordatorios(list){
   var hoy=fmt(today);
   var filtered=list.filter(function(r){return (new Date(r.fecha)-today)/864e5>-7;}).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
@@ -2512,7 +2522,7 @@ function renderRecordatorios(list){
     var esHoy=r.fecha===hoy,diff=Math.round((new Date(r.fecha)-today)/864e5),esPasado=diff<0;
     var borderColor=esHoy?'var(--blue)':esPasado?'var(--red)':'var(--border)';var bgColor=esHoy?'var(--blue-bg)':esPasado?'var(--red-bg)':'var(--bg3)';
     var fechaLabel=(esHoy?'🔔 HOY':esPasado?'Vencido hace '+Math.abs(diff)+' días':fmtDisp(r.fecha))+(r.hora?' · '+r.hora+'hs':'');
-    html+='<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:12px"><div style="font-size:11px;font-weight:600;color:'+(esHoy?'var(--blue)':esPasado?'var(--red)':'var(--text3)')+';margin-bottom:5px">'+fechaLabel+'</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">'+r.desc+'</div><div style="display:flex;gap:6px;margin-top:10px"><button data-rid="'+r.id+'" data-raction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer">✓ Listo</button><button data-rid="'+r.id+'" data-raction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></div></div>';
+    html+='<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:12px"><div style="font-size:11px;font-weight:600;color:'+(esHoy?'var(--blue)':esPasado?'var(--red)':'var(--text3)')+';margin-bottom:5px">'+fechaLabel+'</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">'+textoRecordatorio(r)+'</div><div style="display:flex;gap:6px;margin-top:10px"><button data-rid="'+r.id+'" data-raction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer">✓ Listo</button><button data-rid="'+r.id+'" data-raction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></div></div>';
   });
   html+='</div>';
   pintarRecordatorios(html);
@@ -2532,7 +2542,7 @@ function saveRecordatorio(){
 function enviarWhatsAppRecordatorio(r){
   fetch(BOT_URL+'/notificar-recordatorio',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({desc:r.desc||'',hora:r.hora||''})
+    body:JSON.stringify({desc:textoRecordatorio(r),hora:r.hora||''})
   }).catch(function(){});
 }
 
