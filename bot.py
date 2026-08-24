@@ -206,6 +206,28 @@ def notificar_nuevo_cliente():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+# --- AVISO DE RECORDATORIO (grupo de WhatsApp) ---
+@app.route('/notificar-recordatorio', methods=['POST', 'OPTIONS'])
+def notificar_recordatorio():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    msg = "🔔 *Recordatorio*\n\n" + "*%s*\n" % d.get('titulo', '—')
+    if d.get('desc'):
+        msg += "%s\n" % d.get('desc')
+    if d.get('cliente'):
+        msg += "👤 *Cliente:* %s\n" % d.get('cliente')
+    destino = (d.get('destino') or '').strip() or os.environ.get("GREEN_API_GROUP_ID")
+    ok = responder_whatsapp(destino, msg)
+    resp = jsonify({"ok": ok, "grupo_configurado": bool(destino)})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
 def webhook():

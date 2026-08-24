@@ -468,8 +468,25 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="metric"><div class="metric-label">Publicidad</div><div class="metric-val" style="color:var(--blue)" id="cs-pub">—</div></div>
     <div class="metric"><div class="metric-label">Der. Consumidor</div><div class="metric-val" style="color:var(--green)" id="cs-consumidor">—</div></div>
   </div>
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--blue)">
+    <div class="card-head">
+      <span class="card-head-title">📦 Seguimiento Correo</span>
+      <div class="btn-row">
+        <a href="https://www.correoargentino.com.ar/" target="_blank" class="btn-primary" style="text-decoration:none">🌐 Correo Argentino</a>
+        <button class="btn-sm" onclick="openModal('m-correo')">+ Agregar</button>
+      </div>
+    </div>
+    <div id="cli-correo-list"><div class="hint">Sin envíos cargados.</div></div>
+  </div>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--orange)">
+    <div class="card-head">
+      <span class="card-head-title">🔔 Recordatorios</span>
+      <button class="btn-primary" onclick="openModal('m-recordatorio')">+ Nuevo recordatorio</button>
+    </div>
+    <div id="cli-recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
+  </div>
   <div class="tabs" id="c-tabs">
-    <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
+    <button class="tab" onclick="setCtab('estudio')">Del estudio</button>
     <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
     <button class="tab" onclick="setCtab('consumidor')">⚖️ Defensa del Consumidor</button>
     <button class="tab" onclick="setCtab('finalizado')">✅ Finalizados</button>
@@ -483,24 +500,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
   <div id="sec-consumidor-grid" style="display:none"></div>
 
-  <div class="card" style="margin-top:24px;border-left:3px solid var(--blue)">
-    <div class="card-head">
-      <span class="card-head-title">📦 Seguimiento Correo</span>
-      <div class="btn-row">
-        <a href="https://www.correoargentino.com.ar/" target="_blank" class="btn-primary" style="text-decoration:none">🌐 Correo Argentino</a>
-        <button class="btn-sm" onclick="openModal('m-correo')">+ Agregar</button>
-      </div>
-    </div>
-    <div id="cli-correo-list"><div class="hint">Sin envíos cargados.</div></div>
-  </div>
-  <div class="card" style="border-left:3px solid var(--orange)">
-    <div class="card-head">
-      <span class="card-head-title">🔔 Recordatorios</span>
-      <button class="btn-primary" onclick="openModal('m-recordatorio')">+ Nuevo recordatorio</button>
-    </div>
-    <div id="cli-recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
-  </div>
-  <div class="card" style="border-left:3px solid var(--purple)">
+  <div class="card" style="margin-top:24px;border-left:3px solid var(--purple)">
     <div class="card-head">
       <span class="card-head-title">📋 Seguimiento Oficio</span>
       <button class="btn-primary" style="background:var(--purple)" onclick="openModal('m-oficio')">+ Nuevo oficio</button>
@@ -1289,7 +1289,14 @@ function goTo(s){
   ['dashboard','clientes','tareas','agenda','admin','escritos'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
-  if(s==='clientes')renderClientes();
+  if(s==='clientes'){
+    // Al entrar a Clientes no se muestra ninguna carpeta desplegada todavia,
+    // hay que elegir una pestaña.
+    curCtab='';
+    document.querySelectorAll('#c-tabs .tab').forEach(function(b){b.className='tab';});
+    document.getElementById('sec-consumidor-grid').style.display='none';
+    renderClientes();
+  }
   if(s==='tareas')renderTareas();
   if(s==='agenda')renderEventos();
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
@@ -1441,7 +1448,7 @@ function saveGasto(){
 function delDoc(col,id){if(!confirm('¿Eliminar?'))return;db.collection(col).doc(id).delete().then(function(){updateAdm();showToast('Eliminado ✓');});}
 
 // ─── CLIENTES ───
-var curCtab='estudio';
+var curCtab='';
 var CLIENTES_CACHE=[];
 var mLbl={Art:'ART',Despidos:'Despidos','Enfermedades profesionales':'Enf. profesional','Accidente de trabajo':'Accidente trabajo',Jubilacion:'Jubilación',Otro:'Otro'};
 var eLbl={Tramite:'Trámite',Cita:'Cita','Examemes medicos':'Exáms. médicos',Telegrama:'Telegrama'};
@@ -1551,8 +1558,17 @@ function enviarFichaWhatsApp(id){
 function renderClientes(){
   var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
   if(!gr)return;
-  var q=textoBusquedaClientes();
   var caja=document.querySelector('.buscador');
+  if(!curCtab){
+    // Todavia no se eligio ninguna pestaña: no se desglosa nada.
+    gr.innerHTML='';
+    em.textContent='Elegí una carpeta arriba para ver los clientes.';
+    em.style.display='block';
+    if(caja)caja.style.display='none';
+    return;
+  }
+  if(caja)caja.style.display='';
+  var q=textoBusquedaClientes();
   if(caja)caja.className='buscador'+(q?' con-texto':'');
   if(curCtab==='consumidor')return;
   var list=CLIENTES_CACHE.filter(function(cl){
@@ -2481,7 +2497,7 @@ function initRecordatorios(){
   db.collection('recordatorios').onSnapshot(function(snap){
     var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
     renderRecordatorios(list);
-    var hoy=fmt(today);list.forEach(function(r){if(r.fecha===hoy&&!r.emailEnviado){enviarEmailRecordatorio(r);db.collection('recordatorios').doc(r.id).update({emailEnviado:true});}});
+    var hoy=fmt(today);list.forEach(function(r){if(r.fecha===hoy&&!r.avisoEnviado){enviarWhatsAppRecordatorio(r);db.collection('recordatorios').doc(r.id).update({avisoEnviado:true});}});
   },function(){db.collection('recordatorios').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderRecordatorios(list);});});
 }
 // Se muestra en dos lugares: el Dashboard y la seccion Clientes.
@@ -2510,9 +2526,14 @@ function pintarRecordatorios(html){
 function saveRecordatorio(){
   var titulo=document.getElementById('rec-titulo').value.trim(),fecha=document.getElementById('rec-fecha').value;
   if(!titulo||!fecha){alert('Título y fecha son obligatorios.');return;}
-  db.collection('recordatorios').add({titulo:titulo,desc:document.getElementById('rec-desc').value.trim(),fecha:fecha,cliente:(document.getElementById('rec-cliente')?document.getElementById('rec-cliente').value:''),emailEnviado:false,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-recordatorio');showToast('Recordatorio guardado ✓');['rec-titulo','rec-desc','rec-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});});
+  db.collection('recordatorios').add({titulo:titulo,desc:document.getElementById('rec-desc').value.trim(),fecha:fecha,cliente:(document.getElementById('rec-cliente')?document.getElementById('rec-cliente').value:''),avisoEnviado:false,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-recordatorio');showToast('Recordatorio guardado ✓');['rec-titulo','rec-desc','rec-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});});
 }
-function enviarEmailRecordatorio(r){if(typeof emailjs==='undefined')return;emailjs.send('service_2y03ev8','template_r3a3s99',{titulo:r.titulo,descripcion:r.desc||'Sin descripción',fecha:r.fecha,name:'Sistema Casih & Asociados',email:'casihyasociados@gmail.com'}).catch(function(){});}
+function enviarWhatsAppRecordatorio(r){
+  fetch(BOT_URL+'/notificar-recordatorio',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({titulo:r.titulo,desc:r.desc||'',cliente:r.cliente||''})
+  }).catch(function(){});
+}
 
 // ─── SEGUIMIENTO CORREO ───
 function renderCorreoTable(){
