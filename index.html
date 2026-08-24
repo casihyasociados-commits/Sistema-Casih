@@ -160,11 +160,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tab.active{background:var(--bg4);color:var(--text);}
 
 /* ══════════ INICIO — NAV GRANDE ══════════ */
-.home-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--sp-3);margin-bottom:24px;}
-.home-nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 12px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s,transform .15s;}
+.home-nav{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-bottom:24px;}
+.home-nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 16px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s,transform .15s;text-align:center;}
 .home-nav-btn:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-2px);}
 .home-nav-ico{font-size:28px;line-height:1;}
-.home-nav-lbl{font-size:var(--fs-sm);font-weight:600;}
+.home-nav-lbl{font-size:var(--fs-base);font-weight:600;}
+.home-nav-desc{font-size:var(--fs-xs);color:var(--text3);font-weight:400;}
 
 /* ══════════ BUSCADOR ══════════ */
 .buscador{position:relative;margin-bottom:var(--sp-4);max-width:420px;}
@@ -437,10 +438,10 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="dash-nuevos-clientes-list"><div class="hint">Sin clientes nuevos para revisar ✓</div></div>
   </div>
   <div class="home-nav">
-    <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span></button>
-    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span></button>
-    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Administración</span></button>
-    <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span></button>
+    <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span><span class="home-nav-desc">Carpetas, búsqueda y seguimiento de correo</span></button>
+    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span><span class="home-nav-desc">Calendario, eventos y recordatorios</span></button>
+    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Administración</span><span class="home-nav-desc">Gastos, ingresos y estudios médicos</span></button>
+    <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span><span class="home-nav-desc">Denuncias y telegramas con IA</span></button>
   </div>
   <div class="card" style="margin-bottom:0">
     <div class="card-head">
