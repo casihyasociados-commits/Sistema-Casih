@@ -87,7 +87,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* ══════════ LAYOUT DE PÁGINA ══════════ */
 .main{flex:1;padding:var(--sp-7) var(--sp-6);max-width:1340px;margin:0 auto;width:100%;}
-.full-bleed{width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:var(--sp-6);padding-right:var(--sp-6);box-sizing:border-box;}
 .section{display:none;}.section.active{display:block;}
 .page-title{font-family:'DM Serif Display',serif;font-size:var(--fs-3xl);line-height:1.15;color:var(--text);margin-bottom:var(--sp-1);}
 .page-sub{font-size:var(--fs-sm);color:var(--text3);margin-bottom:var(--sp-6);}
@@ -413,7 +412,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn active" onclick="goTo('dashboard')">Inicio</button>
     <button class="nav-btn" onclick="goTo('clientes')">Clientes</button>
     <button class="nav-btn" onclick="goTo('tareas')">Agenda</button>
-    <button class="nav-btn" onclick="goTo('admin')">Administración</button>
+    <button class="nav-btn" onclick="goTo('admin')">Contable</button>
     <button class="nav-btn" onclick="goTo('escritos')">Escritos IA</button>
   </div>
   <div class="user-badge">
@@ -439,7 +438,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="home-nav">
     <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span><span class="home-nav-desc">Carpetas, búsqueda y seguimiento de correo</span></button>
     <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span><span class="home-nav-desc">Calendario, eventos y recordatorios</span></button>
-    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Administración</span><span class="home-nav-desc">Gastos, ingresos y estudios médicos</span></button>
+    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Contable</span><span class="home-nav-desc">Gastos, ingresos y estudios médicos</span></button>
     <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span><span class="home-nav-desc">Denuncias y telegramas con IA</span></button>
   </div>
   <div class="card" style="margin-bottom:0">
@@ -476,23 +475,21 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div id="cli-correo-list"><div class="hint">Sin envíos cargados.</div></div>
   </div>
-  <div class="full-bleed">
-    <div class="sec-lbl">Carpetas</div>
-    <div class="tabs" id="c-tabs">
-      <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
-      <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
-      <button class="tab" onclick="setCtab('consumidor')">⚖️ Defensa del Consumidor</button>
-      <button class="tab" onclick="setCtab('finalizado')">✅ Finalizados</button>
-    </div>
-    <div class="buscador">
-      <span class="buscador-ico">🔍</span>
-      <input class="fi buscador-input" id="c-buscar" placeholder="Buscar cliente por nombre o apellido..." oninput="renderClientes();renderConsumidorGrid()" autocomplete="off">
-      <button class="buscador-x" id="c-buscar-x" onclick="limpiarBusquedaClientes()" title="Limpiar">✕</button>
-    </div>
-    <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
-    <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
-    <div id="sec-consumidor-grid" style="display:none"></div>
+  <div class="sec-lbl">Carpetas</div>
+  <div class="tabs" id="c-tabs">
+    <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
+    <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
+    <button class="tab" onclick="setCtab('consumidor')">⚖️ Defensa del Consumidor</button>
+    <button class="tab" onclick="setCtab('finalizado')">✅ Finalizados</button>
   </div>
+  <div class="buscador">
+    <span class="buscador-ico">🔍</span>
+    <input class="fi buscador-input" id="c-buscar" placeholder="Buscar cliente por nombre o apellido..." oninput="renderClientes();renderConsumidorGrid()" autocomplete="off">
+    <button class="buscador-x" id="c-buscar-x" onclick="limpiarBusquedaClientes()" title="Limpiar">✕</button>
+  </div>
+  <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
+  <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
+  <div id="sec-consumidor-grid" style="display:none"></div>
 </div>
 
 <!-- TAREAS -->
@@ -539,7 +536,7 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- ADMINISTRACIÓN -->
 <div class="section" id="sec-admin">
   <div class="page-header">
-    <div><div class="page-title">Administración</div><div class="page-sub">Cargá gastos, ingresos y estudios médicos</div></div>
+    <div><div class="page-title">Contable</div><div class="page-sub">Cargá gastos, ingresos y estudios médicos</div></div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -576,10 +573,9 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
   <div class="card" id="adm-balances-cta">
     <div class="card-head">
-      <span class="card-head-title">🔒 Balances del mes</span>
+      <span class="card-head-title">Balance</span>
       <button class="btn-primary" onclick="document.getElementById('adm-locked').style.display='block';document.getElementById('adm-balances-cta').style.display='none';">Ver balances</button>
     </div>
-    <div class="hint">Ingresos, gastos, resultado neto y honorarios sin cobrar. Protegido con PIN.</div>
   </div>
   <div id="adm-unlocked" style="display:none">
     <div class="page-header">
@@ -611,11 +607,11 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div id="adm-ingresos">
       <div class="card-head"><div style="font-size:13px;color:var(--text2)">Ingresos del mes</div><button class="btn-primary" onclick="prepararModalIngreso()">+ Agregar ingreso</button></div>
-      <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Cliente</th><th>Categoría</th><th>Monto</th><th></th></tr><tbody id="ing-table"></tbody></table></div>
+      <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Cliente</th><th>Monto</th><th></th></tr><tbody id="ing-table"></tbody></table></div>
     </div>
     <div id="adm-gastos" style="display:none">
       <div class="card-head"><div style="font-size:13px;color:var(--text2)">Todos los gastos del mes</div><button class="btn-primary" onclick="prepararModalGasto()">+ Agregar gasto</button></div>
-      <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Cargado por</th><th>Monto</th><th></th></tr><tbody id="gas-table"></tbody></table></div>
+      <div class="card"><table><tr><th>Fecha</th><th>Concepto</th><th>Cargado por</th><th>Monto</th><th></th></tr><tbody id="gas-table"></tbody></table></div>
     </div>
     <div id="adm-analisis" style="display:none">
       <div class="card" style="margin-bottom:12px">
@@ -623,11 +619,7 @@ input.currency-input{letter-spacing:0.5px;}
         <canvas id="chart-mensual" style="max-height:280px"></canvas>
       </div>
       <div class="grid2">
-        <div class="card" style="margin-bottom:0">
-          <div class="card-title">Gastos por categoría</div>
-          <canvas id="chart-categorias" style="max-height:220px"></canvas>
-        </div>
-        <div class="card" style="margin-bottom:0">
+        <div class="card" style="margin-bottom:0;grid-column:1/-1">
           <div class="card-title">Resumen mensual</div>
           <table><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th></tr><tbody id="anual-table"></tbody></table>
         </div>
@@ -963,7 +955,6 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="in-co" placeholder="Ej: Cobro honorarios García 1° cuota"></div>
     <div class="fg"><div class="fl">Cliente</div><input class="fi" id="in-cl" placeholder="Apellido, Nombre"></div>
-    <div class="fg"><div class="fl">Categoría</div><select class="fs" id="in-cat"><option value="honorarios">Cobro de honorarios</option><option value="anticipo">Anticipo</option><option value="reintegro">Reintegro</option><option value="otro">Otro</option></select></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-ingreso')">Cancelar</button><button class="btn-primary" onclick="saveIngreso()">Guardar</button></div>
   </div>
 </div>
@@ -979,7 +970,6 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Año</div><select class="fs" id="ga-anio"><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option></select></div>
     </div>
     <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="ga-co" placeholder="Ej: Alquiler oficina"></div>
-    <div class="fg"><div class="fl">Categoría</div><select class="fs" id="ga-cat"><option value="servicios">Servicios</option><option value="oficina">Gastos de oficina</option><option value="procesales">Gastos procesales</option><option value="varios">Gastos varios</option><option value="fijo">Fijo (alquiler, sueldos)</option><option value="impuesto">Impuestos</option></select></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-gasto')">Cancelar</button><button class="btn-primary" onclick="saveGasto()">Guardar</button></div>
   </div>
 </div>
@@ -1263,8 +1253,6 @@ function lockAdm(){
 
 // ─── ADMINISTRACIÓN ───
 var mesesNombre={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
-var catLbl={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',varios:'Varios',fijo:'Fijo',impuesto:'Impuesto',honorarios:'Honorarios',anticipo:'Anticipo',reintegro:'Reintegro',otro:'Otro'};
-var catCls={servicios:'b-blue',oficina:'b-purple',procesales:'b-orange',varios:'b-gray',fijo:'b-blue',impuesto:'b-red',honorarios:'b-green',anticipo:'b-green'};
 
 function setAdmTab(t){
   ['ingresos','gastos','analisis','check'].forEach(function(x){var el=document.getElementById('adm-'+x);if(el)el.style.display=x===t?'block':'none';});
@@ -1322,12 +1310,12 @@ function _updateAdmTotales(ing,gas,list3){
 }
 
 function renderIngTable(list){
-  document.getElementById('ing-table').innerHTML=list.length===0?'<tr><td colspan="6" class="hint hint-center">Sin ingresos este mes.</td></tr>':
-    list.map(function(i){return '<tr><td>'+(i.fecha||'').slice(8)+'/'+(i.fecha||'').slice(5,7)+'</td><td>'+i.concepto+'</td><td style="color:var(--text3)">'+(i.cliente||'')+'</td><td><span class="badge '+(catCls[i.cat]||'b-gray')+'">'+(catLbl[i.cat]||i.cat)+'</span></td><td style="color:var(--green);font-weight:600">'+fmtARS(i.monto)+'</td><td><button class="btn-danger" onclick="delDoc(\'ingresos\',\''+i.id+'\')">✕</button></td></tr>';}).join('');
+  document.getElementById('ing-table').innerHTML=list.length===0?'<tr><td colspan="5" class="hint hint-center">Sin ingresos este mes.</td></tr>':
+    list.map(function(i){return '<tr><td>'+(i.fecha||'').slice(8)+'/'+(i.fecha||'').slice(5,7)+'</td><td>'+i.concepto+'</td><td style="color:var(--text3)">'+(i.cliente||'')+'</td><td style="color:var(--green);font-weight:600">'+fmtARS(i.monto)+'</td><td><button class="btn-danger" onclick="delDoc(\'ingresos\',\''+i.id+'\')">✕</button></td></tr>';}).join('');
 }
 function renderGasTable(list){
-  document.getElementById('gas-table').innerHTML=list.length===0?'<tr><td colspan="6" class="hint hint-center">Sin gastos este mes.</td></tr>':
-    list.map(function(g){return '<tr><td>'+(g.fecha||'').slice(8)+'/'+(g.fecha||'').slice(5,7)+'</td><td>'+g.concepto+'</td><td><span class="badge '+(catCls[g.cat]||'b-gray')+'">'+(catLbl[g.cat]||g.cat)+'</span></td><td style="color:var(--text3)">'+(g.cargadoPor||'Administración')+'</td><td style="color:var(--red);font-weight:600">'+fmtARS(g.monto)+'</td><td><button class="btn-danger" onclick="delDoc(\'gastos\',\''+g.id+'\')">✕</button></td></tr>';}).join('');
+  document.getElementById('gas-table').innerHTML=list.length===0?'<tr><td colspan="5" class="hint hint-center">Sin gastos este mes.</td></tr>':
+    list.map(function(g){return '<tr><td>'+(g.fecha||'').slice(8)+'/'+(g.fecha||'').slice(5,7)+'</td><td>'+g.concepto+'</td><td style="color:var(--text3)">'+(g.cargadoPor||'Administración')+'</td><td style="color:var(--red);font-weight:600">'+fmtARS(g.monto)+'</td><td><button class="btn-danger" onclick="delDoc(\'gastos\',\''+g.id+'\')">✕</button></td></tr>';}).join('');
 }
 function renderHonTable(list){
   var eCls={pendiente:'b-red',parcial:'b-orange',cobrado:'b-green'};
@@ -1364,7 +1352,7 @@ function saveIngreso(){
   var mes=document.getElementById('in-mes')?document.getElementById('in-mes').value:fe.slice(5,7);
   var anio=document.getElementById('in-anio')?document.getElementById('in-anio').value:fe.slice(0,4);
   var mesKey=anio+'-'+mes;
-  db.collection('ingresos').add({fecha:fe,concepto:co,cliente:document.getElementById('in-cl').value.trim(),cat:document.getElementById('in-cat').value,monto:mo,mes:mes,anio:anio,mesKey:mesKey,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-ingreso');updateAdm();showToast('Ingreso guardado ✓');});
+  db.collection('ingresos').add({fecha:fe,concepto:co,cliente:document.getElementById('in-cl').value.trim(),monto:mo,mes:mes,anio:anio,mesKey:mesKey,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-ingreso');updateAdm();showToast('Ingreso guardado ✓');});
 }
 function saveGasto(){
   var co=document.getElementById('ga-co').value.trim(),mo=getCurrencyValue(document.getElementById('ga-mo'));
@@ -1373,7 +1361,7 @@ function saveGasto(){
   var mes=document.getElementById('ga-mes')?document.getElementById('ga-mes').value:fe.slice(5,7);
   var anio=document.getElementById('ga-anio')?document.getElementById('ga-anio').value:fe.slice(0,4);
   var mesKey=anio+'-'+mes;
-  db.collection('gastos').add({fecha:fe,concepto:co,cat:document.getElementById('ga-cat').value,cargadoPor:currentUserData.nombre,monto:mo,mes:mes,anio:anio,mesKey:mesKey,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-gasto');updateAdm();showToast('Gasto guardado ✓');});
+  db.collection('gastos').add({fecha:fe,concepto:co,cargadoPor:currentUserData.nombre,monto:mo,mes:mes,anio:anio,mesKey:mesKey,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-gasto');updateAdm();showToast('Gasto guardado ✓');});
 }
 function delDoc(col,id){if(!confirm('¿Eliminar?'))return;db.collection(col).doc(id).delete().then(function(){updateAdm();showToast('Eliminado ✓');});}
 
@@ -2885,20 +2873,18 @@ function cargarModelosDesideDrive(){
 }
 
 // ─── ANÁLISIS CON GRÁFICOS ───
-var chartMensual=null,chartCat=null;
+var chartMensual=null;
 function renderAnalisis(){
   var meses=['01','02','03','04','05','06','07','08','09','10','11','12'];
   var mesesNom=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  var ingData={},gasData={},catData={};
+  var ingData={},gasData={};
   Promise.all([
     db.collection('ingresos').get().then(function(s){s.forEach(function(d){var x=d.data();ingData[x.mes]=(ingData[x.mes]||0)+(x.monto||0);});}),
-    db.collection('gastos').get().then(function(s){s.forEach(function(d){var x=d.data();gasData[x.mes]=(gasData[x.mes]||0)+(x.monto||0);catData[x.cat]=(catData[x.cat]||0)+(x.monto||0);});})
+    db.collection('gastos').get().then(function(s){s.forEach(function(d){var x=d.data();gasData[x.mes]=(gasData[x.mes]||0)+(x.monto||0);});})
   ]).then(function(){
     var ingArr=meses.map(function(m){return ingData[m]||0;});var gasArr=meses.map(function(m){return gasData[m]||0;});var resArr=ingArr.map(function(v,i){return v-gasArr[i];});
     var ctx1=document.getElementById('chart-mensual');
     if(ctx1){if(chartMensual)chartMensual.destroy();chartMensual=new Chart(ctx1,{type:'bar',data:{labels:mesesNom,datasets:[{label:'Ingresos',data:ingArr,backgroundColor:'rgba(61,214,140,0.7)',borderColor:PALETA.green,borderWidth:1},{label:'Gastos',data:gasArr,backgroundColor:'rgba(226,84,84,0.7)',borderColor:PALETA.red,borderWidth:1},{label:'Resultado',data:resArr,type:'line',borderColor:PALETA.blue,backgroundColor:'rgba(74,144,226,0.1)',borderWidth:2,fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{labels:{color:PALETA.text2}}},scales:{x:{ticks:{color:PALETA.text3}},y:{ticks:{color:PALETA.text3,callback:function(v){return '$'+Math.round(v/1000)+'K';}}}}}})}
-    var ctx2=document.getElementById('chart-categorias');
-    if(ctx2&&Object.keys(catData).length>0){if(chartCat)chartCat.destroy();var catLblMap={servicios:'Servicios',oficina:'Oficina',procesales:'Procesales',varios:'Varios',fijo:'Fijo',impuesto:'Impuestos',honorarios:'Honorarios'};var cats=Object.keys(catData);var colors=[PALETA.blue,PALETA.green,PALETA.orange,PALETA.red,PALETA.purple,PALETA.text3,PALETA.teal];chartCat=new Chart(ctx2,{type:'doughnut',data:{labels:cats.map(function(k){return catLblMap[k]||k;}),datasets:[{data:cats.map(function(k){return catData[k];}),backgroundColor:colors.slice(0,cats.length),borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:PALETA.text2,font:{size:12}}}}}});}
     var rows='',tI=0,tG=0;
     meses.forEach(function(m,i){var ing=ingData[m]||0,gas=gasData[m]||0;if(ing===0&&gas===0)return;var n=ing-gas;tI+=ing;tG+=gas;rows+='<tr><td>'+mesesNom[i]+'</td><td style="color:var(--green)">$'+Math.round(ing).toLocaleString('es-AR')+'</td><td style="color:var(--red)">$'+Math.round(gas).toLocaleString('es-AR')+'</td><td style="color:'+(n>=0?'var(--green)':'var(--red)')+';font-weight:600">$'+Math.round(n).toLocaleString('es-AR')+'</td></tr>';});
     if(!rows)rows='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:1rem">Sin datos aún.</td></tr>';
@@ -2978,23 +2964,6 @@ function _generarPDF(mesNombre,ingresos,gastos,totalIng,totalGas){
   var neto=totalIng-totalGas;
   var pct=totalIng>0?Math.round(neto/totalIng*100):0;
 
-  // Agrupar ingresos por categoría
-  var ingCats={};
-  ingresos.forEach(function(i){var c=catLbl[i.cat]||i.cat||'Otro';ingCats[c]=(ingCats[c]||0)+(i.monto||0);});
-
-  // Agrupar gastos por categoría
-  var gasCats={};
-  gastos.forEach(function(g){var c=catLbl[g.cat]||g.cat||'Otro';gasCats[c]=(gasCats[c]||0)+(g.monto||0);});
-
-  // Colores para torta
-  var colores=[PALETA.blue,PALETA.green,PALETA.orange,PALETA.red,PALETA.purple,PALETA.teal,PALETA.yellow];
-
-  // Datos gráfico torta gastos
-  var gasCatKeys=Object.keys(gasCats);
-  var gastosDataStr=JSON.stringify(gasCatKeys.map(function(k){return gasCats[k];}));
-  var gastosLabelsStr=JSON.stringify(gasCatKeys);
-  var gastosColorsStr=JSON.stringify(colores.slice(0,gasCatKeys.length));
-
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8">';
   html+='<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>';
   html+='<style>';
@@ -3014,15 +2983,9 @@ function _generarPDF(mesNombre,ingresos,gastos,totalIng,totalGas){
   html+='.metric-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}';
   html+='.metric-val{font-size:24px;font-weight:800}';
   html+='.metric-sub{font-size:11px;color:#888;margin-top:4px}';
-  html+='.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px}';
+  html+='.charts{margin-bottom:32px}';
   html+='.chart-box{background:#fafafa;border-radius:12px;padding:20px}';
   html+='.chart-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}';
-  html+='.cats{margin-bottom:28px}';
-  html+='.cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}';
-  html+='.cat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f5f5f5;border-radius:8px;font-size:12px}';
-  html+='.cat-name{color:#555}';
-  html+='.cat-val{font-weight:700}';
-  html+='.cat-pct{font-size:10px;color:#888;margin-left:6px}';
   html+='.neto-bar{background:'+(neto>=0?'#e8f7ef':'#fde8e8')+';border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}';
   html+='.neto-label{font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.06em}';
   html+='.neto-val{font-size:28px;font-weight:800;color:'+(neto>=0?'#1a8a4a':'#c0392b')+'}';
@@ -3046,36 +3009,9 @@ function _generarPDF(mesNombre,ingresos,gastos,totalIng,totalGas){
   // Barra resultado
   html+='<div class="neto-bar"><div><div class="neto-label">Resultado del mes</div><div class="neto-val">'+fmtARS(neto)+'</div></div><div class="neto-tag">'+(neto>=0?'Superávit':'Déficit')+'</div></div>';
 
-  // Gráficos
+  // Gráfico
   html+='<div class="charts">';
-  // Barras ingresos vs gastos
-  html+='<div class="chart-box"><div class="chart-title">Ingresos vs Gastos</div><canvas id="barChart" height="200"></canvas></div>';
-  // Torta gastos por categoría
-  html+='<div class="chart-box"><div class="chart-title">Gastos por categoría</div>';
-  if(gasCatKeys.length>0){html+='<canvas id="pieChart" height="200"></canvas>';}
-  else{html+='<div style="text-align:center;padding:40px;color:#bbb;font-size:12px">Sin gastos registrados</div>';}
-  html+='</div></div>';
-
-  // Detalle por categoría
-  html+='<div class="cats">';
-  if(Object.keys(ingCats).length>0){
-    html+='<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Ingresos por categoría</div>';
-    html+='<div class="cats-grid">';
-    Object.keys(ingCats).forEach(function(c){
-      var pctCat=totalIng>0?Math.round(ingCats[c]/totalIng*100):0;
-      html+='<div class="cat-row"><span class="cat-name">'+c+'</span><span><span class="cat-val" style="color:#1a8a4a">'+fmtARS(ingCats[c])+'</span><span class="cat-pct">'+pctCat+'%</span></span></div>';
-    });
-    html+='</div>';
-  }
-  if(gasCatKeys.length>0){
-    html+='<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px">Gastos por categoría</div>';
-    html+='<div class="cats-grid">';
-    gasCatKeys.forEach(function(c,i){
-      var pctCat=totalGas>0?Math.round(gasCats[c]/totalGas*100):0;
-      html+='<div class="cat-row"><span class="cat-name">'+c+'</span><span><span class="cat-val" style="color:'+colores[i%colores.length]+'">'+fmtARS(gasCats[c])+'</span><span class="cat-pct">'+pctCat+'%</span></span></div>';
-    });
-    html+='</div>';
-  }
+  html+='<div class="chart-box"><div class="chart-title">Ingresos vs Gastos</div><canvas id="barChart" height="120"></canvas></div>';
   html+='</div>';
 
   html+='<div class="footer">Generado el '+new Date().toLocaleDateString('es-AR')+' · Casih & Asociados · Uso interno</div>';
@@ -3086,11 +3022,6 @@ function _generarPDF(mesNombre,ingresos,gastos,totalIng,totalGas){
   // Barra
   html+='var ctx1=document.getElementById("barChart").getContext("2d");';
   html+='new Chart(ctx1,{type:"bar",data:{labels:["Ingresos","Gastos"],datasets:[{data:['+totalIng+','+totalGas+'],backgroundColor:["#1a8a4a","#c0392b"],borderRadius:8,barThickness:60}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return "$"+Math.round(v/1000)+"K"}},grid:{color:"#f0f0f0"}},x:{grid:{display:false}}},responsive:true}});';
-  // Torta
-  if(gasCatKeys.length>0){
-    html+='var ctx2=document.getElementById("pieChart").getContext("2d");';
-    html+='new Chart(ctx2,{type:"doughnut",data:{labels:'+gastosLabelsStr+',datasets:[{data:'+gastosDataStr+',backgroundColor:'+gastosColorsStr+',borderWidth:2,borderColor:"#fff"}]},options:{plugins:{legend:{position:"bottom",labels:{font:{size:10},padding:8}}},responsive:true,cutout:"55%"}});';
-  }
   html+='};';
   html+='<\/script></body></html>';
 
