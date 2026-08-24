@@ -226,6 +226,36 @@ def notificar_recordatorio():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+# --- RECORDATORIOS DE HOY (para sumar a la agenda diaria) ---
+@app.route('/recordatorios-del-dia', methods=['GET'])
+def recordatorios_del_dia():
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    hoy = datetime.now(tz).strftime('%Y-%m-%d')
+    items = []
+    try:
+        docs = db.collection('recordatorios').where('fecha', '==', hoy).stream()
+        for doc in docs:
+            r = doc.to_dict()
+            titulo = (r.get('titulo') or '').strip()
+            desc = (r.get('desc') or '').strip()
+            cliente = (r.get('cliente') or '').strip()
+            if titulo:
+                texto = titulo
+                if desc:
+                    texto += ' — ' + desc
+                if cliente:
+                    texto += ' (Cliente: %s)' % cliente
+            else:
+                texto = desc
+            if texto:
+                items.append({'texto': texto, 'hora': r.get('hora') or ''})
+    except Exception as e:
+        print("Error obteniendo recordatorios del dia:", str(e))
+    items.sort(key=lambda x: x['hora'] or '99:99')
+    resp = jsonify(items)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
 def webhook():

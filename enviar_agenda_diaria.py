@@ -32,6 +32,15 @@ def obtener_eventos_hoy():
     
     return events_result.get('items', []), ahora.strftime("%d/%m/%Y")
 
+def obtener_recordatorios_hoy():
+    try:
+        r = requests.get("https://sistema-casih.onrender.com/recordatorios-del-dia", timeout=15)
+        r.raise_for_status()
+        return r.json()
+    except Exception as e:
+        print("No se pudieron obtener los recordatorios del día:", str(e))
+        return []
+
 def enviar_whatsapp(mensaje):
     instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
     token = os.environ.get("GREEN_API_TOKEN")
@@ -51,22 +60,31 @@ def enviar_whatsapp(mensaje):
 if __name__ == "__main__":
     try:
         eventos, fecha_str = obtener_eventos_hoy()
-        
+        recordatorios = obtener_recordatorios_hoy()
+
         texto_mensaje = f"📅 *AGENDA DEL DÍA - {fecha_str}*\n\n"
-        
+
         if not eventos:
-            texto_mensaje += "🎉 ¡No hay eventos ni reuniones agendadas para hoy!"
+            texto_mensaje += "🎉 ¡No hay eventos ni reuniones agendadas para hoy!\n"
         else:
             for evento in eventos:
                 start = evento['start'].get('dateTime', evento['start'].get('date'))
                 summary = evento.get('summary', 'Sin título')
-                
+
                 if 'T' in start:
                     hora = start.split('T')[1][:5]
                     texto_mensaje += f"⏰ *{hora} hs* - {summary}\n"
                 else:
                     texto_mensaje += f"📌 *Todo el día* - {summary}\n"
-        
+
+        if recordatorios:
+            texto_mensaje += "\n🔔 *RECORDATORIOS DE HOY*\n\n"
+            for r in recordatorios:
+                if r.get('hora'):
+                    texto_mensaje += f"🕐 *{r['hora']} hs* - {r['texto']}\n"
+                else:
+                    texto_mensaje += f"• {r['texto']}\n"
+
         res = enviar_whatsapp(texto_mensaje)
         print("Mensaje enviado con éxito:", res)
         
