@@ -2217,8 +2217,9 @@ function loadCalendarEvents(){
 }
 
 function renderEventos(){
-  var list=[...EVENTOS_CACHE].sort(function(a,b){return a.fecha>b.fecha?1:-1;});
-  if(list.length===0){document.getElementById('ev-list').innerHTML='<div class="empty-state">Sin eventos.</div>';return;}
+  var hoy=fmt(today);
+  var list=EVENTOS_CACHE.filter(function(e){return e.fecha>=hoy;}).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+  if(list.length===0){document.getElementById('ev-list').innerHTML='<div class="empty-state">Sin eventos próximos.</div>';return;}
   var groups={};list.forEach(function(e){if(!groups[e.fecha])groups[e.fecha]=[];groups[e.fecha].push(e);});
   var html='';Object.keys(groups).sort().forEach(function(d){
     html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
