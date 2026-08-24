@@ -2065,6 +2065,25 @@ var calConnected=false,tokenClient;
 
 function initCalendar(){
   renderHoyAgenda();
+  intentarConectarCalendarioAuto();
+}
+
+// Intenta reconectar solo, sin que haga falta tocar el botón. Funciona si ya
+// se dio permiso antes en este navegador (Google lo recuerda); si nunca se
+// conectó o el navegador bloquea el intento silencioso, no pasa nada raro:
+// simplemente sigue apareciendo el botón "Conectar Google Calendar" para
+// hacerlo a mano esa vez.
+function intentarConectarCalendarioAuto(){
+  if(calConnected||typeof gapi==='undefined'||typeof google==='undefined')return;
+  gapi.load('client',function(){
+    gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
+      tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:function(resp){
+        if(resp.error)return;
+        calConnected=true;setCalStatus(true);renderHoyAgenda();setTimeout(cargarModelosDesideDrive,500);
+      }});
+      tokenClient.requestAccessToken({prompt:''});
+    });
+  });
 }
 
 function toggleCal(){
