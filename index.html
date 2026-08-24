@@ -412,8 +412,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="nav-links">
     <button class="nav-btn active" onclick="goTo('dashboard')">Inicio</button>
     <button class="nav-btn" onclick="goTo('clientes')">Clientes</button>
-    <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
-    <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
+    <button class="nav-btn" onclick="goTo('tareas')">Tareas y Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Administración</button>
     <button class="nav-btn" onclick="goTo('escritos')">Escritos IA</button>
   </div>
@@ -439,8 +438,7 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
   <div class="home-nav">
     <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span></button>
-    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">✅</span><span class="home-nav-lbl">Tareas</span></button>
-    <button class="home-nav-btn" onclick="goTo('agenda')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span></button>
+    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">✅</span><span class="home-nav-lbl">Tareas y Agenda</span></button>
     <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Administración</span></button>
     <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span></button>
   </div>
@@ -507,10 +505,11 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- TAREAS -->
 <div class="section" id="sec-tareas">
   <div class="page-header">
-    <div><div class="page-title">Tareas</div><div class="page-sub">Panel del equipo</div></div>
+    <div><div class="page-title">Tareas y Agenda</div><div class="page-sub">Panel del equipo · Google Calendar</div></div>
     <div class="btn-row">
       <button class="btn-sm" onclick="exportarTareasDia()" style="border-color:var(--green);color:var(--green)">📋 Exportar día</button>
       <button class="btn-primary" onclick="openModal('m-tarea')">+ Nueva tarea</button>
+      <button class="btn-cal" id="cal-btn" onclick="toggleCal()">Conectar Google Calendar</button>
     </div>
   </div>
   <div class="metrics-3">
@@ -524,14 +523,8 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
   <div id="task-container-diarias"></div>
   <div id="task-container-pendientes" style="display:none"></div>
-</div>
 
-<!-- AGENDA -->
-<div class="section" id="sec-agenda">
-  <div class="page-header">
-    <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · casihyasociados@gmail.com</div></div>
-    <button class="btn-cal" id="cal-btn" onclick="toggleCal()">Conectar Google Calendar</button>
-  </div>
+  <div class="sec-lbl">Agenda</div>
   <div class="card" style="margin-bottom:16px;padding:1rem">
     <div class="card-head">
       <div class="card-title" style="margin-bottom:0">Calendario semanal</div>
@@ -1271,7 +1264,7 @@ function closeModal(id){document.getElementById(id).className='modal-bg';}
 function goTo(s){
   document.querySelectorAll('.section').forEach(function(x){x.className='section';});
   document.getElementById('sec-'+s).className='section active';
-  ['dashboard','clientes','tareas','agenda','admin','escritos'].forEach(function(n,i){
+  ['dashboard','clientes','tareas','admin','escritos'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes'){
@@ -1282,8 +1275,7 @@ function goTo(s){
     document.getElementById('sec-consumidor-grid').style.display='none';
     renderClientes();
   }
-  if(s==='tareas')renderTareas();
-  if(s==='agenda')renderEventos();
+  if(s==='tareas'){renderTareas();renderEventos();}
   if(s==='dashboard'){renderDashTareas();renderDashEventos();}
 }
 
