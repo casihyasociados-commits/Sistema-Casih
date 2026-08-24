@@ -466,24 +466,15 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="metric"><div class="metric-label">Publicidad</div><div class="metric-val" style="color:var(--blue)" id="cs-pub">—</div></div>
     <div class="metric"><div class="metric-label">Der. Consumidor</div><div class="metric-val" style="color:var(--green)" id="cs-consumidor">—</div></div>
   </div>
-  <div class="grid2" style="margin-bottom:24px">
-    <div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">
-      <div class="card-head">
-        <span class="card-head-title">📦 Seguimiento Correo</span>
-        <div class="btn-row">
-          <a href="https://www.correoargentino.com.ar/" target="_blank" class="btn-primary" style="text-decoration:none">🌐 Correo Argentino</a>
-          <button class="btn-sm" onclick="openModal('m-correo')">+ Agregar</button>
-        </div>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--blue)">
+    <div class="card-head">
+      <span class="card-head-title">📦 Seguimiento Correo</span>
+      <div class="btn-row">
+        <a href="https://www.correoargentino.com.ar/" target="_blank" class="btn-primary" style="text-decoration:none">🌐 Correo Argentino</a>
+        <button class="btn-sm" onclick="openModal('m-correo')">+ Agregar</button>
       </div>
-      <div id="cli-correo-list"><div class="hint">Sin envíos cargados.</div></div>
     </div>
-    <div class="card" style="margin-bottom:0;border-left:3px solid var(--orange)">
-      <div class="card-head">
-        <span class="card-head-title">🔔 Recordatorios</span>
-        <button class="btn-primary" onclick="openModal('m-recordatorio')">+ Nuevo recordatorio</button>
-      </div>
-      <div id="cli-recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
-    </div>
+    <div id="cli-correo-list"><div class="hint">Sin envíos cargados.</div></div>
   </div>
   <div class="sec-lbl">Carpetas</div>
   <div class="tabs" id="c-tabs">
@@ -509,31 +500,32 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="btn-row">
       <button class="btn-sm" onclick="exportarTareasDia()" style="border-color:var(--green);color:var(--green)">📋 Exportar día</button>
       <button class="btn-primary" onclick="openModal('m-tarea')">+ Nueva tarea</button>
+      <button class="btn-primary" onclick="openModal('m-evento-rapido')">+ Nuevo evento</button>
       <button class="btn-cal" id="cal-btn" onclick="toggleCal()">Conectar Google Calendar</button>
     </div>
   </div>
   <div class="metrics-3">
-    <div class="metric"><div class="metric-label">Diarias hoy</div><div class="metric-val" id="ts-hoy">—</div></div>
+    <div class="metric"><div class="metric-label">Tareas hoy</div><div class="metric-val" id="ts-hoy">—</div></div>
     <div class="metric"><div class="metric-label">Prioridad alta</div><div class="metric-val" style="color:var(--red)" id="ts-alta">—</div></div>
-    <div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val" style="color:var(--orange)" id="ts-pendientes">—</div></div>
   </div>
-  <div class="tabs" id="tareas-tabs" style="margin-bottom:1rem">
-    <button class="tab active" onclick="setTareaTab('diarias')">📅 Tareas diarias</button>
-    <button class="tab" onclick="setTareaTab('pendientes')">📌 Tareas pendientes</button>
+  <div id="task-container"></div>
+
+  <div class="sec-lbl">Recordatorios</div>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--orange)">
+    <div class="card-head">
+      <span class="card-head-title">🔔 Recordatorios</span>
+      <button class="btn-primary" onclick="openModal('m-recordatorio')">+ Nuevo recordatorio</button>
+    </div>
+    <div id="cli-recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
   </div>
-  <div id="task-container-diarias"></div>
-  <div id="task-container-pendientes" style="display:none"></div>
 
   <div class="sec-lbl">Agenda</div>
   <div class="card" style="margin-bottom:16px;padding:1rem">
     <div class="card-head">
       <div class="card-title" style="margin-bottom:0">Calendario semanal</div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <button onclick="openModal('m-evento-rapido')" style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">+ Nuevo evento</button>
-        <div style="display:flex;align-items:center;gap:6px">
-          <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
-          <span id="cal-label2" class="hint">Conectando...</span>
-        </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+        <span id="cal-label2" class="hint">Conectando...</span>
       </div>
     </div>
     <iframe id="dash-gcal-iframe"
@@ -542,21 +534,9 @@ input.currency-input{letter-spacing:0.5px;}
       frameborder="0" scrolling="no">
     </iframe>
   </div>
-  <div class="agenda-layout">
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title">Nuevo evento</div>
-      <div class="fg"><div class="fl">Tipo</div><select class="fs" id="ev-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
-      <div class="fg"><div class="fl">Título *</div><input class="fi" id="ev-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
-      <div class="fg"><div class="fl">Cliente vinculado</div><div style="position:relative"><input class="fi" id="ev-cliente-search" placeholder="Escribí para buscar..." oninput="filtrarClientes('ev-cliente-search','ev-cliente-dropdown')" onfocus="filtrarClientes('ev-cliente-search','ev-cliente-dropdown')" autocomplete="off"><input type="hidden" id="ev-cliente" value=""><div id="ev-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div></div></div>
-      <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="ev-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="ev-hora" type="time"></div></div>
-      <div class="fg"><div class="fl">Lugar</div><input class="fi" id="ev-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
-      <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="ev-notas" placeholder="Detalles adicionales..."></textarea></div>
-      <button class="btn-primary" style="width:100%" onclick="addEvento()">Crear evento</button>
-    </div>
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title">Próximos eventos</div>
-      <div id="ev-list"><div class="empty-state">Sin eventos cargados.</div></div>
-    </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title">Próximos eventos</div>
+    <div id="ev-list"><div class="empty-state">Sin eventos cargados.</div></div>
   </div>
 </div>
 
@@ -955,13 +935,6 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-tarea" onclick="if(event.target===this)closeModal('m-tarea')">
   <div class="modal"><h3>Nueva tarea</h3>
-    <div class="fg"><div class="fl">Tipo</div>
-      <div class="btn-row">
-        <button id="tn-tipo-diaria" onclick="setTipoTarea('diaria')" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600">📅 Diaria</button>
-        <button id="tn-tipo-pendiente" onclick="setTipoTarea('pendiente')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px">📌 Pendiente</button>
-      </div>
-      <input type="hidden" id="tn-tipo-val" value="diaria">
-    </div>
     <div class="fg"><div class="fl">Tarea *</div><input class="fi" id="tn-ti" placeholder="Ej: Llamar a García para confirmar audiencia"></div>
     <div class="fg"><div class="fl">Descripción / detalle</div><textarea class="fta" id="tn-no" placeholder="Describí qué hay que hacer, contexto, etc..."></textarea></div>
     <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="tn-fe" type="date"></div><div class="fg"><div class="fl">Hora (opcional)</div><input class="fi" id="tn-ho" type="time"></div></div>
@@ -1045,12 +1018,8 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-evento-rapido" onclick="if(event.target===this)closeModal('m-evento-rapido')">
   <div class="modal"><h3>Nuevo evento</h3>
-    <div class="fg"><div class="fl">Tipo</div><select class="fs" id="er-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
-    <div class="fg"><div class="fl">Título *</div><input class="fi" id="er-titulo" placeholder="Ej: Audiencia García c/ Empresa SA"></div>
-    <div class="fg"><div class="fl">Cliente</div><input class="fi" id="er-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'er-cliente')"><select class="fs" id="er-cliente" style="margin-top:4px"><option value="">— Sin cliente —</option></select></div>
-    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="er-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="er-hora" type="time"></div></div>
-    <div class="fg"><div class="fl">Lugar</div><input class="fi" id="er-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
-    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="er-notas" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="fg"><div class="fl">¿Qué es el evento? *</div><textarea class="fta" id="er-desc" placeholder="Ej: Audiencia García c/ Empresa SA"></textarea></div>
+    <div class="g2"><div class="fg"><div class="fl">Fecha *</div><input class="fi" id="er-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="er-hora" type="time"></div></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-evento-rapido')">Cancelar</button><button class="btn-primary" onclick="saveEventoRapido()">Guardar evento</button></div>
   </div>
 </div>
@@ -1167,19 +1136,6 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal"><h3>Reporte del día</h3>
     <div class="fg"><textarea class="fta" id="export-preview" style="min-height:200px;font-family:monospace;font-size:12px" readonly></textarea></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-export-tareas')">Cerrar</button><button class="btn-primary" onclick="if(navigator.clipboard)navigator.clipboard.writeText(document.getElementById('export-preview').value).then(function(){showToast('Copiado ✓')})">Copiar</button></div>
-  </div>
-</div>
-
-<!-- MODAL EVENTO DASHBOARD -->
-<div class="modal-bg" id="m-evento-dash" onclick="if(event.target===this)closeModal('m-evento-dash')">
-  <div class="modal"><h3>Nuevo evento</h3>
-    <div class="fg"><div class="fl">Tipo</div><select class="fs" id="ed-tipo"><option value="audiencia">Audiencia</option><option value="cita">Cita con cliente</option><option value="vencimiento">Vencimiento procesal</option><option value="reunion">Reunión interna</option></select></div>
-    <div class="fg"><div class="fl">Título *</div><input class="fi" id="ed-titulo" placeholder="Ej: Audiencia García c/ Transporte Norte"></div>
-    <div class="fg"><div class="fl">Cliente vinculado</div><select class="fs" id="ed-cliente"><option value="">— Sin cliente —</option></select></div>
-    <div class="g2"><div class="fg"><div class="fl">Fecha</div><input class="fi" id="ed-fecha" type="date"></div><div class="fg"><div class="fl">Hora</div><input class="fi" id="ed-hora" type="time"></div></div>
-    <div class="fg"><div class="fl">Lugar (opcional)</div><input class="fi" id="ed-lugar" placeholder="Ej: Cámara del Trabajo, Sala 3"></div>
-    <div class="fg"><div class="fl">Notas</div><textarea class="fta" id="ed-notas" placeholder="Detalles..."></textarea></div>
-    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-evento-dash')">Cancelar</button><button class="btn-primary" onclick="saveEventoDash()">Crear evento</button></div>
   </div>
 </div>
 
@@ -1489,7 +1445,7 @@ function ordenAlfabetico(a,b){
 
 function updateClienteSelects(){
   var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
-  ['ev-cliente','tn-cl','er-cliente','hd-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
+  ['tn-cl','hd-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
 }
 
 function setCtab(t){
@@ -1994,13 +1950,6 @@ function subirArchivoADrive(file,folderId,clienteNombre,onSuccess,onError){
 
 function eliminarCliente(id){if(!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.'))return;db.collection('clientes').doc(id).delete().then(function(){showToast('Cliente eliminado ✓');});}
 
-function agendarCita(id,nombre){
-  document.getElementById('er-tipo').value='cita';
-  document.getElementById('er-titulo').value='Cita — '+nombre;
-  setTimeout(function(){var sel=document.getElementById('er-cliente');if(sel){for(var i=0;i<sel.options.length;i++){if(sel.options[i].text===nombre){sel.selectedIndex=i;break;}}}},100);
-  openModal('m-evento-rapido');
-}
-
 function vincularCarpeta(clienteId,nombreCliente){
   showToast('Conectando con Google Drive...');
   crearCarpetaCliente(nombreCliente,function(folderId,folderLink){
@@ -2125,14 +2074,13 @@ function initTareas(){
   startTareasListener(true);
 }
 
-function updTStats(diarias,pendientes,ts){
-  ts=ts||fmt(today);diarias=diarias||TAREAS_CACHE.filter(function(t){return t.tipo!=='pendiente';});pendientes=pendientes||TAREAS_CACHE.filter(function(t){return t.tipo==='pendiente';});
-  var hoy=diarias.filter(function(t){return t.fecha===ts;}).length;
+function updTStats(ts){
+  ts=ts||fmt(today);
+  var hoy=TAREAS_CACHE.filter(function(t){return t.fecha===ts;}).length;
   var alta=TAREAS_CACHE.filter(function(t){return t.prio==='alta';}).length;
   var el;
   el=document.getElementById('ts-hoy');if(el)el.textContent=hoy;
   el=document.getElementById('ts-alta');if(el)el.textContent=alta;
-  el=document.getElementById('ts-pendientes');if(el)el.textContent=pendientes.length;
   el=document.getElementById('dm-tareas');if(el)el.textContent=hoy;
 }
 
@@ -2162,32 +2110,26 @@ function renderDashTareas(){
 }
 
 function renderTareas(){
-  var ts=fmt(today);
+  var cont=document.getElementById('task-container');
+  if(!cont)return;
   var all=[...TAREAS_CACHE].sort(function(a,b){var po={alta:0,media:1,baja:2};return a.fecha!==b.fecha?a.fecha>b.fecha?1:-1:po[a.prio]-po[b.prio];});
-  var diarias=all.filter(function(t){return t.tipo!=='pendiente';});
-  var pendientes=all.filter(function(t){return t.tipo==='pendiente';});
-  function buildTaskHTML(list,showMover,moverLabel,moverTipo){
-    if(list.length===0)return '<div class="empty-state">Sin tareas. Usá el botón para agregar.</div>';
+  if(all.length===0){cont.innerHTML='<div class="empty-state">Sin tareas. Usá el botón para agregar.</div>';}
+  else{
     var groups={};
-    list.forEach(function(t){var key=t.fecha||'sin-fecha';if(!groups[key])groups[key]=[];groups[key].push(t);});
+    all.forEach(function(t){var key=t.fecha||'sin-fecha';if(!groups[key])groups[key]=[];groups[key].push(t);});
     var html='';
     Object.keys(groups).sort().forEach(function(d){
       html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
       groups[d].forEach(function(t){
         html+='<div class="task-item" id="ti-'+t.id+'"><div class="task-body"><div class="task-title">'+t.titulo+'</div><div class="task-meta"><span class="badge '+(pCls[t.prio]||'b-gray')+'">'+(pLbl[t.prio]||'Sin prioridad')+'</span>'+(t.hora?'<span class="task-chip">'+t.hora+'hs</span>':'')+(t.cliente?'<span class="task-chip">'+t.cliente+'</span>':'')+'</div>'+(t.notas?'<div class="task-detail">'+t.notas+'</div>':'')+
-        '</div><div class="task-right"><button class="btn-done" onclick="markDone(\''+t.id+'\')">Realizada ✓</button>'+(showMover?'<button class="btn-sm" onclick="moverTarea(\''+t.id+'\',\''+moverTipo+'\')">'+moverLabel+'</button>':'')+
+        '</div><div class="task-right"><button class="btn-done" onclick="markDone(\''+t.id+'\')">Realizada ✓</button>'+
         '<button class="btn-sm" onclick="editTarea(\''+t.id+'\')">Editar</button></div></div>';
       });
     });
-    return html;
+    cont.innerHTML=html;
   }
-  var contD=document.getElementById('task-container-diarias');var contP=document.getElementById('task-container-pendientes');
-  if(contD)contD.innerHTML=buildTaskHTML(diarias,true,'→ Pendiente','pendiente');
-  if(contP)contP.innerHTML=buildTaskHTML(pendientes,true,'→ Diaria','diaria');
-  updTStats(diarias,pendientes,ts);
+  updTStats();
 }
-
-function moverTarea(id,nuevoTipo){db.collection('tareas').doc(id).set({tipo:nuevoTipo},{merge:true}).then(function(){showToast('Tarea movida ✓');});}
 
 function markDone(id){
   var el=document.getElementById('ti-'+id);
@@ -2218,11 +2160,10 @@ function editTarea(id){
 
 function saveTarea(){
   var ti=document.getElementById('tn-ti').value.trim();if(!ti){alert('La descripción es obligatoria.');return;}
-  var tipoVal=document.getElementById('tn-tipo-val');var tipo=tipoVal?tipoVal.value:'diaria';
   var clienteHidden=document.getElementById('tn-cl');var clienteSearch=document.getElementById('tn-cl-search');
   var cliente=clienteHidden?clienteHidden.value:(clienteSearch?clienteSearch.value:'');
-  db.collection('tareas').add({titulo:ti,tipo:tipo,prio:document.getElementById('tn-pr').value,fecha:document.getElementById('tn-fe').value,hora:document.getElementById('tn-ho').value,cliente:cliente,asig:'todos',notas:document.getElementById('tn-no').value.trim(),cargadoPor:currentUserData.nombre,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    closeModal('m-tarea');showToast('Tarea guardada ✓');setTipoTarea('diaria');
+  db.collection('tareas').add({titulo:ti,tipo:'diaria',prio:document.getElementById('tn-pr').value,fecha:document.getElementById('tn-fe').value,hora:document.getElementById('tn-ho').value,cliente:cliente,asig:'todos',notas:document.getElementById('tn-no').value.trim(),cargadoPor:currentUserData.nombre,creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    closeModal('m-tarea');showToast('Tarea guardada ✓');
     if(clienteHidden)clienteHidden.value='';if(clienteSearch)clienteSearch.value='';
   });
 }
@@ -2243,8 +2184,6 @@ function initCalendar(){
     EVENTOS_CACHE=[];snap.forEach(function(d){var x=d.data();x.id=d.id;EVENTOS_CACHE.push(x);});
     renderEventos();renderDashEventos();
     var dme=document.getElementById('dm-eventos-hoy');if(dme)dme.textContent=EVENTOS_CACHE.filter(function(e){return e.fecha===fmt(today);}).length;
-    var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
-    ['ed-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
   });
 }
 
@@ -2277,36 +2216,16 @@ function loadCalendarEvents(){
   }).catch(function(){});
 }
 
-function guardarEvento(tipo,titulo,cliente,fecha,hora,lugar,notas,callback){
-  if(!titulo){alert('El título es obligatorio.');return;}
-  var data={tipo:tipo,titulo:titulo,cliente:cliente,fecha:fecha||fmt(today),hora:hora,lugar:lugar,notas:notas,cargadoPor:currentUserData.nombre,creadoEn:firebase.firestore.FieldValue.serverTimestamp()};
-  db.collection('eventos').add(data).then(function(ref){
-    if(calConnected){
-      var start=hora?{dateTime:data.fecha+'T'+hora+':00',timeZone:'America/Argentina/Cordoba'}:{date:data.fecha};
-      var end=hora?{dateTime:data.fecha+'T'+((parseInt(hora.split(':')[0])+1)%24+'').padStart(2,'0')+':'+hora.split(':')[1]+':00',timeZone:'America/Argentina/Cordoba'}:{date:data.fecha};
-      gapi.client.calendar.events.insert({calendarId:CALENDAR_ID,resource:{summary:titulo,location:lugar,description:(cliente?'Cliente: '+cliente+'\n':'')+(notas||''),start:start,end:end}}).then(function(gcResp){db.collection('eventos').doc(ref.id).update({gcId:gcResp.result.id});showToast('Evento guardado en sistema y Google Calendar ✓');});
-    } else {showToast('Evento guardado en el sistema ✓');}
-    if(callback)callback();
-  });
-}
-
-function addEvento(){
-  var ti=document.getElementById('ev-titulo').value.trim();if(!ti){alert('El título es obligatorio.');return;}
-  guardarEvento(document.getElementById('ev-tipo').value,ti,(document.getElementById('ev-cliente')?document.getElementById('ev-cliente').value:document.getElementById('ev-cliente-search')?document.getElementById('ev-cliente-search').value:''),document.getElementById('ev-fecha').value,document.getElementById('ev-hora').value,document.getElementById('ev-lugar').value.trim(),document.getElementById('ev-notas').value.trim(),function(){document.getElementById('ev-titulo').value='';document.getElementById('ev-notas').value='';});
-}
-
-function saveEventoDash(){
-  var ti=document.getElementById('ed-titulo').value.trim();if(!ti){alert('El título es obligatorio.');return;}
-  guardarEvento(document.getElementById('ed-tipo').value,ti,document.getElementById('ed-cliente').value,document.getElementById('ed-fecha').value,document.getElementById('ed-hora').value,document.getElementById('ed-lugar').value.trim(),document.getElementById('ed-notas').value.trim(),function(){closeModal('m-evento-dash');document.getElementById('ed-titulo').value='';document.getElementById('ed-notas').value='';});
-}
-
 function renderEventos(){
   var list=[...EVENTOS_CACHE].sort(function(a,b){return a.fecha>b.fecha?1:-1;});
   if(list.length===0){document.getElementById('ev-list').innerHTML='<div class="empty-state">Sin eventos.</div>';return;}
   var groups={};list.forEach(function(e){if(!groups[e.fecha])groups[e.fecha]=[];groups[e.fecha].push(e);});
   var html='';Object.keys(groups).sort().forEach(function(d){
     html+='<div class="sec-lbl">'+fmtDisp(d)+'</div>';
-    groups[d].forEach(function(e){html+='<div class="ev-item"><div class="ev-dot" style="background:'+(evColors[e.tipo]||PALETA.text3)+'"></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+e.titulo+'</div><div class="hint">'+(e.hora?e.hora+'hs · ':'')+(evLabels[e.tipo]||e.tipo||'')+(e.cliente?' · '+e.cliente:'')+(e.lugar?' · '+e.lugar:'')+'</div></div><span class="badge '+(evBadges[e.tipo]||'b-gray')+'">'+(evLabels[e.tipo]||e.tipo)+'</span><button class="btn-danger" style="margin-left:6px" onclick="delEvento(\''+e.id+'\')">✕</button></div>';});
+    groups[d].forEach(function(e){
+      var badge=e.tipo?'<span class="badge '+(evBadges[e.tipo]||'b-gray')+'">'+(evLabels[e.tipo]||e.tipo)+'</span>':'';
+      html+='<div class="ev-item"><div class="ev-dot" style="background:'+(evColors[e.tipo]||PALETA.text3)+'"></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">'+e.titulo+'</div><div class="hint">'+(e.hora?e.hora+'hs · ':'')+(evLabels[e.tipo]||e.tipo||'')+(e.cliente?' · '+e.cliente:'')+(e.lugar?' · '+e.lugar:'')+'</div></div>'+badge+'<button class="btn-danger" style="margin-left:6px" onclick="delEvento(\''+e.id+'\')">✕</button></div>';
+    });
   });
   document.getElementById('ev-list').innerHTML=html;
 }
@@ -2326,24 +2245,26 @@ function delEvento(id){
 }
 
 function saveEventoRapido(){
-  var ti=document.getElementById('er-titulo').value.trim();if(!ti){alert('El título es obligatorio.');return;}
-  var tipo=document.getElementById('er-tipo').value,fecha=document.getElementById('er-fecha').value||fmt(today),hora=document.getElementById('er-hora').value,lugar=document.getElementById('er-lugar').value.trim(),notas=document.getElementById('er-notas').value.trim(),cliente=(document.getElementById('er-cliente')?document.getElementById('er-cliente').value:document.getElementById('er-cliente-search')?document.getElementById('er-cliente-search').value:'');
+  var ti=document.getElementById('er-desc').value.trim();
+  var fecha=document.getElementById('er-fecha').value;
+  var hora=document.getElementById('er-hora').value;
+  if(!ti||!fecha){alert('Contá qué es el evento y elegí la fecha.');return;}
   function guardarYEnviar(){
-    db.collection('eventos').add({titulo:ti,tipo:tipo,cliente:cliente,fecha:fecha,hora:hora,lugar:lugar,notas:notas,cargadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    db.collection('eventos').add({titulo:ti,fecha:fecha,hora:hora,cargadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
       closeModal('m-evento-rapido');showToast('Evento guardado ✓');
-      document.getElementById('er-titulo').value='';document.getElementById('er-notas').value='';document.getElementById('er-lugar').value='';
+      document.getElementById('er-desc').value='';
     });
     var h1=hora?p2((parseInt(hora.split(':')[0])+1)%24)+':'+hora.split(':')[1]+':00':'';
     var start=hora?{dateTime:fecha+'T'+hora+':00',timeZone:'America/Argentina/Cordoba'}:{date:fecha};
     var end=hora?{dateTime:fecha+'T'+h1,timeZone:'America/Argentina/Cordoba'}:{date:fecha};
-    gapi.client.calendar.events.insert({calendarId:CALENDAR_ID,resource:{summary:ti,location:lugar,description:(cliente?'Cliente: '+cliente+'\n':'')+notas,start:start,end:end}}).then(function(){var iframe=document.getElementById('dash-gcal-iframe');if(iframe){var src=iframe.src;iframe.src='';setTimeout(function(){iframe.src=src;},300);}}).catch(function(){});
+    gapi.client.calendar.events.insert({calendarId:CALENDAR_ID,resource:{summary:ti,start:start,end:end}}).then(function(){var iframe=document.getElementById('dash-gcal-iframe');if(iframe){var src=iframe.src;iframe.src='';setTimeout(function(){iframe.src=src;},300);}}).catch(function(){});
   }
   if(calConnected&&gapi.client.getToken()){guardarYEnviar();}
   else{
     gapi.load('client',function(){
       gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest','https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(function(){
         var tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:function(resp){
-          if(resp.error){db.collection('eventos').add({titulo:ti,tipo:tipo,cliente:cliente,fecha:fecha,hora:hora,lugar:lugar,notas:notas,cargadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-evento-rapido');showToast('Evento guardado ✓');});return;}
+          if(resp.error){db.collection('eventos').add({titulo:ti,fecha:fecha,hora:hora,cargadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-evento-rapido');showToast('Evento guardado ✓');});return;}
           calConnected=true;setCalStatus(true);guardarYEnviar();
         }});
         tc.requestAccessToken({prompt:''});
@@ -2671,24 +2592,6 @@ function delGastoRapido(id){if(!confirm('¿Eliminar este gasto?'))return;db.coll
 function formatCurrency(input){var cursor=input.selectionStart,oldLen=input.value.length;var val=input.value.replace(/\./g,'').replace(/,/g,'').replace(/[^0-9]/g,'');if(!val){input.value='';input.dataset.raw='';return;}var formatted=parseInt(val).toLocaleString('es-AR');input.value=formatted;input.dataset.raw=val;var newLen=formatted.length;var newCursor=cursor+(newLen-oldLen);try{input.setSelectionRange(newCursor,newCursor);}catch(e){}}
 function getCurrencyValue(input){return parseFloat((input.dataset.raw||input.value.replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,''))||0);}
 function applyCurrencyInputs(){var ids=['hd-monto-cuota','in-mo','ga-mo','gasto-monto','ep-monto'];ids.forEach(function(id){var el=document.getElementById(id);if(!el||el.dataset.currencyApplied)return;el.dataset.currencyApplied='1';el.classList.add('currency-input');el.setAttribute('type','text');el.setAttribute('inputmode','numeric');el.addEventListener('keyup',function(){formatCurrency(this);});el.addEventListener('input',function(){formatCurrency(this);});el.addEventListener('paste',function(){var self=this;setTimeout(function(){formatCurrency(self);},10);});});}
-
-// ─── TIPO TAREA TOGGLE ───
-function setTipoTarea(tipo){
-  document.getElementById('tn-tipo-val').value=tipo;
-  var btnD=document.getElementById('tn-tipo-diaria'),btnP=document.getElementById('tn-tipo-pendiente');
-  if(!btnD||!btnP)return;
-  if(tipo==='diaria'){btnD.style.border='2px solid var(--blue)';btnD.style.background='var(--blue-bg)';btnD.style.color='var(--blue)';btnP.style.border='1px solid var(--border2)';btnP.style.background='transparent';btnP.style.color='var(--text2)';}
-  else{btnP.style.border='2px solid var(--orange)';btnP.style.background='var(--orange-bg)';btnP.style.color='var(--orange)';btnD.style.border='1px solid var(--border2)';btnD.style.background='transparent';btnD.style.color='var(--text2)';}
-}
-
-// ─── TAREAS TABS ───
-var curTareaTab='diarias';
-function setTareaTab(tab){
-  curTareaTab=tab;
-  document.querySelectorAll('#tareas-tabs .tab').forEach(function(b,i){b.className='tab'+(['diarias','pendientes'][i]===tab?' active':'');});
-  document.getElementById('task-container-diarias').style.display=tab==='diarias'?'block':'none';
-  document.getElementById('task-container-pendientes').style.display=tab==='pendientes'?'block':'none';
-}
 
 // ─── BUSCAR CLIENTE ───
 function filtrarClientes(inputId,dropdownId){
@@ -3325,7 +3228,7 @@ function _generarPDF(mesNombre,ingresos,gastos,totalIng,totalGas){
 function initApp() {
   setFecha();
   var ts = fmt(today);
-  ['cn-f','tn-fe','in-fe','ga-fe','ev-fecha','ed-fecha','rec-fecha','co-fecha'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ts; });
+  ['cn-f','tn-fe','in-fe','ga-fe','rec-fecha','co-fecha'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ts; });
   var mesActual = p2(today.getMonth() + 1);
   var sel = document.getElementById('adm-mes'); if (sel) sel.value = mesActual;
   initClientes();
