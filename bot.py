@@ -217,11 +217,9 @@ def notificar_recordatorio():
         return resp, 200
 
     d = request.get_json(silent=True) or {}
-    msg = "🔔 *Recordatorio*\n\n" + "*%s*\n" % d.get('titulo', '—')
-    if d.get('desc'):
-        msg += "%s\n" % d.get('desc')
-    if d.get('cliente'):
-        msg += "👤 *Cliente:* %s\n" % d.get('cliente')
+    msg = "🔔 *Recordatorio*\n\n" + "%s\n" % d.get('desc', '—')
+    if d.get('hora'):
+        msg += "🕐 %shs\n" % d.get('hora')
     destino = (d.get('destino') or '').strip() or os.environ.get("GREEN_API_GROUP_ID")
     ok = responder_whatsapp(destino, msg)
     resp = jsonify({"ok": ok, "grupo_configurado": bool(destino)})

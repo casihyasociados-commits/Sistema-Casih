@@ -1035,10 +1035,11 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-recordatorio" onclick="if(event.target===this)closeModal('m-recordatorio')">
   <div class="modal"><h3>Nuevo recordatorio</h3>
-    <div class="fg"><div class="fl">Título *</div><input class="fi" id="rec-titulo" placeholder="Ej: Llamar a cliente sobre turno médico"></div>
-    <div class="fg"><div class="fl">Descripción</div><textarea class="fta" id="rec-desc" placeholder="Detalles del recordatorio..."></textarea></div>
-    <div class="fg"><div class="fl">Fecha *</div><input class="fi" id="rec-fecha" type="date"></div>
-    <div class="fg"><div class="fl">Cliente vinculado</div><input class="fi" id="rec-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'rec-cliente')"><select class="fs" id="rec-cliente" style="margin-top:4px"><option value="">— Sin cliente —</option></select></div>
+    <div class="fg"><div class="fl">¿Qué querés recordar? *</div><textarea class="fta" id="rec-desc" placeholder="Ej: Llamar a Marcela Gimenez para coordinar cita"></textarea></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha *</div><input class="fi" id="rec-fecha" type="date"></div>
+      <div class="fg"><div class="fl">Hora</div><input class="fi" id="rec-hora" type="time"></div>
+    </div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-recordatorio')">Cancelar</button><button class="btn-primary" onclick="saveRecordatorio()">Guardar</button></div>
   </div>
 </div>
@@ -1512,7 +1513,7 @@ function ordenAlfabetico(a,b){
 
 function updateClienteSelects(){
   var opts='<option value="">— Sin cliente —</option>'+CLIENTES_CACHE.map(function(c){return '<option>'+c.nombre+'</option>';}).join('');
-  ['ev-cliente','tn-cl','er-cliente','hd-cliente','rec-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
+  ['ev-cliente','tn-cl','er-cliente','hd-cliente'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts.replace('— Sin cliente —','— Seleccionar cliente —');});
 }
 
 function setCtab(t){
@@ -2510,8 +2511,8 @@ function renderRecordatorios(list){
   filtered.forEach(function(r){
     var esHoy=r.fecha===hoy,diff=Math.round((new Date(r.fecha)-today)/864e5),esPasado=diff<0;
     var borderColor=esHoy?'var(--blue)':esPasado?'var(--red)':'var(--border)';var bgColor=esHoy?'var(--blue-bg)':esPasado?'var(--red-bg)':'var(--bg3)';
-    var fechaLabel=esHoy?'🔔 HOY':esPasado?'Vencido hace '+Math.abs(diff)+' días':fmtDisp(r.fecha);
-    html+='<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:12px"><div style="font-size:11px;font-weight:600;color:'+(esHoy?'var(--blue)':esPasado?'var(--red)':'var(--text3)')+';margin-bottom:5px">'+fechaLabel+'</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+r.titulo+'</div>'+(r.desc?'<div style="font-size:12px;color:var(--text3);margin-bottom:6px">'+r.desc+'</div>':'')+(r.cliente?'<div class="hint">👤 '+r.cliente+'</div>':'')+'<div style="display:flex;gap:6px;margin-top:10px"><button data-rid="'+r.id+'" data-raction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer">✓ Listo</button><button data-rid="'+r.id+'" data-raction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></div></div>';
+    var fechaLabel=(esHoy?'🔔 HOY':esPasado?'Vencido hace '+Math.abs(diff)+' días':fmtDisp(r.fecha))+(r.hora?' · '+r.hora+'hs':'');
+    html+='<div style="background:'+bgColor+';border:1.5px solid '+borderColor+';border-radius:10px;padding:12px"><div style="font-size:11px;font-weight:600;color:'+(esHoy?'var(--blue)':esPasado?'var(--red)':'var(--text3)')+';margin-bottom:5px">'+fechaLabel+'</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">'+r.desc+'</div><div style="display:flex;gap:6px;margin-top:10px"><button data-rid="'+r.id+'" data-raction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer">✓ Listo</button><button data-rid="'+r.id+'" data-raction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></div></div>';
   });
   html+='</div>';
   pintarRecordatorios(html);
@@ -2524,14 +2525,14 @@ function pintarRecordatorios(html){
   });
 }
 function saveRecordatorio(){
-  var titulo=document.getElementById('rec-titulo').value.trim(),fecha=document.getElementById('rec-fecha').value;
-  if(!titulo||!fecha){alert('Título y fecha son obligatorios.');return;}
-  db.collection('recordatorios').add({titulo:titulo,desc:document.getElementById('rec-desc').value.trim(),fecha:fecha,cliente:(document.getElementById('rec-cliente')?document.getElementById('rec-cliente').value:''),avisoEnviado:false,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-recordatorio');showToast('Recordatorio guardado ✓');['rec-titulo','rec-desc','rec-fecha'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});});
+  var desc=document.getElementById('rec-desc').value.trim(),fecha=document.getElementById('rec-fecha').value;
+  if(!desc||!fecha){alert('Contá qué querés recordar y elegí la fecha.');return;}
+  db.collection('recordatorios').add({desc:desc,fecha:fecha,hora:document.getElementById('rec-hora').value,avisoEnviado:false,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-recordatorio');showToast('Recordatorio guardado ✓');['rec-desc','rec-fecha','rec-hora'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});});
 }
 function enviarWhatsAppRecordatorio(r){
   fetch(BOT_URL+'/notificar-recordatorio',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({titulo:r.titulo,desc:r.desc||'',cliente:r.cliente||''})
+    body:JSON.stringify({desc:r.desc||'',hora:r.hora||''})
   }).catch(function(){});
 }
 
