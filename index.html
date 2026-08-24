@@ -159,6 +159,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tab:hover{color:var(--text);}
 .tab.active{background:var(--bg4);color:var(--text);}
 
+/* ══════════ INICIO — NAV GRANDE ══════════ */
+.home-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--sp-3);margin-bottom:24px;}
+.home-nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 12px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s,transform .15s;}
+.home-nav-btn:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-2px);}
+.home-nav-ico{font-size:28px;line-height:1;}
+.home-nav-lbl{font-size:var(--fs-sm);font-weight:600;}
+
 /* ══════════ BUSCADOR ══════════ */
 .buscador{position:relative;margin-bottom:var(--sp-4);max-width:420px;}
 .buscador-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-sm);opacity:.65;pointer-events:none;}
@@ -278,12 +285,6 @@ tr:hover td{background:var(--bg3);}
 /* ══════════ ADMINISTRACIÓN ══════════ */
 .balance-bar{background:var(--bg3);border-radius:var(--radius-pill);height:8px;margin-top:var(--sp-2);overflow:hidden;}
 .balance-fill{height:8px;border-radius:var(--radius-pill);transition:width 0.4s;}
-.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2);margin-bottom:var(--sp-3);}
-.cat-btn{padding:var(--sp-3);border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:500;text-align:left;transition:border-color .15s,background .15s,color .15s;}
-.cat-btn:hover{background:var(--bg4);color:var(--text);}
-.cat-btn.sel{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
-.cat-desc{display:none;}.cat-desc.vis{display:block;margin-top:var(--sp-2);}
-.gasto-row{display:none;margin-top:var(--sp-2);}.gasto-row.vis{display:flex;gap:var(--sp-2);align-items:center;}
 
 /* ══════════ MODALES ══════════ */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;padding:var(--sp-4);}
@@ -409,7 +410,7 @@ input.currency-input{letter-spacing:0.5px;}
 <nav class="nav">
   <div class="nav-brand">Casih <span>&amp;</span> Asociados</div>
   <div class="nav-links">
-    <button class="nav-btn active" onclick="goTo('dashboard')">Dashboard</button>
+    <button class="nav-btn active" onclick="goTo('dashboard')">Inicio</button>
     <button class="nav-btn" onclick="goTo('clientes')">Clientes</button>
     <button class="nav-btn" onclick="goTo('tareas')">Tareas</button>
     <button class="nav-btn" onclick="goTo('agenda')">Agenda</button>
@@ -427,120 +428,28 @@ input.currency-input{letter-spacing:0.5px;}
 
 <!-- DASHBOARD -->
 <div class="section active" id="sec-dashboard">
-  <div class="page-title">Panel general</div>
+  <div class="page-title">Inicio</div>
   <div class="page-sub" id="dash-fecha">Derecho laboral · Córdoba</div>
-  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--orange)">
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--orange)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <span class="card-head-title">🆕 Clientes nuevos por revisar</span>
       <button class="btn-primary" onclick="abrirModalNuevoCliente()" style="font-size:13px;padding:7px 16px">+ Nuevo cliente</button>
     </div>
     <div id="dash-nuevos-clientes-list"><div class="hint">Sin clientes nuevos para revisar ✓</div></div>
   </div>
-  <div class="card" style="margin-bottom:16px;padding:1rem">
+  <div class="home-nav">
+    <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span></button>
+    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">✅</span><span class="home-nav-lbl">Tareas</span></button>
+    <button class="home-nav-btn" onclick="goTo('agenda')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span></button>
+    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Administración</span></button>
+    <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span></button>
+  </div>
+  <div class="card" style="margin-bottom:0">
     <div class="card-head">
-      <div class="card-title" style="margin-bottom:0">Calendario semanal</div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <button onclick="openModal('m-evento-rapido')" style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">+ Nuevo evento</button>
-        <div style="display:flex;align-items:center;gap:6px">
-          <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
-          <span id="cal-label2" class="hint">Conectando...</span>
-        </div>
-      </div>
+      <span class="card-head-title">Accesos rápidos</span>
+      <button onclick="openModal('m-link-rapido')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">+ Agregar</button>
     </div>
-    <iframe id="dash-gcal-iframe"
-      src="https://calendar.google.com/calendar/embed?src=casihyasociados%40gmail.com&ctz=America%2FArgentina%2FCordoba&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=WEEK&bgcolor=%23000000&color=%234A90E2"
-      style="width:100%;height:560px;border:none;border-radius:10px;display:block;"
-      frameborder="0" scrolling="no">
-    </iframe>
-  </div>
-  <div class="dash-grid-2col" style="margin-bottom:16px">
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="card" style="margin-bottom:0">
-        <div class="card-head">
-          <span class="card-head-title">📅 Tareas del día</span>
-          <div style="display:flex;gap:6px">
-            <button onclick="openModal('m-tarea')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">+ Nueva</button>
-            <button onclick="goTo('tareas')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
-          </div>
-        </div>
-        <div id="dash-tareas"><div class="hint">Sin tareas para hoy ✓</div></div>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div class="card-head">
-          <span class="card-head-title">Accesos rápidos</span>
-          <button onclick="openModal('m-link-rapido')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">+ Agregar</button>
-        </div>
-        <div id="links-rapidos-list"><div class="hint">Sin accesos cargados.</div></div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="card" style="margin-bottom:0;border-left:3px solid var(--orange)">
-        <div class="card-head">
-          <span class="card-head-title">📌 Tareas pendientes</span>
-          <button onclick="goTo('tareas');setTareaTab('pendientes')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button>
-        </div>
-        <div id="dash-tareas-pendientes"><div class="hint">Sin tareas pendientes ✓</div></div>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px">Cargar gasto</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <button class="cat-btn" id="cg-servicios" onclick="selCat('servicios')" style="padding:12px;font-size:13px">💡 Servicios</button>
-          <button class="cat-btn" id="cg-oficina" onclick="selCat('oficina')" style="padding:12px;font-size:13px">🖨️ Gastos de oficina</button>
-          <button class="cat-btn" id="cg-procesales" onclick="selCat('procesales')" style="padding:12px;font-size:13px">⚖️ Gastos procesales</button>
-          <button class="cat-btn" id="cg-varios" onclick="selCat('varios')" style="padding:12px;font-size:13px">📋 Gastos varios</button>
-        </div>
-        <div class="cat-desc" id="cd-servicios"><textarea class="fta" id="ct-servicios" placeholder="Descripción..."></textarea></div>
-        <div class="cat-desc" id="cd-oficina"><textarea class="fta" id="ct-oficina" placeholder="Descripción..."></textarea></div>
-        <div class="cat-desc" id="cd-procesales"><textarea class="fta" id="ct-procesales" placeholder="Descripción..."></textarea></div>
-        <div class="cat-desc" id="cd-varios"><textarea class="fta" id="ct-varios" placeholder="Descripción..."></textarea></div>
-        <div class="gasto-row" id="gasto-row">
-          <input class="fi" id="gasto-monto" type="number" placeholder="Monto $" style="flex:1;font-size:13px">
-          <button class="btn-primary" onclick="guardarGasto()" style="font-size:13px;padding:8px 16px">Guardar</button>
-        </div>
-        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
-          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Gastos cargados hoy</div>
-          <div id="dash-gastos-recientes"><div class="hint">Sin gastos hoy.</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span class="card-head-title">Honorarios pendientes</span>
-      <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
-    </div>
-    <div id="dash-honorarios-list"><div class="hint">Sin honorarios pendientes.</div></div>
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span class="card-head-title">🔔 Recordatorios</span>
-      <button onclick="openModal('m-recordatorio')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Nuevo recordatorio</button>
-    </div>
-    <div id="recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
-  </div>
-  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--purple)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <span class="card-head-title">📋 Seguimiento Oficio</span>
-      <button onclick="openModal('m-oficio')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--purple);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Nuevo oficio</button>
-    </div>
-    <div id="dash-oficio-list"><div class="hint">Sin oficios cargados.</div></div>
-  </div>
-  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--green)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <span class="card-head-title">🩺 Estudios pagados</span>
-      <button onclick="openModal('m-estudio-pagado')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar estudio</button>
-    </div>
-    <div id="dash-estudios-list"><div class="hint">Sin estudios cargados.</div></div>
-  </div>
-  <div class="card" style="margin-bottom:0;border-left:3px solid var(--blue)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <span class="card-head-title">📦 Seguimiento Correo</span>
-      <div class="btn-row">
-        <a href="https://www.correoargentino.com.ar/" target="_blank" style="font-size:13px;padding:7px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:500">🌐 Correo Argentino</a>
-        <button onclick="openModal('m-correo')" style="font-size:13px;padding:7px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">+ Agregar</button>
-      </div>
-    </div>
-    <div id="dash-correo-list"><div class="hint">Sin envíos cargados.</div></div>
+    <div id="links-rapidos-list"><div class="hint">Sin accesos cargados.</div></div>
   </div>
 </div>
 
@@ -591,6 +500,13 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div id="cli-recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
   </div>
+  <div class="card" style="border-left:3px solid var(--purple)">
+    <div class="card-head">
+      <span class="card-head-title">📋 Seguimiento Oficio</span>
+      <button class="btn-primary" style="background:var(--purple)" onclick="openModal('m-oficio')">+ Nuevo oficio</button>
+    </div>
+    <div id="dash-oficio-list"><div class="hint">Sin oficios cargados.</div></div>
+  </div>
 </div>
 
 <!-- TAREAS -->
@@ -620,6 +536,23 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="page-header">
     <div><div class="page-title">Agenda</div><div class="page-sub">Google Calendar · casihyasociados@gmail.com</div></div>
     <button class="btn-cal" id="cal-btn" onclick="toggleCal()">Conectar Google Calendar</button>
+  </div>
+  <div class="card" style="margin-bottom:16px;padding:1rem">
+    <div class="card-head">
+      <div class="card-title" style="margin-bottom:0">Calendario semanal</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="openModal('m-evento-rapido')" style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">+ Nuevo evento</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div id="cal-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <span id="cal-label2" class="hint">Conectando...</span>
+        </div>
+      </div>
+    </div>
+    <iframe id="dash-gcal-iframe"
+      src="https://calendar.google.com/calendar/embed?src=casihyasociados%40gmail.com&ctz=America%2FArgentina%2FCordoba&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=WEEK&bgcolor=%23000000&color=%234A90E2"
+      style="width:100%;height:560px;border:none;border-radius:10px;display:block;"
+      frameborder="0" scrolling="no">
+    </iframe>
   </div>
   <div class="agenda-layout">
     <div class="card" style="margin-bottom:0">
@@ -716,6 +649,24 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="card" style="margin-bottom:0">
         <div id="check-list"></div>
       </div>
+    </div>
+    <div class="card" style="margin-top:16px;margin-bottom:16px">
+      <div class="card-head">
+        <span class="card-head-title">Honorarios pendientes</span>
+        <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
+      </div>
+      <div id="dash-honorarios-list"><div class="hint">Sin honorarios pendientes.</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px;border-left:3px solid var(--green)">
+      <div class="card-head">
+        <span class="card-head-title">🩺 Estudios pagados</span>
+        <button onclick="openModal('m-estudio-pagado')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar estudio</button>
+      </div>
+      <div id="dash-estudios-list"><div class="hint">Sin estudios cargados.</div></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><span class="card-head-title">Gastos cargados hoy</span></div>
+      <div id="dash-gastos-recientes"><div class="hint">Sin gastos hoy.</div></div>
     </div>
   </div>
 </div>
@@ -1355,31 +1306,6 @@ function setFecha(){
   var sel=document.getElementById('adm-mes');if(sel)sel.value=mesActual;
 }
 
-// ─── GASTO RÁPIDO ───
-var curCat=null;
-function selCat(cat){
-  ['servicios','oficina','procesales','varios'].forEach(function(c){
-    document.getElementById('cg-'+c).className='cat-btn'+(c===cat?' sel':'');
-    document.getElementById('cd-'+c).className='cat-desc'+(c===cat?' vis':'');
-  });
-  curCat=cat;
-  document.getElementById('gasto-row').className='gasto-row vis';
-}
-function guardarGasto(){
-  if(!curCat)return;
-  var monto=getCurrencyValue(document.getElementById('gasto-monto'));
-  var catDesc=document.getElementById('ct-'+curCat).value.trim();
-  var concepto=catDesc||({servicios:'Servicios',oficina:'Gastos de oficina',procesales:'Gastos procesales',varios:'Gastos varios'}[curCat]);
-  if(!monto){alert('Ingresá el monto.');return;}
-  db.collection('gastos').add({fecha:fmt(today),concepto:concepto,cat:curCat,cargadoPor:currentUserData.nombre,monto:monto,mes:p2(today.getMonth()+1),creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    document.getElementById('ct-'+curCat).value='';
-    document.getElementById('gasto-monto').value='';
-    ['servicios','oficina','procesales','varios'].forEach(function(cat){document.getElementById('cg-'+cat).className='cat-btn';document.getElementById('cd-'+cat).className='cat-desc';});
-    document.getElementById('gasto-row').className='gasto-row';
-    curCat=null;
-    showToast('Gasto registrado correctamente ✓');
-  });
-}
 
 // ─── PIN ───
 var pinVal='';
@@ -2559,7 +2485,7 @@ function initRecordatorios(){
   },function(){db.collection('recordatorios').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderRecordatorios(list);});});
 }
 // Se muestra en dos lugares: el Dashboard y la seccion Clientes.
-var CONTENEDORES_RECORDATORIOS=['recordatorios-list','cli-recordatorios-list'];
+var CONTENEDORES_RECORDATORIOS=['cli-recordatorios-list'];
 function renderRecordatorios(list){
   var hoy=fmt(today);
   var filtered=list.filter(function(r){return (new Date(r.fecha)-today)/864e5>-7;}).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
@@ -2703,7 +2629,7 @@ function initCorreoDash(){
   db.collection('correos').onSnapshot(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderCorreoDash(list);},function(){db.collection('correos').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderCorreoDash(list);});});
 }
 // Se muestra en dos lugares: el Dashboard y la seccion Clientes.
-var CONTENEDORES_CORREO=['dash-correo-list','cli-correo-list'];
+var CONTENEDORES_CORREO=['cli-correo-list'];
 function renderCorreoDash(listCompleta){
   var list=listCompleta.filter(function(c){return !c.archivado;});
   if(list.length===0){pintarCorreo('<div class="hint">Sin envíos cargados.</div>');return;}
