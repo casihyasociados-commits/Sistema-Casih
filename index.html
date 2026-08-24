@@ -536,10 +536,31 @@ input.currency-input{letter-spacing:0.5px;}
 
 <!-- ADMINISTRACIÓN -->
 <div class="section" id="sec-admin">
-  <div id="adm-locked">
+  <div class="page-header">
+    <div><div class="page-title">Administración</div><div class="page-sub">Cargá gastos, ingresos y estudios médicos</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><span class="card-head-title">💰 Ingresos</span><button class="btn-primary" onclick="prepararModalIngreso()">+ Agregar ingreso</button></div>
+    <div class="hint">Se cargan directo, sin ver el balance del mes.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><span class="card-head-title">💸 Gastos</span><button class="btn-primary" onclick="prepararModalGasto()">+ Agregar gasto</button></div>
+    <div class="hint">Se cargan directo, sin ver el balance del mes.</div>
+  </div>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--green)">
+    <div class="card-head">
+      <span class="card-head-title">🩺 Estudios pagados</span>
+      <button onclick="openModal('m-estudio-pagado')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar estudio</button>
+    </div>
+    <div id="dash-estudios-list"><div class="hint">Sin estudios cargados.</div></div>
+  </div>
+
+  <div class="sec-lbl">Balances</div>
+  <div id="adm-locked" style="display:none">
     <div class="pin-screen">
       <div class="pin-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="currentColor"/></svg></div>
-      <div class="pin-title">Administración</div>
+      <div class="pin-title">Balances</div>
       <div class="pin-sub">Ingresá el PIN para acceder</div>
       <div class="pin-dots" id="pin-dots"><div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div><div class="pin-dot" id="pd4"></div><div class="pin-dot" id="pd5"></div></div>
       <div class="pin-pad">
@@ -551,9 +572,16 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="pin-error" id="pin-error"></div>
     </div>
   </div>
+  <div class="card" id="adm-balances-cta">
+    <div class="card-head">
+      <span class="card-head-title">🔒 Balances del mes</span>
+      <button class="btn-primary" onclick="document.getElementById('adm-locked').style.display='block';document.getElementById('adm-balances-cta').style.display='none';">Ver balances</button>
+    </div>
+    <div class="hint">Ingresos, gastos, resultado neto y honorarios sin cobrar. Protegido con PIN.</div>
+  </div>
   <div id="adm-unlocked" style="display:none">
     <div class="page-header">
-      <div><div class="page-title">Administración</div><div class="page-sub">Ingresos · Gastos · Análisis anual</div></div>
+      <div></div>
       <button class="btn-sm" onclick="lockAdm()">Cerrar sesión</button>
     </div>
     <div class="metrics">
@@ -618,13 +646,6 @@ input.currency-input{letter-spacing:0.5px;}
         <button onclick="openModal('m-honorario-dash')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--orange-bg);color:var(--orange);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar honorario</button>
       </div>
       <div id="dash-honorarios-list"><div class="hint">Sin honorarios pendientes.</div></div>
-    </div>
-    <div class="card" style="margin-bottom:16px;border-left:3px solid var(--green)">
-      <div class="card-head">
-        <span class="card-head-title">🩺 Estudios pagados</span>
-        <button onclick="openModal('m-estudio-pagado')" style="font-size:13px;padding:7px 16px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Cargar estudio</button>
-      </div>
-      <div id="dash-estudios-list"><div class="hint">Sin estudios cargados.</div></div>
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-head"><span class="card-head-title">Gastos cargados hoy</span></div>
@@ -1231,7 +1252,12 @@ function checkPin(){
     setTimeout(function(){pinVal='';updDots();document.getElementById('pin-error').textContent='';},1200);
   }
 }
-function lockAdm(){document.getElementById('adm-locked').style.display='block';document.getElementById('adm-unlocked').style.display='none';pinVal='';updDots();}
+function lockAdm(){
+  document.getElementById('adm-locked').style.display='none';
+  document.getElementById('adm-unlocked').style.display='none';
+  var cta=document.getElementById('adm-balances-cta');if(cta)cta.style.display='block';
+  pinVal='';updDots();
+}
 
 // ─── ADMINISTRACIÓN ───
 var mesesNombre={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
