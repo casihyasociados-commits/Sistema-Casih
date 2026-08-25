@@ -160,16 +160,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tab.active{background:var(--bg4);color:var(--text);}
 
 /* ══════════ INICIO — FONDO ══════════ */
-#sec-dashboard{
-  position:relative;
-  border-radius:var(--radius-lg);
-  padding:var(--sp-7) var(--sp-6);
-  margin:calc(-1 * var(--sp-7)) calc(-1 * var(--sp-6));
+/* ══════════ FONDO GENERAL ══════════
+   Va en el body para que se vea igual en todas las secciones. Las dos capas
+   son "fixed": la imagen y el degradé quedan quietos y el contenido scrollea
+   por encima. El degradé es bastante opaco a propósito — las tarjetas ya son
+   opacas, pero los títulos y textos sueltos apoyan directo sobre el fondo. */
+body{
   background:
-    linear-gradient(180deg, rgba(6,8,18,.66) 0%, rgba(6,8,18,.80) 45%, rgba(6,8,18,.92) 100%),
+    linear-gradient(180deg, rgba(6,8,18,.74) 0%, rgba(6,8,18,.86) 45%, rgba(6,8,18,.94) 100%) fixed,
     url('assets/dashboard-bg.jpg') center/cover no-repeat fixed;
 }
-#sec-dashboard .page-title,#sec-dashboard .page-sub{text-shadow:0 1px 4px rgba(0,0,0,.55);}
+.page-title,.page-sub,.sec-lbl{text-shadow:0 1px 4px rgba(0,0,0,.55);}
 
 /* ══════════ INICIO — NAV GRANDE ══════════ */
 .home-nav{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-bottom:24px;}
@@ -330,7 +331,8 @@ input.currency-input{letter-spacing:0.5px;}
   html,body{overflow-x:hidden!important;max-width:100vw!important;}
   .app{max-width:100vw!important;overflow-x:hidden!important;}
   .main{padding:var(--sp-4) var(--sp-3)!important;max-width:100vw!important;overflow-x:hidden!important;}
-  #sec-dashboard{margin:calc(-1 * var(--sp-4)) calc(-1 * var(--sp-3))!important;padding:var(--sp-4) var(--sp-3)!important;background-attachment:scroll!important;}
+  /* iOS no maneja bien background-attachment:fixed */
+  body{background-attachment:scroll,scroll!important;}
   .nav{padding:var(--sp-2) var(--sp-3)!important;height:auto!important;flex-wrap:wrap!important;gap:var(--sp-1)!important;}
   .nav-brand{font-size:16px!important;}
   .nav-links{order:3!important;width:100%!important;flex-wrap:wrap!important;gap:3px!important;padding-bottom:var(--sp-1)!important;}
@@ -1918,7 +1920,10 @@ function renderDashNuevosClientes(){
     var acciones=(c.servicios&&c.servicios.length)?(
       '<div class="nc-serv"><b>Servicios:</b> '+c.servicios.join(', ')+'</div>'+
       (c.notaAtencion?'<div class="nc-nota"><b>📌 '+c.notaAtencion+'</b></div>':'')+
-      '<div class="nc-actions">'+editBtn+'<button class="btn-primary" onclick="archivarClienteDash(\''+c.id+'\')">📁 Archivar y avisar por WhatsApp</button></div>'
+      '<div class="nc-actions">'+editBtn+
+      '<button class="btn-danger" onclick="descartarClienteDash(\''+c.id+'\',\''+nomEsc+'\')">🗑 Descartar</button>'+
+      '<button class="btn-sm" onclick="archivarClienteDash(\''+c.id+'\',false)">📁 Solo archivar</button>'+
+      '<button class="btn-primary" onclick="archivarClienteDash(\''+c.id+'\',true)">📤 Archivar y avisar por WhatsApp</button></div>'
     ):(
       '<div class="nc-actions">'+
       editBtn+
@@ -1968,18 +1973,29 @@ function guardarAvanzarCliente(){
   });
 }
 
-function archivarClienteDash(id){
+// avisar=true manda el aviso al grupo de WhatsApp; con false solo archiva.
+// En los dos casos el archivado se hace igual, aunque falle el aviso.
+function archivarClienteDash(id,avisar){
   var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
   if(!c)return;
-  if(!confirm('¿Archivar a '+c.nombre+' y avisar al grupo de WhatsApp?'))return;
+  var pregunta=avisar
+    ?'¿Archivar a '+c.nombre+' y avisar al grupo de WhatsApp?'
+    :'¿Archivar a '+c.nombre+' sin avisar por WhatsApp?';
+  if(!confirm(pregunta))return;
+
+  var archivar=function(){
+    db.collection('clientes').doc(id).update({enRevision:false,fechaArchivado:fmt(today)})
+      .then(function(){showToast('Cliente archivado ✓');});
+  };
+
+  if(!avisar){archivar();return;}
+
   fetch(BOT_URL+'/notificar-nuevo-cliente',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({destino:'5493517631708@c.us',nombre:c.nombre,dni:c.dni,edad:c.edad,situacionLaboral:c.situacionLaboral,domicilio:c.domicilio,ciudad:c.ciudad,telefono:c.tel,servicios:c.servicios||[],notaAtencion:c.notaAtencion||''})
   }).then(function(r){return r.json();}).then(function(res){
     if(!res||!res.ok)showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');
-  }).catch(function(){showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');}).finally(function(){
-    db.collection('clientes').doc(id).update({enRevision:false,fechaArchivado:fmt(today)}).then(function(){showToast('Cliente archivado ✓');});
-  });
+  }).catch(function(){showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');}).finally(archivar);
 }
 
 // ─── DEFENSA DEL CONSUMIDOR ───
