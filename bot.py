@@ -2467,13 +2467,8 @@ def construir_docx_demanda_art(texto, actor, filas_ripte):
             continue
 
         if bloque.startswith(titulos):
-            titulo, _, resto = bloque.partition(':\n\n')
             p = doc.add_paragraph()
-            p.add_run(titulo + ':').bold = True
-            if resto:
-                p2 = doc.add_paragraph(resto)
-                p2.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-                p2.paragraph_format.first_line_indent = Cm(1.25)
+            p.add_run(bloque).bold = True
             continue
 
         if bloque.startswith('“') and bloque.endswith('”'):
