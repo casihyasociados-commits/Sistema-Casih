@@ -2889,6 +2889,9 @@ function autocompletarClienteDespidoIndirecto(c){
   setVal('di-rem-nombre',c.nombre);
   setVal('di-rem-dni',c.dni);
   setVal('di-dest-nombre',c.empleador);
+  // Solo se usan si el regimen es Construccion, pero se cargan igual
+  setVal('di-categoria',c.categoria);
+  setVal('di-jornada',c.jornada);
   showToast('Datos del cliente completados ✓');
 }
 
@@ -2991,6 +2994,10 @@ function autocompletarClienteDemandaArt(c){
   setVal('dart-act-edad',c.edad);
   setVal('dart-act-domicilio',c.domicilio);
   setVal('dart-emp-nombre',c.empleador);
+  setVal('dart-fecha-ingreso',c.fechaIngreso);
+  setVal('dart-fecha-egreso',c.fechaEgreso);
+  setVal('dart-categoria',c.categoria);
+  setVal('dart-jornada',c.jornada);
   dartRecalcular();
   showToast('Datos del cliente completados ✓');
 }
@@ -3245,7 +3252,11 @@ function autocompletarClienteTelegrama(c){
   setVal('tg-rem-estado-civil',c.estadoCivil);
   setVal('tg-rem-nacionalidad',c.nacionalidad);
   setVal('tg-rem-domicilio-real',c.domicilio);
+  setVal('tg-rem-nacimiento',c.fechaNac);
   setVal('tg-dest-nombre',c.empleador);
+  setVal('tg-fecha-ingreso',c.fechaIngreso);
+  setVal('tg-categoria',c.categoria);
+  setVal('tg-jornada',c.jornada);
   showToast('Datos del cliente completados ✓');
 }
 
@@ -3344,6 +3355,12 @@ function autocompletarClienteEscrito(c){
   if(c.ciudad)setVal('es-cl-ciudad',c.ciudad);
   setVal('es-cl-telefono',c.tel);
   setVal('es-cl-email',c.email);
+  // Datos de la relacion laboral que tambien vienen de la ficha
+  var setSiHay=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  setSiHay('es-den-nombre',c.empleador);
+  setSiHay('es-rl-fecha-ingreso',c.fechaIngreso);
+  setSiHay('es-rl-categoria',c.categoria);
+  setSiHay('es-rl-jornada',c.jornada);
   showToast('Datos del cliente completados ✓');
 }
 
