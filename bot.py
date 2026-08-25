@@ -1799,6 +1799,747 @@ def generar_telegrama_despido_indirecto():
     return resp, 200
 
 
+# ─── Demanda ART — Rechazo de enfermedad profesional (trámite abreviado) ───
+# El escenario que cubre este tipo de escrito es siempre el mismo: la
+# Comisión Médica rechazó la contingencia y por eso corresponde el trámite
+# abreviado del inciso k. Como el propio "tipo de escrito" ya define ese
+# escenario, los bloques de trámite abreviado e impugnación del dictamen van
+# siempre fijos, sin checkbox. Los montos y la tabla RIPTE los calcula el
+# frontend en vivo (para que se vea cada paso) y acá solo se formatean — no
+# se recalculan del lado del servidor, así hay un único lugar con la
+# fórmula y el estudio revisa los números antes de generar.
+
+def _numero_a_letras_grupo(n):
+    unidades = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve']
+    especiales = {
+        10: 'diez', 11: 'once', 12: 'doce', 13: 'trece', 14: 'catorce', 15: 'quince',
+        16: 'dieciséis', 17: 'diecisiete', 18: 'dieciocho', 19: 'diecinueve', 20: 'veinte',
+        21: 'veintiuno', 22: 'veintidós', 23: 'veintitrés', 24: 'veinticuatro',
+        25: 'veinticinco', 26: 'veintiséis', 27: 'veintisiete', 28: 'veintiocho', 29: 'veintinueve',
+    }
+    decenas = {30: 'treinta', 40: 'cuarenta', 50: 'cincuenta', 60: 'sesenta',
+               70: 'setenta', 80: 'ochenta', 90: 'noventa'}
+    centenas = {100: 'cien', 200: 'doscientos', 300: 'trescientos', 400: 'cuatrocientos',
+                500: 'quinientos', 600: 'seiscientos', 700: 'setecientos',
+                800: 'ochocientos', 900: 'novecientos'}
+    if n == 0:
+        return ''
+    if n < 10:
+        return unidades[n]
+    if n in especiales:
+        return especiales[n]
+    if n < 100:
+        d = (n // 10) * 10
+        u = n % 10
+        return decenas[d] + (' y ' + unidades[u] if u else '')
+    if n == 100:
+        return 'cien'
+    c = (n // 100) * 100
+    resto = n % 100
+    base = centenas[c]
+    return base + (' ' + _numero_a_letras_grupo(resto) if resto else '')
+
+def numero_a_letras(n):
+    n = int(n)
+    if n == 0:
+        return 'cero'
+    partes = []
+    millones = n // 1000000
+    resto = n % 1000000
+    miles = resto // 1000
+    resto2 = resto % 1000
+    if millones:
+        partes.append('un millón' if millones == 1 else _numero_a_letras_grupo(millones) + ' millones')
+    if miles:
+        partes.append('mil' if miles == 1 else _numero_a_letras_grupo(miles) + ' mil')
+    if resto2:
+        partes.append(_numero_a_letras_grupo(resto2))
+    return ' '.join(partes)
+
+def monto_en_letras(monto):
+    monto = float(monto or 0)
+    entero = int(monto)
+    centavos = round((monto - entero) * 100)
+    if centavos >= 100:
+        entero += 1
+        centavos = 0
+    return 'PESOS %s CON %02d/100' % (numero_a_letras(entero).upper(), centavos)
+
+
+def armar_encabezado_actor_art(d):
+    nombre = (d.get('actNombre') or '').strip()
+    dni = (d.get('actDni') or '').strip()
+    fem_act = (d.get('actGenero') or '').strip().lower() == 'femenino'
+    nacionalidad = (d.get('actNacionalidad') or ('argentina' if fem_act else 'argentino')).strip()
+    estado_civil = (d.get('actEstadoCivil') or '').strip()
+    situacion = (d.get('actSituacionLaboral') or '').strip()
+    fecha_nac = (d.get('actFechaNac') or '').strip()
+    edad = (d.get('actEdad') or '').strip()
+    domicilio = (d.get('actDomicilio') or '').strip()
+
+    texto = '%s, DNI %s, %s' % (nombre, dni, nacionalidad)
+    if estado_civil:
+        texto += ', %s' % estado_civil
+    if situacion:
+        texto += ', %s' % situacion
+    if fecha_nac:
+        texto += ', %s el día %s' % ('nacida' if fem_act else 'nacido', fecha_nac)
+    if edad:
+        texto += ', de %s años de edad' % edad
+    texto += (
+        ', con domicilio real en %s y constituyéndolo a los efectos procesales en calle '
+        'Arturo M. Bas N°389 piso 1, oficina "A", ambos de esta ciudad de Córdoba, con el '
+        'patrocinio letrado de los Dres. Ciardiello Ma. Paula M.P. 1-41227 y Casih, Pablo '
+        'Antonio MP 1-31142 ante VS comparezco y digo:'
+    ) % domicilio
+    return texto
+
+
+def armar_objeto_art(d):
+    medico_tit = 'la Dra.' if (d.get('medicoGenero') or '').strip().lower() == 'femenino' else 'el Dr.'
+    monto = float(d.get('montoFinal') or 0)
+    monto_fmt = '{:,.2f}'.format(monto).replace(',', '_').replace('.', ',').replace('_', '.')
+
+    return (
+        'Vengo en tiempo y forma, a iniciar formal demanda ordinaria por resarcimiento de '
+        'daños causados a mi persona a causa de las “enfermedades profesionales” contraída '
+        'por la prestación de tareas a la orden de mi empleadora – a la que me referiré '
+        'infra –, en contra de: %s CUIT: %s, con domicilio en %s, compañía ante la cual, mi '
+        'empleadora tenía asegurada su responsabilidad por riesgos del trabajo al momento '
+        'del hecho o primera manifestación invalidante (PMI).\n\n'
+        'Que, mediante la presente, persigo que, previo los trámites de ley, se determine '
+        'el grado y carácter de la incapacidad laborativa que padezco a consecuencia de las '
+        'enfermedades profesionales que me aqueja por causa directa e inmediata de la '
+        'ejecución de mi trabajo y, en su mérito, se condene a la accionada al pago de las '
+        'prestaciones dinerarias previstas en el plexo normativo que se menciona y por la '
+        'suma que se reclama de $%s (%s), con más lo que resulte de la prueba a rendirse en '
+        'autos, con más intereses, costas y RIPTE, todo en base a los hechos y el derecho '
+        'que expongo a continuación.\n\n'
+        'La accionada, %s CUIT: %s, se encuentra legitimada pasivamente en virtud del '
+        'contrato de afiliación que mantuvo con mi empleadora, %s CUIT %s al momento de la '
+        'PMI. Todo ello, de acuerdo con lo prescripto por los arts. 3 inc. 3), 7 y 27 de la '
+        'Ley N° 24.557 y demás normativa complementaria, entre ellos se resalta el decreto '
+        '1278/00.\n\n'
+        'La suma reclamada tiene su origen en que, según los fundamentos de hecho y '
+        'derecho, médicos y técnicos que seguidamente se exponen, en la actualidad padezco '
+        'un cuadro nosológico, determinante de una incapacidad laboral, provocada por las '
+        '(y en relación de causalidad suficiente) ENFERMEDADES PROFESIONALES en los '
+        'términos de las Leyes Nº 24.557, Nº 26.773 y N° 27.348. Destaco que recién tomé '
+        'conocimiento de la gravedad y alcance de estos una vez otorgado el certificado '
+        'médico, de fecha %s, extendido por %s %s Especialista en medicina del trabajo M.P. '
+        '%s que se adjunta a la presente, siendo dicha fecha, de extensión del certificado, '
+        'la PMI en los términos de ley. Ahora bien, por el grado e importancia de dicha '
+        'enfermedad, la incapacidad que en consecuencia sobreviene y el derecho que a '
+        'continuación expongo solicito que, previo los trámites de ley, se determine el '
+        'grado y carácter de la incapacidad laborativa que padezco realmente por causa '
+        'directa e inmediata de la ejecución de mi trabajo y, en su mérito, se condene a la '
+        'accionada al pago de las prestaciones dinerarias previstas por la suma mencionada '
+        'ut supra.'
+    ) % (
+        d.get('artNombre', ''), d.get('artCuit', ''), d.get('artDomicilio', ''),
+        monto_fmt, monto_en_letras(monto),
+        d.get('artNombre', ''), d.get('artCuit', ''),
+        d.get('empNombre', ''), d.get('empCuit', ''),
+        d.get('fechaCert', ''), medico_tit, d.get('medicoNombre', ''), d.get('medicoMp', ''),
+    )
+
+
+BLOQUE_TRAMITE_ABREVIADO_ART = (
+    'En base al análisis relatado ut supra, solicito a V.S. se imprima el trámite de '
+    'juicio abreviado a la presente demanda, ya que resulta evidente que se encuentran '
+    'cumplimentados los requisitos previstos por el art. 83 bis de la Ley N° 7987 (texto '
+    'según Ley N° 10.596, vigente desde el 01/04/2021) para la procedencia de la vía '
+    'abreviada que se ha impetrado.\n\n'
+    'En agosto del año 2025 se implementó la vigencia del inciso k que nos dice:\n\n'
+    'Art 83 bis: (…) k) Demandas derivadas del Régimen de Riesgos del Trabajo por '
+    'accidentes de trabajo o enfermedades profesionales cuya contingencia, hecho '
+    'generador, relación causal o calificación médico legal haya sido rechazada por la '
+    'Comisión Médica Jurisdiccional dependiente de la Superintendencia de Riesgos del '
+    'Trabajo, y l) (…).”\n\n'
+    'Estamos frente a una hipótesis de dicho inciso, encontrándose todos los recaudos '
+    'exigidos por la ley.'
+)
+
+
+def armar_hechos_antecedentes_art(d, tareas_redactadas):
+    partes = []
+    partes.append(
+        'Pongo de manifiesto que, me encontraba trabajando en relación de dependencia '
+        'laboral, económica, jurídica y técnica para %s, con domicilio social en %s. '
+        'Contaba con una antigüedad reconocida desde el %s haciéndolo de manera continua e '
+        'ininterrumpida hasta el día %s, fecha en que se extinguió la relación laboral.\n\n'
+        'Que ingresé a trabajar en perfectas condiciones físicas y sin mengua de mi '
+        'capacidad laborativa, cumpliendo una jornada laboral %s, todo ello conforme '
+        'modalidad impuesta por mi empleadora.\n\n'
+        'Que cumplía tareas estando jerarquizado, según consta en mis recibos de haberes, '
+        'dentro de la categoría “%s” conforme CCT que regula la actividad de la patronal.'
+        % (d.get('empNombre', ''), d.get('empDomicilio', ''),
+           d.get('fechaIngreso', ''), d.get('fechaEgreso', ''),
+           d.get('jornada', ''), d.get('categoria', ''))
+    )
+    if tareas_redactadas:
+        partes.append(tareas_redactadas)
+    return '\n\n'.join(partes)
+
+
+def armar_sintomas_y_certificado_art(d, sintomas_redactados):
+    partes = []
+    if sintomas_redactados:
+        partes.append(sintomas_redactados)
+    medico_tit = 'la Dra.' if (d.get('medicoGenero') or '').strip().lower() == 'femenino' else 'el Dr.'
+    partes.append(
+        'Por ese motivo consulté con un especialista en medicina del trabajo %s %s MP %s, '
+        'quien, con fecha %s tras una revisión, exámenes y estudios médicos, constató y '
+        'confirmó la patología que padezco a raíz de mis tareas laborales habituales. '
+        'Determinó que ella es consecuencia directa e inmediata de la actividad laboral '
+        'que realicé.'
+        % (medico_tit, d.get('medicoNombre', ''), d.get('medicoMp', ''), d.get('fechaCert', ''))
+    )
+    return ' '.join(partes)
+
+
+def armar_tramite_srt_art(d):
+    partes = []
+    partes.append(
+        'Realicé, mediante telegrama ley 23.789 N° CD %s de fecha %s, la denuncia ante la '
+        'demandada de las enfermedades profesionales que padezco.'
+        % (d.get('tclNumero', ''), d.get('tclFecha', ''))
+    )
+    if (d.get('controlFecha') or '').strip():
+        texto_control = 'Posteriormente, la demandada me cita a control para el día %s.' % d['controlFecha']
+        if (d.get('controlEstudio') or '').strip():
+            texto_control += ' %s' % d['controlEstudio'].strip()
+        partes.append(texto_control)
+    partes.append(
+        'El día %s la demandada remite CD Nº %s, rechazando las patologías denunciadas por '
+        'considerar que no me encontraba expuesto a los agentes de riesgo, sin tomar en '
+        'consideración la relación de causalidad existente entre mis tareas laborales y '
+        'las dolencias que padezco.'
+        % (d.get('cdRechazoFecha', ''), d.get('cdRechazoNumero', ''))
+    )
+    partes.append(
+        'Debido a ello inicio expediente por RECHAZO ante la SRT con fecha %s. El '
+        'expediente por rechazo fue tramitado bajo el N°%s.'
+        % (d.get('expteFecha', ''), d.get('expteNumero', ''))
+    )
+    if (d.get('informeTecnicoFecha') or '').strip():
+        partes.append(
+            'Con fecha %s se emite el Informe Técnico Médico, en donde decide la SRT no '
+            'citar a junta médica a los fines de poder revisar al actor. Lo cual a todas '
+            'luces refleja el poco interés y que la negativa ya está predispuesta de '
+            'antemano.' % d['informeTecnicoFecha']
+        )
+    if (d.get('dictamenFecha') or '').strip():
+        texto = 'Con fecha %s se emitió Dictamen Médico:' % d['dictamenFecha']
+        if (d.get('dictamenTexto') or '').strip():
+            texto += '\n\n“%s”' % d['dictamenTexto'].strip()
+        partes.append(texto)
+    return '\n\n'.join(partes)
+
+
+BLOQUE_IMPUGNA_DICTAMEN_ART = (
+    'El dictamen ha incurrido en error de juzgamiento al omitir o infravalorar '
+    'científicamente tanto las patologías que padezco como los estudios médicos '
+    'practicados, lo que se demostrará en la etapa procesal oportuna y se acredita '
+    'científicamente en este acto con el certificado médico que se acompaña, y que, de '
+    'haber sido tenido en cuenta, se hubiera determinado adecuadamente mi incapacidad. El '
+    'dictamen no ha tenido en cuenta la totalidad de los elementos ofrecidos como prueba '
+    'ni han expuesto los fundamentos científicos mínimos, respetando así las reglas de la '
+    'experiencia de las que debe valerse todo dictamen. Esto permite concluir que estamos '
+    'frente a un dictamen que adolece del vicio de falta de fundamentación científica y '
+    'que llevan la tacha de arbitrarios, por ende, adolecen de un vicio que acarrea su '
+    'nulidad absoluta e insalvable.\n\n'
+    'La rectificación del dictamen o su anulación y reemplazo por la pericia médica en '
+    'autos, me permitirán el acceso a una indemnización acorde a mi minusvalía.'
+)
+
+
+def armar_subsidiariamente_recurre_art(d):
+    monto = float(d.get('montoFinal') or 0)
+    monto_fmt = '{:,.2f}'.format(monto).replace(',', '_').replace('.', ',').replace('_', '.')
+    comision = (d.get('comisionMedicaNumero') or '').strip()
+    return (
+        'Sin perjuicio de lo expuesto anteriormente, y de manera subsidiaria vengo a '
+        'recurrir el arbitrario Dictamen emitido por la Comisión Médica Nº %s, solicitando '
+        'que el Tribunal oportunamente lo declare nulo y condene a %s CUIT: %s con '
+        'domicilio real en %s, a abonar la prestación dineraria correspondiente a la '
+        'incapacidad parcial, permanente y definitiva generada por la enfermedad '
+        'profesional que sufro, prevista en la LRT por la suma de $%s (%s), y/o lo que en '
+        'más o en menos surja de la prueba a rendirse, con más intereses y costas.\n\n'
+        'Como he dicho anteriormente, mi reclamo se inició mediante la denuncia a la '
+        'demandada de la afección que me aqueja, posteriormente recurrí a la Comisión '
+        'Médica Nº %s, solicitando su intervención. La mencionada Comisión Médica, se '
+        'expidió determinando la existencia de una enfermedad de carácter laboral, pero '
+        'infravalorando la incapacidad que esta me genera.\n\n'
+        'En relación a los agravios que me ocasiona el mencionado pronunciamiento, me '
+        'remito a lo expresado ut-supra bajo el epígrafe: “IMPUGNA DICTAMEN COMISIÓN '
+        'MÉDICA - EXPRESA AGRAVIOS”.'
+        % (comision, d.get('artNombre', ''), d.get('artCuit', ''), d.get('artDomicilio', ''),
+           monto_fmt, monto_en_letras(monto), comision)
+    )
+
+
+def _fmt_monto(v):
+    try:
+        return '{:,.2f}'.format(float(v or 0)).replace(',', '_').replace('.', ',').replace('_', '.')
+    except (TypeError, ValueError):
+        return '0,00'
+
+
+def armar_rubros_reclamados_art(d):
+    partes = []
+    partes.append(
+        'El siguiente cálculo será realizado de acuerdo a lo establecido por las Leyes '
+        '24.557, 26.773, 27.348 y el Decreto 1694/2009.'
+    )
+    partes.append('PMI: %s\nÍndice base mes de la PMI: %s' % (
+        d.get('fechaPmi', ''), _fmt_monto(d.get('ripteDestino'))))
+    partes.append('[[TABLA_RIPTE]]')
+    partes.append(
+        'Valor mensual de ingreso base: $%s / 12: $%s'
+        % (_fmt_monto(d.get('ripteTotal')), _fmt_monto(d.get('vibm')))
+    )
+    partes.append(
+        'Edad a la fecha de PMI: 65 / %s: %s'
+        % (d.get('edadPmi', ''), d.get('coefEdad', ''))
+    )
+    partes.append(
+        'Cálculo indemnización: 53 x $%s x %s x %s %%: $%s'
+        % (_fmt_monto(d.get('vibm')), d.get('coefEdad', ''),
+           d.get('porcentajeIncapacidad', ''), _fmt_monto(d.get('indemnizacionBase')))
+    )
+    if (d.get('pisoResolucion') or '').strip():
+        corresponde = 'SI' if d.get('pisoCorresponde') else 'NO'
+        partes.append(
+            '•PISO MÍNIMO %s: $ %s * %s%%: $ %s (%s corresponde su aplicación por ser %s '
+            'a la Fórmula).'
+            % (d['pisoResolucion'], _fmt_monto(d.get('pisoMonto')),
+               d.get('porcentajeIncapacidad', ''), _fmt_monto(d.get('pisoAplicable')),
+               corresponde, 'superior' if d.get('pisoCorresponde') else 'inferior')
+        )
+    partes.append(
+        'A los montos parciales detallados anteriormente se le debe adicionar la '
+        'compensación del 20%% dispuesta por el art. 3 de la Ley 26.773 por los daños '
+        'efectivamente sufridos por el trabajador y que palmariamente no son cubiertos por '
+        'los métodos de cálculo establecidos por la Ley 24.557.\n\n'
+        'En virtud de lo manifestado previamente, solicito se adicione dicho 20%%, de '
+        'acuerdo al siguiente cálculo:\n'
+        '1) $%s\n'
+        '2) $%s + 20%% art 3 ley 26773: $%s\n'
+        '3) $%s + $%s: $%s'
+        % (_fmt_monto(d.get('indemnizacionBase')),
+           _fmt_monto(d.get('indemnizacionBase')), _fmt_monto(d.get('monto20')),
+           _fmt_monto(d.get('indemnizacionBase')), _fmt_monto(d.get('monto20')),
+           _fmt_monto(d.get('montoFinal')))
+    )
+    partes.append(
+        'El monto total que me corresponde en concepto de prestación dineraria por la '
+        'incapacidad que padezco, a causa de las patologías que sufro como consecuencia de '
+        'las tareas prestadas para con mi empleador, asciende a la suma de $%s (%s).'
+        % (_fmt_monto(d.get('montoFinal')), monto_en_letras(d.get('montoFinal')))
+    )
+    partes.append(
+        'El monto reclamado es estimativo y al solo efecto de cubrir recaudos procesales, '
+        'quedando el monto definitivo a lo que en más o en menos resulte de la prueba a '
+        'rendirse en autos, todo ello con más actualizaciones, intereses, costas que el '
+        'Tribunal de mérito estime correcta, desde la fecha de PMI y hasta la fecha del '
+        'efectivo pago.\n\n'
+        'Dejo expresamente impugnada la aplicación de la Resolución Nº 1039/2019 y 332/23 '
+        'en razón de que la misma atenta con el Principio de Reparación suficiente de los '
+        'siniestros/enfermedades profesionales, derecho de propiedad y seguridad jurídica.'
+    )
+    partes.append(
+        'La sumatoria simple de los índices no refleja verdaderamente el paso del tiempo y '
+        'como afecta la inflación a las remuneraciones percibidas por los trabajadores '
+        'activos. También implicaría aceptar un detrimento confiscatorio del crédito del '
+        'trabajador, sujeto de especial protección al decir de la CSJN, más aún con un '
+        'grado de incapacidad que limita su reinserción laboral. Aplicar dichas '
+        'resoluciones quiebra la jerarquía y coherencia normativa impuesta por la propia '
+        'Constitución.'
+    )
+    partes.append(
+        'En razón de ello, dejo planteado que se aplique al caso concreto la normativa que '
+        'sea la más favorable para el trabajador conforme lo establece la LCT. Y solicito '
+        'se aplique un interés compensatorio del 11% anual para contrarrestar los efectos '
+        'de la inflación y de las demoras que tienen los procesos judiciales. Subsidiariamente '
+        'solicito aplicación del art. 1109 del CCIV y Art. 1113 CCIV. Siempre lo que sea más '
+        'favorable al Trabajador.'
+    )
+    return '\n\n'.join(partes)
+
+
+def armar_prueba_art(d):
+    partes = []
+    partes.append(
+        'a.-) CONFESIONAL: Del representante legal de %s CUIT: %s con facultades para '
+        'absolver posiciones de acuerdo a los estatutos, en forma personal e indelegable '
+        'quien deberá ser citado a la vista de la causa bajo apercibimientos de ley, para '
+        'que deponga a tenor del pliego que en esa oportunidad se presentará.'
+        % (d.get('artNombre', ''), d.get('artCuit', ''))
+    )
+
+    testigos = d.get('testigos') or []
+    if testigos:
+        lineas = ['- %s con domicilio en %s;' % (t.get('nombre', ''), t.get('domicilio', ''))
+                  for t in testigos if (t.get('nombre') or '').strip()]
+        partes.append(
+            'b.-) TESTIMONIAL\nSolicito se fije fecha y hora de audiencia para receptar la '
+            'declaración testimonial de las siguientes personas:\n' + '\n'.join(lineas)
+        )
+
+    doc_items = [it.strip() for it in (d.get('documentalItems') or []) if (it or '').strip()]
+    if (d.get('documentalOtros') or '').strip():
+        doc_items.append(d['documentalOtros'].strip())
+    if doc_items:
+        letras = 'abcdefghijklmnopqrstuvwxyz'
+        lista = ' '.join('%s.-) %s' % (letras[i], it) for i, it in enumerate(doc_items))
+        partes.append(
+            'c.-) DOCUMENTAL – INSTRUMENTAL: Acompaña en adjunto: %s\n\nLa documental se '
+            'adjunta en formato PDF, declarando que es copia fiel de la original, poniendo '
+            'a disposición para cuando el Tribunal lo requiera.' % lista
+        )
+
+    partes.append(
+        'd.-) EXHIBICIÓN: Solicito día y hora de audiencia a los fines de la exhibición '
+        'por parte de la demandada de la documental que se detalla a continuación '
+        'agregando copia certificada en los autos del rubro: a) Examen de ingreso '
+        '(Pre-ocupacional) y Exámenes médicos periódicos que debieron realizar %s la '
+        'empleadora en base a lo dispuesto por el Decreto 170/96 y resolución SRT 43/97 '
+        'Art. 3, Anexo II y Res. 28/98. b) Plan de mejoras, constancias de visitas y '
+        'fiscalización del efectivo cumplimiento de las medidas de higiene y seguridad que '
+        'debió realizar la ART al empleador %s. c) Para el supuesto caso que la ART haya '
+        'hecho denuncia en la Superintendencia del Riesgo del Trabajo por incumplimiento '
+        'de la Empresa de los puntos a) y b) de este apartado, constancia certificada de '
+        'dicha DENUNCIA. d.-) Constancia de capacitación al actor teniendo en cuenta a los '
+        'riesgos que se encuentra expuesto por su actividad. e-) Copia certificada del '
+        'contrato de cobertura suscripto entre %s y %s, indicando fecha de inicio y '
+        'finalización, si éste hubiese caducado. f-) Denuncia de Enfermedad laboral '
+        'sufrida por el actor, informe y constancias de atenciones médicas brindadas al '
+        'actor.'
+        % (d.get('artNombre', ''), d.get('empNombre', ''), d.get('artNombre', ''), d.get('empNombre', ''))
+    )
+
+    partes.append(
+        'e.-) RECONOCIMIENTO\nSolicito se fije día y hora de audiencia a los fines del '
+        'reconocimiento por parte de la demandada: a.-) Recepción, autenticidad, cuerpo y '
+        'contenido del TCL CD Nº %s ofrecida en el punto c.-) de la DOCUMENTAL. b.-) '
+        'Emisión, autenticidad, cuerpo y contenido, de la CD Nº %s ofrecida en el mismo '
+        'punto de la DOCUMENTAL.'
+        % (d.get('tclNumero', ''), d.get('cdRechazoNumero', ''))
+    )
+
+    perito_control = ''
+    if (d.get('peritoControlNombre') or '').strip():
+        perito_control = (
+            '\n\nPERITOS DE CONTROL: Se deja ofrecido como perito de control médico a %s '
+            'M.P. %s con domicilio en %s.'
+            % (d['peritoControlNombre'], d.get('peritoControlMp', ''), d.get('peritoControlDomicilio', ''))
+        )
+    partes.append(
+        'f.-) DICTÁMENES PERICIALES:\n\n'
+        'a) PERICIAL MEDICA: Solicito se fije día y hora de audiencia a los fines de un '
+        'sorteo de un perito médico especialista en Medicina del Trabajo, a fin de que '
+        'presente un informe fundado, previa revisación del actor y de los estudios '
+        'médicos que ésta acompañe, manifestando en base a lo establecido por la Ley '
+        '24.557, y dto. 658/96 si; 1) El actor padece las dolencias denunciadas. 2) Si las '
+        'mismas le producen incapacidad, y en su caso si la misma es de carácter '
+        'permanente y definitiva. 3) Si las patologías son consecuencia de la actividad '
+        'laboral que desarrollaba el actor. Fundamentando adecuadamente la relación de '
+        'causalidad de las tareas que cumplía y la patología que éste padece. 4) Cualquier '
+        'otra consideración que el perito crea oportuno realizar, en base a su experiencia '
+        'y pericias anteriores. 5) Calificación médico legal, si las patología '
+        'incapacitantes deben calificarse como enfermedad profesional. 6) En su caso '
+        'establecer grado de incapacidad, teniendo en cuenta los factores de ponderación '
+        'dto. 659/96.\n\n'
+        'Se solicita expresamente se respondan a todas y cada una de las preguntas '
+        'formuladas, dando fundamento de las respuestas, bajo apercibimiento de solicitar '
+        'la nulidad del acto pericial.%s\n\n'
+        'b.-) PERICIA TECNICA: Solicito se fije día y hora de audiencia a los fines de que '
+        'se designe Perito Oficial Ingeniero en Higiene y Seguridad del Trabajo, a los '
+        'siguientes fines: 1.) Para que se constituya en la sede de %s, ubicado en %s para '
+        'recabar todo tipo de información relacionada a los riesgos inherentes a los que '
+        'estuvo expuesto el actor y las causas que pudieron ocasionar la enfermedad '
+        'profesional denunciada en autos. 2.) Indique qué consecuencias produciría en una '
+        'persona estar sometida a las tareas descriptas por la actora en la demanda. 3.) '
+        'Indique si las tareas que realizó la actora pueden ser causa de la enfermedad '
+        'denunciada en esta demanda. 4.) Aplicación por parte de la demandada de las '
+        'medidas de higiene y seguridad previstas en la Ley Nº 19.587 y sus '
+        'reglamentaciones (Decretos Nº 351/79, 991/96, 1338/96, 617/97, 249/07 y/o '
+        'cualquier otra normativa de aplicación), a las tareas que efectuaba el actor en '
+        'su carácter de dependiente de %s. 5.) Aplicación por parte de la demandada de las '
+        'medidas de higiene y seguridad previstas en la Ley Nº 24.557, sus '
+        'reglamentaciones (Decretos Nº 170/96, 334/96, 658/96, 1278/00) y las resoluciones '
+        'emitidas por la Superintendencia de Riesgos del Trabajo, que debía adoptar en el '
+        'puesto de trabajo denunciado por la actora en la demanda; 6.) Informe si en '
+        'relación a las tareas que denuncia el actor en su demanda, y en especial teniendo '
+        'en cuenta las patologías que la accionante padece según el certificado médico que '
+        'se adjunta a la demanda, se adoptaron por parte de la demandada las medidas de '
+        'higiene y seguridad y prevención de riesgos del trabajo que prevé la '
+        'reglamentación vigente; 7.) Informe si el actor, en cumplimiento de las tareas '
+        'encomendadas por su empleadora, se encontró expuesto a los agentes de riesgos '
+        'previstos en el Decreto 658/1996, en especial los denunciados oportunamente en '
+        'escrito de demanda; 8.) Informe si de las constancias documentales emanadas de la '
+        'demandada surge la capacitación a los empleados en relación a los riesgos del '
+        'trabajo que se encuentran expuestos y si se proveyó a los trabajadores de los '
+        'elementos de protección adecuados para evitar o impedir accidentes de trabajo '
+        'y/o las enfermedades profesionales relatadas en la demanda.\n\n'
+        'Toda la información arriba requerida deberá ser de fecha anterior a la denuncia '
+        'efectuada por el actor ante la demandada.\n\n'
+        'Formulo reserva de ampliar puntos de pericia y de designar perito de control en '
+        'los términos de los arts. 262 y 263 del CPCC.'
+        % (perito_control, d.get('empNombre', ''), d.get('empDomicilio', ''), d.get('empNombre', ''))
+    )
+
+    salud = (d.get('saludEstablecimiento') or '').strip()
+    partes.append(
+        'g.-) INFORMATIVA: a) Al ARCA, a los fines que informe remuneraciones declaradas '
+        'por %s con referencia al actor. b.-) A la COMISION MEDICA LOCAL, a los fines que '
+        'remita copia certificada de todas las actuaciones correspondientes al Expediente '
+        'SRT N° %s.%s'
+        % (d.get('empNombre', ''), d.get('expteNumero', ''),
+           (' c.-) A %s: a los fines de que remita al Tribunal original y/o copia '
+            'certificada de la Historia Clínica a nombre del actor.' % salud) if salud else '')
+    )
+
+    return '\n\n'.join(partes)
+
+
+BLOQUE_CIERRE_ART = (
+    'VIII.-) PRINCIPIO “IURA NOVIT CURIA”:\n\n'
+    'En el caso de que existiera un error en el encuadramiento de los hechos en la ley, '
+    'pido en virtud del mencionado principio, que el Juzgador corrija cualquier cita '
+    'equivocada, subsumiendo la norma legal al marco fáctico citado.\n\n'
+    'IX.-) RESERVA DEL CASO FEDERAL:\n\n'
+    'Formulo reserva del caso federal y del recurso extraordinario que autoriza el art. 14 '
+    'de la Ley 48 y doctrina de la arbitrariedad. Lo dicho es aplicable para el supuesto '
+    'que se dicte una resolución contraria a mis legítimos intereses, por cuanto en tal '
+    'supuesto nos encontraríamos ante la violación de derechos de raigambre '
+    'constitucional, tales como el de propiedad, igualdad ante la ley, defensa en juicio, '
+    'entre otros, tutelados por nuestra Ley Fundamental.\n\n'
+    'X.-) DERECHO:\n\n'
+    'Fundamento mi pretensión en los siguientes Arts. 75 y c.c. de la L.C.T., 6, 8 apartado '
+    '1, art 14 apartado 2 inc. A y c.c. de la Ley de Riesgos de Trabajo y los Arts. 14 bis, '
+    '16, 75 inc. 12, 116 y c.c. de la Constitución Nacional; los Tratados Internacionales a '
+    'los que nuestro país adhirió; los Arts. 1, 9, 10 L.P.T. 7987; Ley 10596, y las más '
+    'moderna doctrina y jurisprudencia aplicable al presente caso.\n\n'
+    'PETITUM:\n\n'
+    'Por todo lo expuesto a V.S. solicito: a.-) Me tenga por presentado, por parte y con '
+    'el domicilio constituido. b.-) Admita la presente demanda. c.-) Se sirva correr los '
+    'plazos para contestar la demanda y/o expresar agravios. d.-) Tenga por ofrecida la '
+    'prueba. e.-) Tenga presente la reserva del caso federal. f.-) Tenga por acompañada la '
+    'documental mencionada.\n\n'
+    'SERA JUSTICIA.'
+)
+
+
+def armar_cuerpo_demanda_art(d, tareas_redactadas, sintomas_redactados):
+    partes = []
+    partes.append(armar_encabezado_actor_art(d))
+    partes.append('I.-) OBJETO:\n\n' + armar_objeto_art(d))
+    partes.append('II.-) SOLICITA TRÁMITE ABREVIADO (PDA):\n\n' + BLOQUE_TRAMITE_ABREVIADO_ART)
+    partes.append(
+        'III.-) HECHOS ANTECEDENTES DE LA RELACIÓN LABORAL:\n\n1º) '
+        + armar_hechos_antecedentes_art(d, tareas_redactadas)
+        + '\n\n2º) ' + armar_sintomas_y_certificado_art(d, sintomas_redactados)
+        + '\n\n3º) ' + armar_tramite_srt_art(d)
+    )
+    partes.append('IV.-) IMPUGNA DICTAMEN COMISIÓN MÉDICA- EXPRESA AGRAVIOS:\n\n' + BLOQUE_IMPUGNA_DICTAMEN_ART)
+    partes.append('V.-) SUBSIDIARIAMENTE RECURRE DICTAMEN DE COMISIÓN MÉDICA:\n\n' + armar_subsidiariamente_recurre_art(d))
+    partes.append('VI.-) RUBROS RECLAMADOS:\n\n' + armar_rubros_reclamados_art(d))
+    partes.append('VII.-) OFRECE PRUEBA:\n\n' + armar_prueba_art(d))
+    partes.append(BLOQUE_CIERRE_ART)
+    return '\n\n'.join(p for p in partes if p and p.strip())
+
+
+SYSTEM_PROMPT_TAREAS_ART = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir una descripción informal de las tareas físicas que hacía un "
+    "trabajador (movimientos, posturas, pesos, repetición) y tenés que convertirla en uno "
+    "o más párrafos formales, en primera persona, para una demanda por enfermedad "
+    "profesional, describiendo en detalle el esfuerzo físico y las condiciones "
+    "ergonómicas de la tarea, arrancando de forma natural (por ejemplo: 'Que mis tareas "
+    "consistían en...').\n\n"
+    "Reglas:\n"
+    "- Nunca inventes datos, pesos ni cantidades que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente el/los párrafo(s) final(es), sin comentarios antes o después."
+)
+
+SYSTEM_PROMPT_SINTOMAS_ART = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir una descripción informal de los síntomas o dolencias que "
+    "empezó a sentir un trabajador a raíz de sus tareas, y tenés que convertirla en una "
+    "frase corrida, en primera persona, que continúe naturalmente la oración: 'Que a "
+    "razón de las actividades realizadas durante la ejecución de mis labores, "
+    "[TU TEXTO].'\n\n"
+    "Reglas:\n"
+    "- Arrancá en minúscula, sin punto final si es posible integrarlo, ya que tu frase "
+    "continúa una oración que ya empezó.\n"
+    "- Nunca inventes síntomas ni datos que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+
+@app.route('/generar-demanda-art', methods=['POST', 'OPTIONS'])
+def generar_demanda_art():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    if not (d.get('actNombre') or '').strip():
+        return error('Falta el nombre del actor.')
+    if not (d.get('artNombre') or '').strip():
+        return error('Falta el nombre de la ART demandada.')
+    if not (d.get('montoFinal') or 0):
+        return error('Falta el monto reclamado (completá la calculadora RIPTE).')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        tareas = ''
+        if (d.get('tareasRelato') or '').strip():
+            tareas = redactar_con_ia(client, SYSTEM_PROMPT_TAREAS_ART, d['tareasRelato'])
+        sintomas = ''
+        if (d.get('sintomasRelato') or '').strip():
+            sintomas = redactar_con_ia(client, SYSTEM_PROMPT_SINTOMAS_ART, d['sintomasRelato'])
+    except Exception as e:
+        print("Error redactando demanda ART con IA:", str(e))
+        return error('No se pudo generar la demanda. Intentá de nuevo en un momento.', 500)
+
+    texto = armar_cuerpo_demanda_art(d, tareas, sintomas)
+    texto = re.sub(r'\n{3,}', '\n\n', texto)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+
+def construir_docx_demanda_art(texto, actor, filas_ripte):
+    doc = Document()
+
+    section = doc.sections[0]
+    section.left_margin = Cm(3)
+    section.right_margin = Cm(2.5)
+    section.top_margin = Cm(2.5)
+    section.bottom_margin = Cm(2.5)
+
+    estilo = doc.styles['Normal']
+    estilo.font.name = 'Times New Roman'
+    estilo.font.size = Pt(12)
+    estilo.paragraph_format.line_spacing = 1.15
+    estilo.paragraph_format.space_after = Pt(0)
+
+    titulos = (
+        'I.-) OBJETO', 'II.-) SOLICITA', 'III.-) HECHOS', 'IV.-) IMPUGNA',
+        'V.-) SUBSIDIARIAMENTE', 'VI.-) RUBROS', 'VII.-) OFRECE PRUEBA',
+        'VIII.-) PRINCIPIO', 'IX.-) RESERVA', 'X.-) DERECHO', 'PETITUM',
+    )
+
+    bloques = [b.strip('\n') for b in texto.split('\n\n') if b.strip()]
+    for bloque in bloques:
+        if bloque.strip() == '[[TABLA_RIPTE]]':
+            tabla = doc.add_table(rows=1, cols=6)
+            tabla.style = 'Table Grid'
+            cab = tabla.rows[0].cells
+            for i, txt in enumerate(['Mes', 'Remuneración', 'RIPTE origen', 'RIPTE destino', 'Coeficiente', 'Total']):
+                cab[i].text = txt
+                cab[i].paragraphs[0].runs[0].bold = True
+            for fila in filas_ripte:
+                celdas = tabla.add_row().cells
+                celdas[0].text = str(fila.get('mes', ''))
+                celdas[1].text = '$ ' + _fmt_monto(fila.get('remuneracion'))
+                celdas[2].text = str(fila.get('ripteOrigen', ''))
+                celdas[3].text = str(fila.get('ripteDestino', ''))
+                celdas[4].text = str(fila.get('coeficiente', ''))
+                celdas[5].text = '$ ' + _fmt_monto(fila.get('total'))
+            doc.add_paragraph()
+            continue
+
+        if bloque.startswith(titulos):
+            titulo, _, resto = bloque.partition(':\n\n')
+            p = doc.add_paragraph()
+            p.add_run(titulo + ':').bold = True
+            if resto:
+                p2 = doc.add_paragraph(resto)
+                p2.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                p2.paragraph_format.first_line_indent = Cm(1.25)
+            continue
+
+        if bloque.startswith('“') and bloque.endswith('”'):
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.paragraph_format.left_indent = Cm(1.5)
+            p.paragraph_format.right_indent = Cm(1.5)
+            p.add_run(bloque).italic = True
+            continue
+
+        p = doc.add_paragraph(bloque)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p.paragraph_format.first_line_indent = Cm(1.25)
+
+    doc.add_paragraph()
+    doc.add_paragraph()
+    tabla_firma = doc.add_table(rows=1, cols=2)
+    celdas = tabla_firma.rows[0].cells
+    _agregar_firma(celdas[0], (actor.get('nombre') or '').strip(),
+                    ('DNI %s' % actor['dni']) if actor.get('dni') else '')
+    _agregar_firma(celdas[1], 'Ma. Paula Ciardiello / Pablo Casih', 'Abogados', 'M.P. 1-41227 / M.P. 1-31142')
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+
+@app.route('/generar-demanda-art-docx', methods=['POST', 'OPTIONS'])
+def generar_demanda_art_docx():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    body = request.get_json(silent=True) or {}
+    texto = (body.get('texto') or '').strip()
+    actor = body.get('actor') or {}
+    filas_ripte = body.get('filasRipte') or []
+
+    if not texto:
+        resp = jsonify({"status": "error", "detalle": "Falta el texto de la demanda."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    try:
+        buffer = construir_docx_demanda_art(texto, actor, filas_ripte)
+    except Exception as e:
+        print("Error generando docx de demanda ART:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo generar el archivo Word."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    nombre_archivo = 'Demanda ART - %s.docx' % ((actor.get('nombre') or 'escrito').strip() or 'escrito')
+    resp = send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        as_attachment=True,
+        download_name=nombre_archivo
+    )
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+
 @app.route('/generar-escrito', methods=['POST', 'OPTIONS'])
 def generar_escrito():
     if request.method == 'OPTIONS':

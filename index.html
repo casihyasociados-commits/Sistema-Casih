@@ -691,6 +691,7 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="denuncia_trabajo">Denuncia laboral — Ministerio de Trabajo</option>
         <option value="telegrama_aclare">Telegrama (TCL) — Aclare situación laboral y blanqueo</option>
         <option value="telegrama_despido_indirecto">Telegrama (TCL) — Despido indirecto</option>
+        <option value="demanda_art_rechazo">Demanda ART — Rechazo enfermedad profesional (trámite abreviado)</option>
       </select>
     </div>
     <div class="fg">
@@ -1011,6 +1012,195 @@ input.currency-input{letter-spacing:0.5px;}
       </div>
       <textarea class="fta" id="di-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
       <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
+    </div>
+  </div>
+
+  <div id="es-form-demanda-art" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Datos del actor</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente (opcional)</div>
+        <input class="fi" id="dart-cl-search" placeholder="Completa los datos del actor desde la base..." oninput="filtrarClientes('dart-cl-search','dart-cl-dropdown')" onfocus="filtrarClientes('dart-cl-search','dart-cl-dropdown')" autocomplete="off">
+        <div id="dart-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Nombre y apellido *</div><input class="fi" id="dart-act-nombre" placeholder="Ej: NARANJO GUIDO ALEJANDRO"></div>
+        <div class="fg"><div class="fl">DNI</div><input class="fi" id="dart-act-dni" placeholder="32.458.689"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Género</div><select class="fs" id="dart-act-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+        <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="dart-act-nacionalidad" placeholder="argentino"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="dart-act-estado-civil" placeholder="soltero"></div>
+        <div class="fg"><div class="fl">Situación laboral actual</div><input class="fi" id="dart-act-situacion" placeholder="desempleado"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de nacimiento</div><input class="fi" id="dart-act-fecha-nac" placeholder="22/06/1986" oninput="dartRecalcular()"></div>
+        <div class="fg"><div class="fl">Edad actual</div><input class="fi" id="dart-act-edad" type="number" placeholder="39"></div>
+      </div>
+      <div class="fg"><div class="fl">Domicilio real</div><input class="fi" id="dart-act-domicilio" placeholder="calle Pampa Nº 7662 Bº 9 de Julio de la Ciudad de Córdoba"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">ART demandada</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Razón social *</div><input class="fi" id="dart-art-nombre" placeholder="PREVENCION ART S.A"></div>
+        <div class="fg"><div class="fl">CUIT</div><input class="fi" id="dart-art-cuit" placeholder="30-68436191-7"></div>
+      </div>
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="dart-art-domicilio" placeholder="calle General Paz Nº 331 de la ciudad de Córdoba"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Empleador (referencia — no es el demandado)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Razón social / nombre *</div><input class="fi" id="dart-emp-nombre" placeholder="CORRUGADORA CENTRO S.A"></div>
+        <div class="fg"><div class="fl">CUIT</div><input class="fi" id="dart-emp-cuit" placeholder="30-52131211-0"></div>
+      </div>
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="dart-emp-domicilio" placeholder="Buenos Aires Nº 2873, de la ciudad de Córdoba"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Relación laboral y tareas</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de ingreso</div><input class="fi" id="dart-fecha-ingreso" placeholder="17/01/2011"></div>
+        <div class="fg"><div class="fl">Fecha de egreso</div><input class="fi" id="dart-fecha-egreso" placeholder="27/03/2024"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Categoría</div><input class="fi" id="dart-categoria" placeholder='Categoría II'></div>
+        <div class="fg"><div class="fl">Jornada</div><input class="fi" id="dart-jornada" placeholder="de lunes a viernes de 8 a 17hs"></div>
+      </div>
+      <div class="fg">
+        <div class="fl">Tareas físicas — relato *</div>
+        <textarea class="fta" id="dart-tareas-relato" style="min-height:100px" placeholder="Contá en tus palabras en qué consistían las tareas: movimientos, posturas, pesos, repetición. La IA lo redacta en estilo formal."></textarea>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">PMI y certificado médico</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de la PMI *</div><input class="fi" id="dart-fecha-pmi" placeholder="01/03/2024" oninput="dartRecalcular()"></div>
+        <div class="fg"><div class="fl">Fecha del certificado médico</div><input class="fi" id="dart-fecha-cert" placeholder="20/05/2024"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Médico — nombre</div><input class="fi" id="dart-medico-nombre" placeholder="JOSE EDUARDO PACHO"></div>
+        <div class="fg"><div class="fl">Médico — M.P.</div><input class="fi" id="dart-medico-mp" placeholder="15410"></div>
+      </div>
+      <div class="fg"><div class="fl">Médico — género</div><select class="fs" id="dart-medico-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+      <div class="fg">
+        <div class="fl">Síntomas — relato *</div>
+        <textarea class="fta" id="dart-sintomas-relato" style="min-height:80px" placeholder="Contá qué empezó a sentir: dolor, entumecimiento, hormigueo, etc. La IA lo redacta en estilo formal."></textarea>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Trámite ante la ART / SRT</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">TCL de denuncia — número *</div><input class="fi" id="dart-tcl-numero" placeholder="984864674"></div>
+        <div class="fg"><div class="fl">TCL de denuncia — fecha *</div><input class="fi" id="dart-tcl-fecha" placeholder="23/05/2024"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de citación a control (opcional)</div><input class="fi" id="dart-control-fecha" placeholder="04/06/2024"></div>
+        <div class="fg"><div class="fl">Estudio realizado en el control (opcional)</div><input class="fi" id="dart-control-estudio" placeholder="Me realizan una Electromiografía."></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">CD de rechazo — número *</div><input class="fi" id="dart-cd-rechazo-numero" placeholder="0006114216"></div>
+        <div class="fg"><div class="fl">CD de rechazo — fecha *</div><input class="fi" id="dart-cd-rechazo-fecha" placeholder="11/06/2024"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Expediente SRT — número *</div><input class="fi" id="dart-expte-numero" placeholder="161286/25"></div>
+        <div class="fg"><div class="fl">Expediente SRT — fecha de inicio *</div><input class="fi" id="dart-expte-fecha" placeholder="07/04/2025"></div>
+      </div>
+      <div class="fg"><div class="fl">Fecha del Informe Técnico Médico (opcional)</div><input class="fi" id="dart-informe-fecha" placeholder="16/07/2025"></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha del Dictamen Médico</div><input class="fi" id="dart-dictamen-fecha" placeholder="04/08/2025"></div>
+        <div class="fg"><div class="fl">Nº de Comisión Médica</div><input class="fi" id="dart-comision-numero" placeholder="5"></div>
+      </div>
+      <div class="fg">
+        <div class="fl">Texto del Dictamen Médico (opcional — se cita textual)</div>
+        <textarea class="fta" id="dart-dictamen-texto" style="min-height:60px" placeholder="Pegá acá la conclusión del dictamen tal cual figura en el expediente."></textarea>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Calculadora RIPTE</div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:14px">
+        Cargá la remuneración y el RIPTE de origen de cada uno de los 12 meses previos a la PMI. El RIPTE destino es el índice del mes de la PMI, se carga una sola vez. Todo se calcula solo, en vivo — revisá el resumen antes de generar.
+      </div>
+      <div class="fg"><div class="fl">RIPTE destino (índice del mes de la PMI)</div><input class="fi" id="dart-ripte-destino" type="number" step="0.01" placeholder="80678.57" oninput="dartRecalcular()"></div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px" id="dart-ripte-tabla">
+          <thead><tr style="text-align:left;color:var(--text3)">
+            <th style="padding:6px 4px">Mes</th><th style="padding:6px 4px">Remuneración</th>
+            <th style="padding:6px 4px">RIPTE origen</th><th style="padding:6px 4px">Coeficiente</th>
+            <th style="padding:6px 4px">Total</th><th></th>
+          </tr></thead>
+          <tbody id="dart-ripte-filas"></tbody>
+        </table>
+      </div>
+      <button class="btn-sm" onclick="dartAgregarFilaRipte()" style="margin-top:8px">+ Agregar mes</button>
+
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px">Datos del cálculo</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Edad a la fecha de PMI</div><input class="fi" id="dart-edad-pmi" type="number" oninput="dartRecalcular()"></div>
+        <div class="fg"><div class="fl">% de incapacidad</div><input class="fi" id="dart-porcentaje-incapacidad" type="number" step="0.01" placeholder="12" oninput="dartRecalcular()"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Piso mínimo — resolución vigente (opcional)</div><input class="fi" id="dart-piso-resolucion" placeholder="Resolución 18/2024 - RESOL-2024-18-APN-SRT#MCH" oninput="dartRecalcular()"></div>
+        <div class="fg"><div class="fl">Piso mínimo — monto (opcional)</div><input class="fi" id="dart-piso-monto" type="number" step="0.01" placeholder="28906583" oninput="dartRecalcular()"></div>
+      </div>
+
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:14px;margin-top:8px" id="dart-resumen-calculo">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Resumen — revisar antes de generar</div>
+        <div class="hint">Cargá la tabla y los datos de arriba para ver el cálculo.</div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Prueba — testigos</div>
+      <div id="dart-testigos-list"></div>
+      <button class="btn-sm" onclick="dartAgregarTestigo()" style="margin-top:8px">+ Agregar testigo</button>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Prueba — documental</div>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="TCL CD Nº de denuncia dirigido a la ART"> TCL de denuncia dirigido a la ART</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Copia de CD de rechazo enviada por la ART al actor"> Copia de la CD de rechazo</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Certificados médicos emitidos por el especialista"> Certificados médicos</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Dictamen Médico emitido en el expediente SRT"> Dictamen Médico (expediente SRT)</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Disposición de clausura del expediente SRT"> Disposición de clausura del expediente SRT</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Copia impresa de Histórico Laboral de ANSES"> Histórico Laboral de ANSES</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Recibos de haberes del actor"> Recibos de haberes</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Informe de estudio médico complementario"> Estudio médico complementario (electromiografía, radiografía, etc.)</label>
+      <div class="fg"><div class="fl">Otro documento (opcional)</div><input class="fi" id="dart-documental-otros" placeholder="Ej: constancia de capacitación específica"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Prueba — datos adicionales</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Perito de control médico (opcional)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Nombre</div><input class="fi" id="dart-perito-nombre" placeholder="Dr. ..."></div>
+        <div class="fg"><div class="fl">M.P.</div><input class="fi" id="dart-perito-mp"></div>
+      </div>
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="dart-perito-domicilio"></div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Informativa</div>
+      <div class="fg"><div class="fl">Establecimiento de salud (para pedir la historia clínica)</div><input class="fi" id="dart-salud-establecimiento" placeholder="Ej: Hospital Italiano"></div>
+    </div>
+
+    <div class="card card-doc">
+      <button class="btn-primary" id="dart-btn-generar" onclick="generarDemandaArt()" style="width:100%;padding:12px">✨ Generar demanda con IA</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">La IA solo redacta las tareas físicas y los síntomas. El resto se arma con los datos cargados — revisá siempre antes de presentar.</div>
+    </div>
+
+    <div class="card card-doc" id="dart-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Borrador generado</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarDemandaArt()">📋 Copiar texto</button>
+          <button class="btn-sm" id="dart-btn-docx" onclick="descargarDemandaArtDocx()">⬇️ Descargar Word (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="dart-resultado" style="min-height:420px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
     </div>
   </div>
 </div>
@@ -2649,7 +2839,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -2658,12 +2848,18 @@ function cambiarTipoEscrito(){
   var tipo=document.getElementById('es-tipo').value;
   var esTelegrama=tipo==='telegrama_aclare';
   var esDespidoIndirecto=tipo==='telegrama_despido_indirecto';
-  document.getElementById('es-form-denuncia').style.display=(esTelegrama||esDespidoIndirecto)?'none':'block';
+  var esDemandaArt=tipo==='demanda_art_rechazo';
+  var otro=esTelegrama||esDespidoIndirecto||esDemandaArt;
+  document.getElementById('es-form-denuncia').style.display=otro?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
+  document.getElementById('es-form-demanda-art').style.display=esDemandaArt?'block':'none';
   // la representacion legal solo interviene en la denuncia
   var rep=document.getElementById('es-representacion');
-  if(rep&&rep.parentNode)rep.parentNode.style.display=(esTelegrama||esDespidoIndirecto)?'none':'block';
+  if(rep&&rep.parentNode)rep.parentNode.style.display=otro?'none':'block';
+  if(esDemandaArt&&document.getElementById('dart-ripte-filas').children.length===0){
+    for(var i=0;i<12;i++)dartAgregarFilaRipte();
+  }
 }
 
 function toggleRegimenDespidoIndirecto(){
@@ -2757,6 +2953,266 @@ function descargarTelegramaDespidoIndirectoDocx(){
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Formulario generado ✓');
+  }).catch(function(){
+    showToast('⚠ No se pudo generar el Word.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent=original;
+  });
+}
+
+// ─── DEMANDA ART — RECHAZO ENFERMEDAD PROFESIONAL ───
+var DART_FILA_COUNTER=0;
+
+function autocompletarClienteDemandaArt(c){
+  if(!c)return;
+  var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  setVal('dart-act-nombre',c.nombre);
+  setVal('dart-act-dni',c.dni);
+  setVal('dart-act-nacionalidad',c.nacionalidad);
+  setVal('dart-act-estado-civil',c.estadoCivil);
+  setVal('dart-act-situacion',c.situacionLaboral);
+  setVal('dart-act-fecha-nac',c.fechaNac);
+  setVal('dart-act-edad',c.edad);
+  setVal('dart-act-domicilio',c.domicilio);
+  setVal('dart-emp-nombre',c.empleador);
+  dartRecalcular();
+  showToast('Datos del cliente completados ✓');
+}
+
+function dartAgregarFilaRipte(){
+  var idx=DART_FILA_COUNTER++;
+  var tr=document.createElement('tr');
+  tr.id='dart-fila-'+idx;
+  tr.innerHTML=
+    '<td style="padding:3px"><input class="fi" style="padding:6px 8px;font-size:12px" id="dart-fmes-'+idx+'" placeholder="mar-23"></td>'+
+    '<td style="padding:3px"><input class="fi" style="padding:6px 8px;font-size:12px" id="dart-frem-'+idx+'" type="number" step="0.01" oninput="dartRecalcular()"></td>'+
+    '<td style="padding:3px"><input class="fi" style="padding:6px 8px;font-size:12px" id="dart-forigen-'+idx+'" type="number" step="0.01" oninput="dartRecalcular()"></td>'+
+    '<td style="padding:3px;font-size:12px;color:var(--text3)" id="dart-fcoef-'+idx+'">—</td>'+
+    '<td style="padding:3px;font-size:12px;color:var(--text3)" id="dart-ftotal-'+idx+'">—</td>'+
+    '<td style="padding:3px"><button onclick="document.getElementById(\'dart-fila-'+idx+'\').remove();dartRecalcular();" style="font-size:11px;padding:4px 7px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></td>';
+  document.getElementById('dart-ripte-filas').appendChild(tr);
+}
+
+function dartParseFecha(str){
+  var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec((str||'').trim());
+  if(!m)return null;
+  return new Date(+m[3],+m[2]-1,+m[1]);
+}
+
+function dartFmtMoneda(n){
+  if(isNaN(n)||n===null)return '—';
+  return n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function dartRecalcular(){
+  // auto-completa la edad a la PMI solo si el campo esta vacio, para no pisar una carga manual
+  var edadEl=document.getElementById('dart-edad-pmi');
+  if(edadEl&&!edadEl.value){
+    var fNac=dartParseFecha(document.getElementById('dart-act-fecha-nac').value);
+    var fPmi=dartParseFecha(document.getElementById('dart-fecha-pmi').value);
+    if(fNac&&fPmi){
+      var edad=fPmi.getFullYear()-fNac.getFullYear();
+      var m=fPmi.getMonth()-fNac.getMonth();
+      if(m<0||(m===0&&fPmi.getDate()<fNac.getDate()))edad--;
+      if(edad>0)edadEl.value=edad;
+    }
+  }
+
+  var ripteDestino=parseFloat(document.getElementById('dart-ripte-destino').value)||0;
+  var filas=document.getElementById('dart-ripte-filas').children;
+  var total=0,filasConDatos=0;
+  for(var i=0;i<filas.length;i++){
+    var tr=filas[i];
+    var idx=tr.id.replace('dart-fila-','');
+    var rem=parseFloat(document.getElementById('dart-frem-'+idx).value)||0;
+    var origen=parseFloat(document.getElementById('dart-forigen-'+idx).value)||0;
+    var coefEl=document.getElementById('dart-fcoef-'+idx);
+    var totEl=document.getElementById('dart-ftotal-'+idx);
+    if(rem>0&&origen>0&&ripteDestino>0){
+      var coef=ripteDestino/origen;
+      var tot=rem*coef;
+      coefEl.textContent=coef.toFixed(6);
+      totEl.textContent='$ '+dartFmtMoneda(tot);
+      total+=tot;
+      filasConDatos++;
+    }else{
+      coefEl.textContent='—';totEl.textContent='—';
+    }
+  }
+
+  var vibm=filasConDatos>0?total/filasConDatos:0;
+  var edadPmi=parseFloat(document.getElementById('dart-edad-pmi').value)||0;
+  var coefEdad=edadPmi>0?65/edadPmi:0;
+  var pctIncap=parseFloat(document.getElementById('dart-porcentaje-incapacidad').value)||0;
+  var indemnizacionBase=53*vibm*coefEdad*(pctIncap/100);
+
+  var pisoMonto=parseFloat(document.getElementById('dart-piso-monto').value)||0;
+  var pisoResolucion=document.getElementById('dart-piso-resolucion').value.trim();
+  var pisoAplicable=pisoMonto>0?pisoMonto*(pctIncap/100):0;
+  var pisoCorresponde=pisoResolucion&&pisoAplicable>indemnizacionBase;
+  var baseFinal=pisoCorresponde?pisoAplicable:indemnizacionBase;
+  var monto20=baseFinal*0.20;
+  var montoFinal=baseFinal+monto20;
+
+  window.DART_CALCULO={
+    ripteTotal:total,vibm:vibm,edadPmi:edadPmi,coefEdad:coefEdad.toFixed(4),
+    porcentajeIncapacidad:pctIncap,indemnizacionBase:indemnizacionBase,
+    pisoResolucion:pisoResolucion,pisoMonto:pisoMonto,pisoAplicable:pisoAplicable,pisoCorresponde:pisoCorresponde,
+    monto20:monto20,montoFinal:montoFinal
+  };
+
+  var resumen=document.getElementById('dart-resumen-calculo');
+  if(total===0||vibm===0){
+    resumen.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Resumen — revisar antes de generar</div><div class="hint">Cargá la tabla y los datos de arriba para ver el cálculo.</div>';
+    return;
+  }
+  var html='<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Resumen — revisar antes de generar</div>';
+  html+='<div style="font-size:13px;color:var(--text2);line-height:1.9">';
+  html+='Total 12 meses: <b>$ '+dartFmtMoneda(total)+'</b><br>';
+  html+='VIBM (promedio): <b>$ '+dartFmtMoneda(vibm)+'</b><br>';
+  html+='Edad a la PMI: <b>'+(edadPmi||'—')+'</b> · Coeficiente 65/edad: <b>'+(coefEdad?coefEdad.toFixed(4):'—')+'</b><br>';
+  html+='Indemnización fórmula (53 x VIBM x coef. edad x % incapacidad): <b>$ '+dartFmtMoneda(indemnizacionBase)+'</b><br>';
+  if(pisoResolucion){
+    html+='Piso mínimo aplicable ('+pisoResolucion+'): <b>$ '+dartFmtMoneda(pisoAplicable)+'</b> — '+(pisoCorresponde?'<span style="color:var(--orange)">corresponde aplicarlo (supera a la fórmula)</span>':'<span style="color:var(--text3)">no corresponde (inferior a la fórmula)</span>')+'<br>';
+  }
+  html+='Base utilizada: <b>$ '+dartFmtMoneda(baseFinal)+'</b> '+(pisoCorresponde?'(piso mínimo)':'(fórmula)')+'<br>';
+  html+='+20% Art. 3 Ley 26.773: <b>$ '+dartFmtMoneda(monto20)+'</b><br>';
+  html+='<span style="font-size:15px">Monto final reclamado: <b style="color:var(--blue)">$ '+dartFmtMoneda(montoFinal)+'</b></span>';
+  html+='</div>';
+  resumen.innerHTML=html;
+}
+
+function dartAgregarTestigo(){
+  var idx=DART_FILA_COUNTER++;
+  var div=document.createElement('div');
+  div.id='dart-testigo-'+idx;
+  div.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:flex-start';
+  div.innerHTML=
+    '<input class="fi" id="dart-tnombre-'+idx+'" placeholder="Nombre y apellido" style="flex:1">'+
+    '<input class="fi" id="dart-tdomicilio-'+idx+'" placeholder="Domicilio" style="flex:1">'+
+    '<button onclick="document.getElementById(\'dart-testigo-'+idx+'\').remove();" style="font-size:11px;padding:8px 10px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
+  document.getElementById('dart-testigos-list').appendChild(div);
+}
+
+function datosDemandaArt(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  dartRecalcular();
+  var calc=window.DART_CALCULO||{};
+
+  var filasRipte=[];
+  var filasEl=document.getElementById('dart-ripte-filas').children;
+  for(var i=0;i<filasEl.length;i++){
+    var idx=filasEl[i].id.replace('dart-fila-','');
+    var rem=parseFloat(v('dart-frem-'+idx))||0;
+    var origen=parseFloat(v('dart-forigen-'+idx))||0;
+    if(!rem&&!origen)continue;
+    var ripteDestino=parseFloat(v('dart-ripte-destino'))||0;
+    var coef=(ripteDestino&&origen)?ripteDestino/origen:0;
+    filasRipte.push({
+      mes:v('dart-fmes-'+idx),remuneracion:rem,ripteOrigen:origen,
+      ripteDestino:ripteDestino,coeficiente:coef?coef.toFixed(6):'',total:coef?rem*coef:0
+    });
+  }
+
+  var testigos=[];
+  var testEl=document.getElementById('dart-testigos-list').children;
+  for(var j=0;j<testEl.length;j++){
+    var tidx=testEl[j].id.replace('dart-testigo-','');
+    var nombre=v('dart-tnombre-'+tidx);
+    if(nombre)testigos.push({nombre:nombre,domicilio:v('dart-tdomicilio-'+tidx)});
+  }
+
+  var documentalItems=[];
+  document.querySelectorAll('.dart-doc-item:checked').forEach(function(el){documentalItems.push(el.value);});
+
+  return {
+    actNombre:v('dart-act-nombre'),actDni:v('dart-act-dni'),actGenero:v('dart-act-genero'),
+    actNacionalidad:v('dart-act-nacionalidad'),actEstadoCivil:v('dart-act-estado-civil'),
+    actSituacionLaboral:v('dart-act-situacion'),actFechaNac:v('dart-act-fecha-nac'),
+    actEdad:v('dart-act-edad'),actDomicilio:v('dart-act-domicilio'),
+    artNombre:v('dart-art-nombre'),artCuit:v('dart-art-cuit'),artDomicilio:v('dart-art-domicilio'),
+    empNombre:v('dart-emp-nombre'),empCuit:v('dart-emp-cuit'),empDomicilio:v('dart-emp-domicilio'),
+    fechaIngreso:v('dart-fecha-ingreso'),fechaEgreso:v('dart-fecha-egreso'),
+    categoria:v('dart-categoria'),jornada:v('dart-jornada'),tareasRelato:v('dart-tareas-relato'),
+    fechaPmi:v('dart-fecha-pmi'),fechaCert:v('dart-fecha-cert'),
+    medicoNombre:v('dart-medico-nombre'),medicoMp:v('dart-medico-mp'),medicoGenero:v('dart-medico-genero'),
+    sintomasRelato:v('dart-sintomas-relato'),
+    tclNumero:v('dart-tcl-numero'),tclFecha:v('dart-tcl-fecha'),
+    controlFecha:v('dart-control-fecha'),controlEstudio:v('dart-control-estudio'),
+    cdRechazoNumero:v('dart-cd-rechazo-numero'),cdRechazoFecha:v('dart-cd-rechazo-fecha'),
+    expteNumero:v('dart-expte-numero'),expteFecha:v('dart-expte-fecha'),
+    informeTecnicoFecha:v('dart-informe-fecha'),
+    dictamenFecha:v('dart-dictamen-fecha'),dictamenTexto:v('dart-dictamen-texto'),
+    comisionMedicaNumero:v('dart-comision-numero'),
+    ripteDestino:parseFloat(v('dart-ripte-destino'))||0,
+    ripteTotal:calc.ripteTotal||0,vibm:calc.vibm||0,edadPmi:calc.edadPmi||'',
+    coefEdad:calc.coefEdad||'',porcentajeIncapacidad:calc.porcentajeIncapacidad||'',
+    indemnizacionBase:calc.indemnizacionBase||0,
+    pisoResolucion:calc.pisoResolucion||'',pisoMonto:calc.pisoMonto||0,
+    pisoAplicable:calc.pisoAplicable||0,pisoCorresponde:calc.pisoCorresponde||false,
+    monto20:calc.monto20||0,montoFinal:calc.montoFinal||0,
+    testigos:testigos,documentalItems:documentalItems,documentalOtros:v('dart-documental-otros'),
+    peritoControlNombre:v('dart-perito-nombre'),peritoControlMp:v('dart-perito-mp'),
+    peritoControlDomicilio:v('dart-perito-domicilio'),saludEstablecimiento:v('dart-salud-establecimiento'),
+    _filasRipte:filasRipte
+  };
+}
+
+function generarDemandaArt(){
+  var d=datosDemandaArt();
+  if(!d.actNombre){alert('Falta el nombre del actor.');return;}
+  if(!d.artNombre){alert('Falta el nombre de la ART demandada.');return;}
+  if(!d.montoFinal){alert('Falta el monto reclamado — completá la calculadora RIPTE.');return;}
+
+  var btn=document.getElementById('dart-btn-generar');
+  btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
+  document.getElementById('dart-resultado-card').style.display='none';
+
+  fetch(BOT_URL+'/generar-demanda-art',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('dart-resultado').value=data.texto;
+      document.getElementById('dart-resultado-card').style.display='block';
+      document.getElementById('dart-resultado-card').scrollIntoView({behavior:'smooth'});
+    }else{
+      alert('No se pudo generar la demanda: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar demanda con IA';
+  });
+}
+
+function copiarDemandaArt(){
+  var ta=document.getElementById('dart-resultado');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
+}
+
+function descargarDemandaArtDocx(){
+  var texto=document.getElementById('dart-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var d=datosDemandaArt();
+
+  var btn=document.getElementById('dart-btn-docx');
+  var original=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+
+  fetch(BOT_URL+'/generar-demanda-art-docx',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({texto:texto,actor:{nombre:d.actNombre,dni:d.actDni},filasRipte:d._filasRipte})
+  }).then(function(r){
+    if(!r.ok)throw new Error('error');
+    return r.blob();
+  }).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=(d.actNombre?('Demanda ART - '+d.actNombre):'Demanda ART')+'.docx';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Word generado ✓');
   }).catch(function(){
     showToast('⚠ No se pudo generar el Word.');
   }).finally(function(){
