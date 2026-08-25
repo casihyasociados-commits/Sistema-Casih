@@ -2882,6 +2882,7 @@ var ESCRITO_CONFIG={
   denuncia_trabajo:{
     cont:'es-form-denuncia',dinamicos:['es-corr-list'],resultado:'es-resultado-card',
     contador:'ES_CORR_COUNTER',nombre:'Denuncia laboral',campoTitulo:'es-cl-nombre',
+    extras:['es-representacion'],
     despues:function(){toggleDenunciadoFields();}
   },
   telegrama_aclare:{
@@ -2897,7 +2898,8 @@ var ESCRITO_CONFIG={
   demanda_art_rechazo:{
     cont:'es-form-demanda-art',dinamicos:['dart-ripte-filas','dart-testigos-list'],
     resultado:'dart-resultado-card',contador:'DART_FILA_COUNTER',nombre:'Demanda ART',
-    campoTitulo:'dart-act-nombre',despues:function(){dartRecalcular();}
+    campoTitulo:'dart-act-nombre',extras:['es-representacion'],
+    despues:function(){dartRecalcular();}
   }
 };
 
@@ -2955,6 +2957,12 @@ function capturarEscrito(tipo){
   cont.querySelectorAll('input,select,textarea').forEach(function(el){
     if(!el.id||el.type==='file')return;
     campos[el.id]=(el.type==='checkbox')?el.checked:el.value;
+  });
+  // Campos que el escrito usa pero viven fuera de su tarjeta (la representacion
+  // legal esta arriba de todo, compartida entre tipos de escrito).
+  (cfg.extras||[]).forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)campos[id]=(el.type==='checkbox')?el.checked:el.value;
   });
   var dinamicos={};
   cfg.dinamicos.forEach(function(id){
@@ -3091,9 +3099,11 @@ function cambiarTipoEscrito(){
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
   document.getElementById('es-form-demanda-art').style.display=esDemandaArt?'block':'none';
-  // la representacion legal solo interviene en la denuncia
+  // La representacion legal interviene en los escritos que se firman (denuncia
+  // y demanda), no en los telegramas: esos cierran con el nombre del estudio.
   var rep=document.getElementById('es-representacion');
-  if(rep&&rep.parentNode)rep.parentNode.style.display=otro?'none':'block';
+  var usaRep=!esTelegrama&&!esDespidoIndirecto;
+  if(rep&&rep.parentNode)rep.parentNode.style.display=usaRep?'block':'none';
   if(esDemandaArt&&document.getElementById('dart-ripte-filas').children.length===0){
     for(var i=0;i<12;i++)dartAgregarFilaRipte();
   }
@@ -3370,6 +3380,7 @@ function datosDemandaArt(){
   document.querySelectorAll('.dart-doc-item:checked').forEach(function(el){documentalItems.push(el.value);});
 
   return {
+    representacion:v('es-representacion'),
     actNombre:v('dart-act-nombre'),actDni:v('dart-act-dni'),actGenero:v('dart-act-genero'),
     actNacionalidad:v('dart-act-nacionalidad'),actEstadoCivil:v('dart-act-estado-civil'),
     actSituacionLaboral:v('dart-act-situacion'),actFechaNac:v('dart-act-fecha-nac'),
@@ -3446,7 +3457,7 @@ function descargarDemandaArtDocx(){
 
   fetch(BOT_URL+'/generar-demanda-art-docx',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({texto:texto,actor:{nombre:d.actNombre,dni:d.actDni},filasRipte:d._filasRipte})
+    body:JSON.stringify({texto:texto,actor:{nombre:d.actNombre,dni:d.actDni,representacion:d.representacion},filasRipte:d._filasRipte})
   }).then(function(r){
     if(!r.ok)throw new Error('error');
     return r.blob();

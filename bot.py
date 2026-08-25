@@ -1866,6 +1866,17 @@ def monto_en_letras(monto):
     return 'PESOS %s CON %02d/100' % (numero_a_letras(entero).upper(), centavos)
 
 
+# En las demandas el patrocinio se cita distinto que en la denuncia: sin CIDI
+# ni datos de contacto, solo nombre y matricula. Por defecto van los dos, que
+# es como salieron todas las demandas del estudio hasta ahora.
+BLOQUES_PATROCINIO_DEMANDA = {
+    'ciardiello': 'con el patrocinio letrado de la Dra. Ciardiello Ma. Paula M.P. 1-41227',
+    'casih': 'con el patrocinio letrado del Dr. Casih, Pablo Antonio M.P. 1-31142',
+    'ambos': ('con el patrocinio letrado de los Dres. Ciardiello Ma. Paula M.P. 1-41227 '
+              'y Casih, Pablo Antonio M.P. 1-31142'),
+}
+
+
 def armar_encabezado_actor_art(d):
     nombre = (d.get('actNombre') or '').strip()
     dni = (d.get('actDni') or '').strip()
@@ -1886,12 +1897,13 @@ def armar_encabezado_actor_art(d):
         texto += ', %s el día %s' % ('nacida' if fem_act else 'nacido', fecha_nac)
     if edad:
         texto += ', de %s años de edad' % edad
+    bloque_pat = BLOQUES_PATROCINIO_DEMANDA.get(
+        d.get('representacion'), BLOQUES_PATROCINIO_DEMANDA['ambos'])
     texto += (
         ', con domicilio real en %s y constituyéndolo a los efectos procesales en calle '
-        'Arturo M. Bas N°389 piso 1, oficina "A", ambos de esta ciudad de Córdoba, con el '
-        'patrocinio letrado de los Dres. Ciardiello Ma. Paula M.P. 1-41227 y Casih, Pablo '
-        'Antonio MP 1-31142 ante VS comparezco y digo:'
-    ) % domicilio
+        'Arturo M. Bas N°389 piso 1, oficina "A", ambos de esta ciudad de Córdoba, %s '
+        'ante VS comparezco y digo:'
+    ) % (domicilio, bloque_pat)
     return texto
 
 
@@ -2485,11 +2497,13 @@ def construir_docx_demanda_art(texto, actor, filas_ripte):
 
     doc.add_paragraph()
     doc.add_paragraph()
-    tabla_firma = doc.add_table(rows=1, cols=2)
+    abogados = FIRMAS_ABOGADOS.get(actor.get('representacion'), FIRMAS_ABOGADOS['ambos'])
+    tabla_firma = doc.add_table(rows=1, cols=1 + len(abogados))
     celdas = tabla_firma.rows[0].cells
     _agregar_firma(celdas[0], (actor.get('nombre') or '').strip(),
                     ('DNI %s' % actor['dni']) if actor.get('dni') else '')
-    _agregar_firma(celdas[1], 'Ma. Paula Ciardiello / Pablo Casih', 'Abogados', 'M.P. 1-41227 / M.P. 1-31142')
+    for i, (nombre_ab, titulo_ab, mp_ab) in enumerate(abogados):
+        _agregar_firma(celdas[1 + i], nombre_ab, titulo_ab, mp_ab)
 
     buffer = BytesIO()
     doc.save(buffer)
