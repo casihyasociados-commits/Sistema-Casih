@@ -696,6 +696,11 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="demanda_art_rechazo">Demanda ART — Rechazo enfermedad profesional (trámite abreviado)</option>
       </select>
     </div>
+    <div class="btn-row" style="margin-top:4px">
+      <button class="btn-sm" onclick="guardarBorradorEscrito()">💾 Guardar borrador</button>
+      <button class="btn-sm" id="es-btn-nuevo" onclick="nuevoEscrito()" style="display:none">✨ Empezar uno nuevo</button>
+      <span id="es-borrador-estado" style="font-size:12px;color:var(--text3);align-self:center"></span>
+    </div>
     <div class="fg">
       <div class="fl">Representación legal</div>
       <select class="fs" id="es-representacion">
@@ -704,6 +709,13 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="ambos">Ambos</option>
       </select>
     </div>
+  </div>
+
+  <div class="card card-doc" id="es-borradores-card" style="display:none;border-left:3px solid var(--orange)">
+    <div class="card-head">
+      <span class="card-head-title">📋 Borradores en proceso</span>
+    </div>
+    <div id="es-borradores-list"></div>
   </div>
 
   <div id="es-form-denuncia">
@@ -1166,14 +1178,14 @@ input.currency-input{letter-spacing:0.5px;}
 
     <div class="card card-doc">
       <div class="card-title">Prueba — documental</div>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="TCL CD Nº de denuncia dirigido a la ART"> TCL de denuncia dirigido a la ART</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Copia de CD de rechazo enviada por la ART al actor"> Copia de la CD de rechazo</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Certificados médicos emitidos por el especialista"> Certificados médicos</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Dictamen Médico emitido en el expediente SRT"> Dictamen Médico (expediente SRT)</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Disposición de clausura del expediente SRT"> Disposición de clausura del expediente SRT</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Copia impresa de Histórico Laboral de ANSES"> Histórico Laboral de ANSES</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Recibos de haberes del actor"> Recibos de haberes</label>
-      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" class="dart-doc-item" value="Informe de estudio médico complementario"> Estudio médico complementario (electromiografía, radiografía, etc.)</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-1" class="dart-doc-item" value="TCL CD Nº de denuncia dirigido a la ART"> TCL de denuncia dirigido a la ART</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-2" class="dart-doc-item" value="Copia de CD de rechazo enviada por la ART al actor"> Copia de la CD de rechazo</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-3" class="dart-doc-item" value="Certificados médicos emitidos por el especialista"> Certificados médicos</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-4" class="dart-doc-item" value="Dictamen Médico emitido en el expediente SRT"> Dictamen Médico (expediente SRT)</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-5" class="dart-doc-item" value="Disposición de clausura del expediente SRT"> Disposición de clausura del expediente SRT</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-6" class="dart-doc-item" value="Copia impresa de Histórico Laboral de ANSES"> Histórico Laboral de ANSES</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-7" class="dart-doc-item" value="Recibos de haberes del actor"> Recibos de haberes</label>
+      <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dart-doc-8" class="dart-doc-item" value="Informe de estudio médico complementario"> Estudio médico complementario (electromiografía, radiografía, etc.)</label>
       <div class="fg"><div class="fl">Otro documento (opcional)</div><input class="fi" id="dart-documental-otros" placeholder="Ej: constancia de capacitación específica"></div>
     </div>
 
@@ -2859,6 +2871,215 @@ function filtrarClientes(inputId,dropdownId){
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
+// ─── BORRADORES DE ESCRITOS ───
+// Se guarda el estado crudo del formulario: el valor de cada campo por su id,
+// y el HTML de los bloques que se agregan dinamicamente (telegramas, filas de
+// la tabla RIPTE, testigos). Guardar el HTML tal cual es lo que permite
+// restaurar esos bloques con los mismos ids que tenian, para despues poder
+// reasignarles su valor. Los <input type="file"> quedan afuera: el navegador
+// no permite volver a setearlos.
+var ESCRITO_CONFIG={
+  denuncia_trabajo:{
+    cont:'es-form-denuncia',dinamicos:['es-corr-list'],resultado:'es-resultado-card',
+    contador:'ES_CORR_COUNTER',nombre:'Denuncia laboral',campoTitulo:'es-cl-nombre',
+    despues:function(){toggleDenunciadoFields();}
+  },
+  telegrama_aclare:{
+    cont:'es-form-telegrama',dinamicos:[],resultado:'tg-resultado-card',
+    contador:null,nombre:'TCL — Aclare situación',campoTitulo:'tg-rem-nombre',
+    despues:function(){}
+  },
+  telegrama_despido_indirecto:{
+    cont:'es-form-despido-indirecto',dinamicos:[],resultado:'di-resultado-card',
+    contador:null,nombre:'TCL — Despido indirecto',campoTitulo:'di-rem-nombre',
+    despues:function(){toggleRegimenDespidoIndirecto();}
+  },
+  demanda_art_rechazo:{
+    cont:'es-form-demanda-art',dinamicos:['dart-ripte-filas','dart-testigos-list'],
+    resultado:'dart-resultado-card',contador:'DART_FILA_COUNTER',nombre:'Demanda ART',
+    campoTitulo:'dart-act-nombre',despues:function(){dartRecalcular();}
+  }
+};
+
+var BORRADORES_CACHE=[];
+var BORRADOR_ACTUAL=null;
+
+function initBorradoresEscritos(){
+  var pintar=function(snap){
+    BORRADORES_CACHE=[];
+    snap.forEach(function(d){var x=d.data();x.id=d.id;BORRADORES_CACHE.push(x);});
+    renderBorradoresEscritos();
+  };
+  db.collection('borradores_escritos').onSnapshot(pintar,function(){
+    db.collection('borradores_escritos').get().then(pintar);
+  });
+}
+
+function renderBorradoresEscritos(){
+  var card=document.getElementById('es-borradores-card');
+  var lista=document.getElementById('es-borradores-list');
+  if(!card||!lista)return;
+  if(BORRADORES_CACHE.length===0){card.style.display='none';return;}
+  card.style.display='block';
+  var orden=BORRADORES_CACHE.slice().sort(function(a,b){
+    var fa=a.actualizado&&a.actualizado.seconds?a.actualizado.seconds:0;
+    var fb=b.actualizado&&b.actualizado.seconds?b.actualizado.seconds:0;
+    return fb-fa;
+  });
+  lista.innerHTML=orden.map(function(b){
+    var cfg=ESCRITO_CONFIG[b.tipo]||{};
+    var fecha='';
+    if(b.actualizado&&b.actualizado.seconds){
+      var d=new Date(b.actualizado.seconds*1000);
+      fecha=p2(d.getDate())+'/'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes())+'hs';
+    }
+    var actual=(BORRADOR_ACTUAL===b.id);
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)">'+
+      '<div style="min-width:0">'+
+        '<div style="font-size:14px;color:var(--text);font-weight:500">'+(b.titulo||'(sin nombre)')+
+          (actual?' <span style="font-size:11px;color:var(--blue)">— editando</span>':'')+'</div>'+
+        '<div style="font-size:12px;color:var(--text3)">'+(cfg.nombre||b.tipo)+(fecha?' · '+fecha:'')+(b.usuario?' · '+b.usuario:'')+'</div>'+
+      '</div>'+
+      '<div class="btn-row">'+
+        '<button class="btn-sm" onclick="retomarBorradorEscrito(\''+b.id+'\')">📂 Retomar</button>'+
+        '<button class="btn-sm" style="border-color:var(--red-bg);color:var(--red)" onclick="borrarBorradorEscrito(\''+b.id+'\')">✕</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function capturarEscrito(tipo){
+  var cfg=ESCRITO_CONFIG[tipo];
+  var cont=document.getElementById(cfg.cont);
+  var campos={};
+  cont.querySelectorAll('input,select,textarea').forEach(function(el){
+    if(!el.id||el.type==='file')return;
+    campos[el.id]=(el.type==='checkbox')?el.checked:el.value;
+  });
+  var dinamicos={};
+  cfg.dinamicos.forEach(function(id){
+    var e=document.getElementById(id);
+    if(e)dinamicos[id]=e.innerHTML;
+  });
+  return {campos:campos,dinamicos:dinamicos};
+}
+
+function guardarBorradorEscrito(){
+  var tipo=document.getElementById('es-tipo').value;
+  var cfg=ESCRITO_CONFIG[tipo];
+  if(!cfg)return;
+  var estado=capturarEscrito(tipo);
+  var tituloEl=document.getElementById(cfg.campoTitulo);
+  var titulo=(tituloEl&&tituloEl.value.trim())||'(sin nombre)';
+  var data={
+    tipo:tipo,titulo:titulo,campos:estado.campos,dinamicos:estado.dinamicos,
+    usuario:(auth.currentUser&&auth.currentUser.email)?auth.currentUser.email:'',
+    actualizado:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(BORRADOR_ACTUAL){
+    db.collection('borradores_escritos').doc(BORRADOR_ACTUAL).set(data)
+      .then(function(){showToast('Borrador actualizado ✓');marcarBorradorActual(BORRADOR_ACTUAL,titulo);});
+  }else{
+    db.collection('borradores_escritos').add(data)
+      .then(function(ref){showToast('Borrador guardado ✓');marcarBorradorActual(ref.id,titulo);});
+  }
+}
+
+function marcarBorradorActual(id,titulo){
+  BORRADOR_ACTUAL=id;
+  var est=document.getElementById('es-borrador-estado');
+  if(est)est.textContent=id?('Editando borrador: '+titulo):'';
+  var btn=document.getElementById('es-btn-nuevo');
+  if(btn)btn.style.display=id?'inline-flex':'none';
+  renderBorradoresEscritos();
+}
+
+function retomarBorradorEscrito(id){
+  var b=BORRADORES_CACHE.find(function(x){return x.id===id;});
+  if(!b)return;
+  var cfg=ESCRITO_CONFIG[b.tipo];
+  if(!cfg){showToast('Ese tipo de escrito ya no existe.');return;}
+
+  document.getElementById('es-tipo').value=b.tipo;
+  cambiarTipoEscrito();
+
+  // 1) Primero la estructura dinamica, para que existan los ids
+  var maxIdx=-1;
+  Object.keys(b.dinamicos||{}).forEach(function(contId){
+    var e=document.getElementById(contId);
+    if(!e)return;
+    e.innerHTML=b.dinamicos[contId];
+    e.querySelectorAll('[id]').forEach(function(el){
+      var m=/-(\d+)$/.exec(el.id);
+      if(m)maxIdx=Math.max(maxIdx,parseInt(m[1],10));
+    });
+  });
+  // Los contadores tienen que arrancar por encima de lo restaurado, si no
+  // el proximo bloque que agreguen pisaria los ids de uno ya cargado.
+  if(cfg.contador&&maxIdx>=0){
+    if(cfg.contador==='ES_CORR_COUNTER')ES_CORR_COUNTER=maxIdx+1;
+    if(cfg.contador==='DART_FILA_COUNTER')DART_FILA_COUNTER=maxIdx+1;
+  }
+
+  // 2) Ahora si los valores
+  Object.keys(b.campos||{}).forEach(function(campoId){
+    var el=document.getElementById(campoId);
+    if(!el)return;
+    if(el.type==='checkbox')el.checked=!!b.campos[campoId];
+    else el.value=b.campos[campoId];
+  });
+
+  cfg.despues();
+
+  // 3) Si ya se habia generado el texto, se vuelve a mostrar
+  var card=document.getElementById(cfg.resultado);
+  if(card){
+    var ta=card.querySelector('textarea');
+    card.style.display=(ta&&ta.value.trim())?'block':'none';
+  }
+
+  marcarBorradorActual(id,b.titulo||'(sin nombre)');
+  document.getElementById('sec-escritos').scrollIntoView({behavior:'smooth'});
+  showToast('Borrador retomado ✓');
+}
+
+function borrarBorradorEscrito(id){
+  var b=BORRADORES_CACHE.find(function(x){return x.id===id;});
+  if(!confirm('¿Borrar el borrador de '+((b&&b.titulo)||'este escrito')+'?'))return;
+  db.collection('borradores_escritos').doc(id).delete().then(function(){
+    if(BORRADOR_ACTUAL===id)marcarBorradorActual(null,'');
+    showToast('Borrador eliminado');
+  });
+}
+
+// Vacia el formulario del tipo actual y deja de estar atado al borrador que
+// se venia editando, para arrancar uno nuevo desde cero.
+function nuevoEscrito(){
+  var tipo=document.getElementById('es-tipo').value;
+  var cfg=ESCRITO_CONFIG[tipo];
+  if(!cfg)return;
+  if(!confirm('¿Vaciar el formulario y empezar un escrito nuevo?\n\nEl borrador guardado no se borra.'))return;
+  var cont=document.getElementById(cfg.cont);
+  cont.querySelectorAll('input,select,textarea').forEach(function(el){
+    if(el.type==='checkbox'){el.checked=false;return;}
+    if(el.type==='file'){el.value='';return;}
+    if(el.tagName==='SELECT'){el.selectedIndex=0;return;}
+    // Los campos con valor por defecto en el HTML (domicilio del estudio, CP,
+    // provincia) vuelven a ese valor en vez de quedar vacios.
+    el.value=el.getAttribute('value')||'';
+  });
+  cfg.dinamicos.forEach(function(id){
+    var e=document.getElementById(id);
+    if(e)e.innerHTML='';
+  });
+  if(tipo==='demanda_art_rechazo'){for(var i=0;i<12;i++)dartAgregarFilaRipte();}
+  cfg.despues();
+  var card=document.getElementById(cfg.resultado);
+  if(card)card.style.display='none';
+  marcarBorradorActual(null,'');
+  showToast('Formulario vacío ✓');
+}
+
 // ─── ESCRITOS CON IA ───
 function cambiarTipoEscrito(){
   var tipo=document.getElementById('es-tipo').value;
@@ -3822,6 +4043,7 @@ function initApp() {
     initEstudiosPagadosDash();
     initCalendar();
     initConsumidor();
+    initBorradoresEscritos();
   }, 300);
   // Cargar clientes iniciales si Firestore está vacío
   db.collection('clientes').get().then(function(snap) {
