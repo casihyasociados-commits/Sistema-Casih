@@ -165,7 +165,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .home-nav-btn:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-2px);}
 .home-nav-ico{font-size:28px;line-height:1;}
 .home-nav-lbl{font-size:var(--fs-base);font-weight:600;}
-.home-nav-desc{font-size:var(--fs-xs);color:var(--text3);font-weight:400;}
+.home-nav-desc{font-size:var(--fs-xs);color:var(--text3);font-weight:400;line-height:1.5;}
+
+/* ══════════ ACCESOS RÁPIDOS — CARDS ══════════ */
+.qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:var(--sp-3);}
+.qa-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px 10px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--bg3);text-decoration:none;color:var(--text);text-align:center;transition:border-color .15s,transform .15s;}
+.qa-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.qa-card-ico{font-size:22px;line-height:1;}
+.qa-card-lbl{font-size:var(--fs-sm);font-weight:500;word-break:break-word;}
+.qa-card-x{position:absolute;top:6px;right:6px;font-size:10px;padding:2px 5px;line-height:1;border-radius:5px;border:1px solid var(--red-bg);background:var(--bg2);color:var(--red);cursor:pointer;}
 
 /* ══════════ BUSCADOR ══════════ */
 .buscador{position:relative;margin-bottom:var(--sp-4);max-width:420px;}
@@ -428,6 +436,12 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="section active" id="sec-dashboard">
   <div class="page-title">Inicio</div>
   <div class="page-sub" id="dash-fecha">Derecho laboral · Córdoba</div>
+  <div class="buscador" id="dash-buscador" style="max-width:480px;margin-top:14px">
+    <span class="buscador-ico">🔍</span>
+    <input class="fi buscador-input" id="dash-buscar-global" placeholder="Buscar sección o cliente..." oninput="filtrarBusquedaGlobal()" onfocus="filtrarBusquedaGlobal()" autocomplete="off">
+    <button class="buscador-x" id="dash-buscar-global-x" onclick="cerrarBusquedaGlobal()">✕</button>
+    <div id="dash-buscar-global-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:280px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4);margin-top:4px"></div>
+  </div>
   <div class="card" style="margin-bottom:24px;border-left:3px solid var(--orange)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <span class="card-head-title">🆕 Clientes nuevos por revisar</span>
@@ -436,10 +450,10 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="dash-nuevos-clientes-list"><div class="hint">Sin clientes nuevos para revisar ✓</div></div>
   </div>
   <div class="home-nav">
-    <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span><span class="home-nav-desc">Carpetas, búsqueda y seguimiento de correo</span></button>
-    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span><span class="home-nav-desc">Calendario, eventos y recordatorios</span></button>
-    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Contable</span><span class="home-nav-desc">Gastos, ingresos y estudios médicos</span></button>
-    <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span><span class="home-nav-desc">Denuncias y telegramas con IA</span></button>
+    <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span><span class="home-nav-desc">Información de clientes del estudio<br>Seguimiento de correos de TCL</span></button>
+    <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span><span class="home-nav-desc">Carga de recordatorios vía WhatsApp<br>Calendario semanal del estudio<br>Eventos del día del estudio</span></button>
+    <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Contable</span><span class="home-nav-desc">Carga de gastos e ingresos del estudio<br>Deudas pendientes de cobro<br>Balance anual</span></button>
+    <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span><span class="home-nav-desc">Redacción de TCL con IA<br>Redacción de denuncias con IA<br>Redacción de demandas con IA</span></button>
   </div>
   <div class="card" style="margin-bottom:0">
     <div class="card-head">
@@ -1324,6 +1338,55 @@ function goTo(s){
     renderClientes();
   }
   if(s==='tareas'){renderHoyAgenda();}
+}
+
+// ─── BUSCADOR GLOBAL DEL INICIO ───
+var DASH_SECCIONES=[
+  {label:'Clientes',ico:'👥',section:'clientes',kw:'clientes carpetas seguimiento correo tcl publicidad consumidor'},
+  {label:'Agenda',ico:'📅',section:'tareas',kw:'agenda calendario recordatorios eventos whatsapp'},
+  {label:'Contable',ico:'📊',section:'admin',kw:'contable gastos ingresos balance estudios medicos deudas'},
+  {label:'Escritos IA',ico:'📝',section:'escritos',kw:'escritos ia denuncia telegrama despido indirecto demanda tcl'}
+];
+function filtrarBusquedaGlobal(){
+  var input=document.getElementById('dash-buscar-global');
+  var dd=document.getElementById('dash-buscar-global-dropdown');
+  var caja=document.getElementById('dash-buscador');
+  var q=(input.value||'').trim().toLowerCase();
+  caja.className='buscador'+(q?' con-texto':'');
+  if(!q){dd.style.display='none';return;}
+  var secciones=DASH_SECCIONES.filter(function(s){return s.label.toLowerCase().indexOf(q)>-1||s.kw.indexOf(q)>-1;});
+  var clientes=CLIENTES_CACHE.filter(function(c){return c.enRevision!==true&&(c.nombre||'').toLowerCase().indexOf(q)>-1;}).slice(0,6);
+  var html='';
+  if(secciones.length){
+    html+='<div style="padding:6px 12px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Secciones</div>';
+    secciones.forEach(function(s){html+='<div data-sec="'+s.section+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><span>'+s.ico+'</span>'+s.label+'</div>';});
+  }
+  if(clientes.length){
+    html+='<div style="padding:6px 12px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Clientes</div>';
+    clientes.forEach(function(c){html+='<div data-cliente="'+c.nombre.replace(/"/g,'&quot;')+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+c.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+(c.etapa||'')+'</span></div>';});
+  }
+  if(!secciones.length&&!clientes.length){html='<div style="padding:12px;font-size:13px;color:var(--text3)">Sin resultados.</div>';}
+  dd.innerHTML=html;
+  dd.style.display='block';
+  dd.querySelectorAll('[data-sec]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();goTo(this.getAttribute('data-sec'));cerrarBusquedaGlobal();});});
+  dd.querySelectorAll('[data-cliente]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();irAClienteDesdeBusqueda(this.getAttribute('data-cliente'));cerrarBusquedaGlobal();});});
+  input.onblur=function(){setTimeout(function(){dd.style.display='none';},200);};
+}
+function cerrarBusquedaGlobal(){
+  var input=document.getElementById('dash-buscar-global');
+  input.value='';
+  document.getElementById('dash-buscar-global-dropdown').style.display='none';
+  document.getElementById('dash-buscador').className='buscador';
+}
+function irAClienteDesdeBusqueda(nombre){
+  var c=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});
+  if(!c)return;
+  goTo('clientes');
+  var tab=tipoCliente(c);
+  setCtab(tab);
+  var input=document.getElementById('c-buscar');
+  if(input)input.value=nombre;
+  if(tab==='consumidor')renderConsumidorGrid();else renderClientes();
 }
 
 // ─── FECHA ───
@@ -2284,10 +2347,10 @@ function initLinksRapidos(){
 function renderLinksRapidos(list){
   var el=document.getElementById('links-rapidos-list');if(!el){setTimeout(function(){renderLinksRapidos(list);},500);return;}
   if(!list||list.length===0){el.innerHTML='<div class="hint">Sin accesos cargados. Usá "+ Agregar".</div>';return;}
-  var html='<div style="display:flex;flex-wrap:wrap;gap:8px">';
-  list.forEach(function(l){html+='<div style="display:flex;align-items:center;gap:3px"><a href="'+l.url+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:500">'+(l.icon?l.icon+' ':'')+l.nombre+'</a><button data-lid="'+l.id+'" style="font-size:11px;padding:4px 7px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></div>';});
+  var html='<div class="qa-grid">';
+  list.forEach(function(l){html+='<a href="'+l.url+'" target="_blank" class="qa-card"><span class="qa-card-x" data-lid="'+l.id+'">✕</span><span class="qa-card-ico">'+(l.icon||'🔗')+'</span><span class="qa-card-lbl">'+l.nombre+'</span></a>';});
   html+='</div>';el.innerHTML=html;
-  el.querySelectorAll('[data-lid]').forEach(function(btn){btn.addEventListener('click',function(){var id=this.getAttribute('data-lid');if(confirm('¿Eliminar este acceso?'))db.collection('links_rapidos').doc(id).delete();});});
+  el.querySelectorAll('[data-lid]').forEach(function(btn){btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var id=this.getAttribute('data-lid');if(confirm('¿Eliminar este acceso?'))db.collection('links_rapidos').doc(id).delete();});});
 }
 function saveLinkRapido(){
   var nombre=document.getElementById('lr-nombre').value.trim(),url=document.getElementById('lr-url').value.trim();

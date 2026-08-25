@@ -1295,38 +1295,39 @@ def construir_cajas_telegrama(d):
 
     # Fila 2: ramo o actividad principal / DNI del remitente
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila2'], TG_IZQ_AN,
-                             d.get('destRamo', ''), tam_pt=9))
+                             d.get('destRamo', ''), tam_pt=9, negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila2'], TG_DER_AN,
                              d.get('remDni', ''), negrita=True))
 
     # "Más de 30 palabras" es una anotacion del estudio que en el modelo pisa
-    # el renglon del ramo; la reubicamos en la banda libre de arriba del
-    # recuadro, del lado derecho para no chocar con el CUIL.
-    c.append(_tg_caja(next(n), 11.0, TG_BANDA_LIBRE, 8.0, 0.55,
+    # el renglon del ramo; la reubicamos en el hueco libre entre el banner
+    # azul "Telegrama Ley Nº 23.789" y el banner verde "DESTINATARIO",
+    # alineada a la izquierda con ambos.
+    c.append(_tg_caja(next(n), TG_IZQ_X, 2.05, TG_IZQ_AN, 0.55,
                       'Más de 30 palabras', tam_pt=10, negrita=True))
 
     # Fila 3: domicilio + codigo postal (el CP va al final de cada columna)
     an_cp = 2.40
     an_dom = 6.30
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila3'], an_dom,
-                             d.get('destDomicilio', ''), tam_pt=9))
+                             d.get('destDomicilio', ''), tam_pt=9, negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X + TG_IZQ_AN - an_cp, TG_LINEA['fila3'],
-                             an_cp, d.get('destCp', ''), tam_pt=9, alineacion='center'))
+                             an_cp, d.get('destCp', ''), tam_pt=9, alineacion='center', negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila3'], an_dom,
-                             d.get('remDomicilio', ''), tam_pt=9))
+                             d.get('remDomicilio', ''), tam_pt=9, negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_DER_X + TG_DER_AN - an_cp, TG_LINEA['fila3'],
-                             an_cp, d.get('remCp', ''), tam_pt=9, alineacion='center'))
+                             an_cp, d.get('remCp', ''), tam_pt=9, alineacion='center', negrita=True))
 
     # Fila 4: localidad + provincia (mitad y mitad de cada columna)
     mitad = TG_IZQ_AN / 2 - 0.15
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X, TG_LINEA['fila4'], mitad,
-                             d.get('destLocalidad', ''), tam_pt=9))
+                             d.get('destLocalidad', ''), tam_pt=9, negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_IZQ_X + TG_IZQ_AN / 2, TG_LINEA['fila4'], mitad,
-                             d.get('destProvincia', ''), tam_pt=9))
+                             d.get('destProvincia', ''), tam_pt=9, alineacion='center', negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_DER_X, TG_LINEA['fila4'], mitad,
-                             d.get('remLocalidad', ''), tam_pt=9))
+                             d.get('remLocalidad', ''), tam_pt=9, negrita=True))
     c.append(_tg_sobre_linea(next(n), TG_DER_X + TG_DER_AN / 2, TG_LINEA['fila4'], mitad,
-                             d.get('remProvincia', ''), tam_pt=9))
+                             d.get('remProvincia', ''), tam_pt=9, alineacion='center', negrita=True))
 
     # CUIL del destinatario: espacio libre entre la fila 4 y el recuadro
     cuil = (d.get('destCuil') or '').strip()
