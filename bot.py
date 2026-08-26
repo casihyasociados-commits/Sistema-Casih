@@ -559,7 +559,16 @@ def procesar_pieza_correo(doc, data, grupo):
         return 'sin_resultados'
 
     ultimo = movs[0]
-    previos = data.get('caMovimientos') or 0
+    # Identifica el movimiento de arriba de la tabla (no solo cuantos hay en
+    # total). El Correo a veces carga un movimiento anterior en el tiempo
+    # *despues* de uno posterior -- por ej. "LLEGADA AL CENTRO DE
+    # PROCESAMIENTO" aparece en el sistema recien despues de que ya figuraba
+    # "INTENTO DE ENTREGA" con la misma fecha -- y ahi la cantidad total de
+    # movimientos aumenta sin que el de arriba haya cambiado. Comparar solo
+    # la cantidad hacia que se reenviara el mismo aviso de nuevo en esos
+    # casos; comparando la identidad del ultimo movimiento no.
+    clave_actual = '%s|%s|%s|%s' % (ultimo['fecha'], ultimo['planta'], ultimo['historia'], ultimo['estado'])
+    clave_previa = data.get('caUltimoMovKey') or ''
 
     update = {
         'caEstado': ultimo['estado'],
@@ -567,6 +576,7 @@ def procesar_pieza_correo(doc, data, grupo):
         'caPlanta': ultimo['planta'],
         'caFechaMov': ultimo['fecha'],
         'caMovimientos': len(movs),
+        'caUltimoMovKey': clave_actual,
         'caError': '',
         'caUltimaConsulta': firestore.SERVER_TIMESTAMP
     }
@@ -578,14 +588,18 @@ def procesar_pieza_correo(doc, data, grupo):
     # La primera consulta solo deja registrado el estado actual: avisar de
     # piezas recien cargadas seria ruido, no novedad.
     primera_vez = not data.get('caConsultado')
+    # Piezas que ya se venian trackeando antes de que existiera caUltimoMovKey
+    # no tienen con que comparar todavia: se toma esta corrida como el punto
+    # de partida (sin avisar) en vez de asumir que todo es "novedad".
+    sin_clave_previa = data.get('caConsultado') and not data.get('caUltimoMovKey')
     update['caConsultado'] = True
 
     doc.reference.update(update)
 
-    if primera_vez:
+    if primera_vez or sin_clave_previa:
         return 'primera_vez'
 
-    if len(movs) <= previos:
+    if clave_actual == clave_previa:
         return 'sin_cambios'
 
     if grupo:
