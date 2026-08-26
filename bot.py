@@ -2017,10 +2017,17 @@ def armar_tramite_srt_art(d):
         'demandada de las enfermedades profesionales que padezco.'
         % (d.get('tclNumero', ''), d.get('tclFecha', ''))
     )
-    if (d.get('controlFecha') or '').strip():
-        texto_control = 'Posteriormente, la demandada me cita a control para el día %s.' % d['controlFecha']
-        if (d.get('controlEstudio') or '').strip():
-            texto_control += ' %s' % d['controlEstudio'].strip()
+    # La ART suele citar mas de una vez por distintos motivos (evaluacion
+    # general, un estudio puntual, etc.), asi que van todas las que se hayan
+    # cargado, en el orden en que las agregaron.
+    for control in (d.get('controles') or []):
+        fecha_control = (control.get('fecha') or '').strip()
+        if not fecha_control:
+            continue
+        texto_control = 'Con fecha %s, la demandada me cita a control.' % fecha_control
+        detalle = (control.get('detalle') or '').strip()
+        if detalle:
+            texto_control += ' %s' % detalle
         partes.append(texto_control)
     partes.append(
         'El día %s la demandada remite CD Nº %s, rechazando las patologías denunciadas por '

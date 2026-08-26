@@ -1113,10 +1113,11 @@ input.currency-input{letter-spacing:0.5px;}
         <div class="fg"><div class="fl">TCL de denuncia — número *</div><input class="fi" id="dart-tcl-numero" placeholder="984864674"></div>
         <div class="fg"><div class="fl">TCL de denuncia — fecha *</div><input class="fi" id="dart-tcl-fecha" placeholder="23/05/2024"></div>
       </div>
-      <div class="g2">
-        <div class="fg"><div class="fl">Fecha de citación a control (opcional)</div><input class="fi" id="dart-control-fecha" placeholder="04/06/2024"></div>
-        <div class="fg"><div class="fl">Estudio realizado en el control (opcional)</div><input class="fi" id="dart-control-estudio" placeholder="Me realizan una Electromiografía."></div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:4px">
+        Citaciones a control (opcional) — la ART suele citar más de una vez por distintos motivos (evaluación general, un estudio puntual, etc.). Agregá una por cada carta/telegrama que haya mandado, en orden.
       </div>
+      <div id="dart-controles-list"></div>
+      <button class="btn-sm" onclick="dartAgregarControl()" style="margin-bottom:14px">+ Agregar citación</button>
       <div class="g2">
         <div class="fg"><div class="fl">CD de rechazo — número *</div><input class="fi" id="dart-cd-rechazo-numero" placeholder="0006114216"></div>
         <div class="fg"><div class="fl">CD de rechazo — fecha *</div><input class="fi" id="dart-cd-rechazo-fecha" placeholder="11/06/2024"></div>
@@ -2896,7 +2897,7 @@ var ESCRITO_CONFIG={
     despues:function(){toggleRegimenDespidoIndirecto();}
   },
   demanda_art_rechazo:{
-    cont:'es-form-demanda-art',dinamicos:['dart-ripte-filas','dart-testigos-list'],
+    cont:'es-form-demanda-art',dinamicos:['dart-ripte-filas','dart-testigos-list','dart-controles-list'],
     resultado:'dart-resultado-card',contador:'DART_FILA_COUNTER',nombre:'Demanda ART',
     campoTitulo:'dart-act-nombre',extras:['es-representacion'],
     despues:function(){dartRecalcular();}
@@ -3348,6 +3349,20 @@ function dartAgregarTestigo(){
   document.getElementById('dart-testigos-list').appendChild(div);
 }
 
+function dartAgregarControl(){
+  var idx=DART_FILA_COUNTER++;
+  var div=document.createElement('div');
+  div.id='dart-control-'+idx;
+  div.style.cssText='border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg3)';
+  div.innerHTML=
+    '<div class="g2">'+
+      '<div class="fg" style="margin-bottom:6px"><div class="fl">Fecha</div><input class="fi" id="dart-cfecha-'+idx+'" placeholder="04/02/2026"></div>'+
+      '<div class="fg" style="margin-bottom:6px"><div class="fl">Motivo / lugar</div><input class="fi" id="dart-cdetalle-'+idx+'" placeholder="Evaluación con el especialista en Clínica Vélez Sarsfield."></div>'+
+    '</div>'+
+    '<button onclick="document.getElementById(\'dart-control-'+idx+'\').remove();" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕ Quitar</button>';
+  document.getElementById('dart-controles-list').appendChild(div);
+}
+
 function datosDemandaArt(){
   var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
   dartRecalcular();
@@ -3379,6 +3394,14 @@ function datosDemandaArt(){
   var documentalItems=[];
   document.querySelectorAll('.dart-doc-item:checked').forEach(function(el){documentalItems.push(el.value);});
 
+  var controles=[];
+  var ctrlEl=document.getElementById('dart-controles-list').children;
+  for(var k=0;k<ctrlEl.length;k++){
+    var cidx=ctrlEl[k].id.replace('dart-control-','');
+    var cfecha=v('dart-cfecha-'+cidx);
+    if(cfecha)controles.push({fecha:cfecha,detalle:v('dart-cdetalle-'+cidx)});
+  }
+
   return {
     representacion:v('es-representacion'),
     actNombre:v('dart-act-nombre'),actDni:v('dart-act-dni'),actGenero:v('dart-act-genero'),
@@ -3393,7 +3416,7 @@ function datosDemandaArt(){
     medicoNombre:v('dart-medico-nombre'),medicoMp:v('dart-medico-mp'),medicoGenero:v('dart-medico-genero'),
     sintomasRelato:v('dart-sintomas-relato'),
     tclNumero:v('dart-tcl-numero'),tclFecha:v('dart-tcl-fecha'),
-    controlFecha:v('dart-control-fecha'),controlEstudio:v('dart-control-estudio'),
+    controles:controles,
     cdRechazoNumero:v('dart-cd-rechazo-numero'),cdRechazoFecha:v('dart-cd-rechazo-fecha'),
     expteNumero:v('dart-expte-numero'),expteFecha:v('dart-expte-fecha'),
     informeTecnicoFecha:v('dart-informe-fecha'),
