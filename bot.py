@@ -2029,17 +2029,23 @@ def armar_tramite_srt_art(d):
         if detalle:
             texto_control += ' %s' % detalle
         partes.append(texto_control)
+    # No todos los casos tienen un rechazo directo de la ART por CD: a veces
+    # la ART informa "sin incapacidad" directamente a la SRT (con el alta
+    # medica como fundamento) y el expediente arranca sin que medie una carta
+    # documento de rechazo hacia el trabajador.
+    hubo_cd_rechazo = (d.get('cdRechazoNumero') or '').strip()
+    if hubo_cd_rechazo:
+        partes.append(
+            'El día %s la demandada remite CD Nº %s, rechazando las patologías denunciadas por '
+            'considerar que no me encontraba expuesto a los agentes de riesgo, sin tomar en '
+            'consideración la relación de causalidad existente entre mis tareas laborales y '
+            'las dolencias que padezco.'
+            % (d.get('cdRechazoFecha', ''), d.get('cdRechazoNumero', ''))
+        )
     partes.append(
-        'El día %s la demandada remite CD Nº %s, rechazando las patologías denunciadas por '
-        'considerar que no me encontraba expuesto a los agentes de riesgo, sin tomar en '
-        'consideración la relación de causalidad existente entre mis tareas laborales y '
-        'las dolencias que padezco.'
-        % (d.get('cdRechazoFecha', ''), d.get('cdRechazoNumero', ''))
-    )
-    partes.append(
-        'Debido a ello inicio expediente por RECHAZO ante la SRT con fecha %s. El '
-        'expediente por rechazo fue tramitado bajo el N°%s.'
-        % (d.get('expteFecha', ''), d.get('expteNumero', ''))
+        '%s expediente ante la SRT con fecha %s. El expediente fue tramitado bajo el N°%s.'
+        % ('Debido a ello inicio' if hubo_cd_rechazo else 'Se inicia',
+           d.get('expteFecha', ''), d.get('expteNumero', ''))
     )
     if (d.get('informeTecnicoFecha') or '').strip():
         partes.append(
@@ -2238,14 +2244,18 @@ def armar_prueba_art(d):
         % (d.get('artNombre', ''), d.get('empNombre', ''), d.get('artNombre', ''), d.get('empNombre', ''))
     )
 
-    partes.append(
+    texto_reconocimiento = (
         'e.-) RECONOCIMIENTO\nSolicito se fije día y hora de audiencia a los fines del '
         'reconocimiento por parte de la demandada: a.-) Recepción, autenticidad, cuerpo y '
-        'contenido del TCL CD Nº %s ofrecida en el punto c.-) de la DOCUMENTAL. b.-) '
-        'Emisión, autenticidad, cuerpo y contenido, de la CD Nº %s ofrecida en el mismo '
-        'punto de la DOCUMENTAL.'
-        % (d.get('tclNumero', ''), d.get('cdRechazoNumero', ''))
+        'contenido del TCL CD Nº %s ofrecida en el punto c.-) de la DOCUMENTAL.'
+        % d.get('tclNumero', '')
     )
+    if (d.get('cdRechazoNumero') or '').strip():
+        texto_reconocimiento += (
+            ' b.-) Emisión, autenticidad, cuerpo y contenido, de la CD Nº %s ofrecida en el '
+            'mismo punto de la DOCUMENTAL.' % d['cdRechazoNumero']
+        )
+    partes.append(texto_reconocimiento)
 
     perito_control = ''
     if (d.get('peritoControlNombre') or '').strip():
