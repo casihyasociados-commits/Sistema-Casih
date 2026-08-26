@@ -602,10 +602,19 @@ def procesar_pieza_correo(doc, data, grupo):
     if clave_actual == clave_previa:
         return 'sin_cambios'
 
-    if grupo:
+    estado = ultimo['estado'].upper()
+    historia = ultimo['historia'].upper()
+    # Solo interesan los intentos de entrega, el rechazo y la entrega final.
+    # El resto (llegada a planta, clasificacion, en poder del cartero, etc.)
+    # son movimientos internos del Correo que no requieren que nadie del
+    # estudio haga nada, asi que no generan WhatsApp -- pero igual quedan
+    # registrados arriba (caUltimoMovKey ya se actualizo) para no reenviar
+    # un aviso viejo cuando despues aparezca uno que si importe.
+    es_relevante = estado in ('RECHAZADO', 'ENTREGADO') or 'INTENTO DE ENTREGA' in historia
+
+    if grupo and es_relevante:
         cliente = data.get('cliente', 'Sin cliente')
         pieza = "%s-%s-AR" % (prefijo, numero)
-        estado = ultimo['estado'].upper()
 
         if estado == 'RECHAZADO':
             msg = ("⚠️ *ENVÍO RECHAZADO*\n\n"
@@ -634,7 +643,7 @@ def procesar_pieza_correo(doc, data, grupo):
 
         responder_whatsapp(grupo, msg)
 
-    return 'con_novedad'
+    return 'con_novedad' if es_relevante else 'cambio_no_relevante'
 
 @app.route('/revisar-correos', methods=['GET'])
 def revisar_correos():
@@ -673,6 +682,7 @@ def revisar_correos():
         "consultados": consultados,
         "primera_consulta": contadores['primera_vez'],
         "con_novedad": contadores['con_novedad'],
+        "cambio_no_relevante": contadores.get('cambio_no_relevante', 0),
         "sin_cambios": contadores['sin_cambios'],
         "errores": errores
     }), 200
