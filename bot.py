@@ -256,6 +256,27 @@ def recordatorios_del_dia():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+# --- TAREAS PENDIENTES (para sumar a la agenda diaria) ---
+# A diferencia de los recordatorios, no tienen fecha: existen mientras no se
+# marquen como hechas (se borran desde el sistema al completarlas), asi que
+# ninguna se filtra por dia -- se devuelven todas, para que se avisen todos
+# los dias hasta que se hagan.
+@app.route('/tareas-pendientes', methods=['GET'])
+def tareas_pendientes():
+    items = []
+    try:
+        docs = db.collection('tareas_pendientes').order_by('creadoEn').stream()
+        for doc in docs:
+            t = doc.to_dict()
+            desc = (t.get('desc') or '').strip()
+            if desc:
+                items.append({'texto': desc})
+    except Exception as e:
+        print("Error obteniendo tareas pendientes:", str(e))
+    resp = jsonify(items)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- RUTA PRINCIPAL (WEBHOOK) ---
 @app.route('/webhook', methods=['POST'])
 def webhook():

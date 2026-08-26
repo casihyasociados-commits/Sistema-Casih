@@ -539,6 +539,17 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="cli-recordatorios-list"><div class="hint">Sin recordatorios.</div></div>
   </div>
 
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--purple)">
+    <div class="card-head">
+      <span class="card-head-title">✅ Tareas pendientes</span>
+      <button class="btn-primary" onclick="openModal('m-tarea-pendiente')">+ Nueva tarea</button>
+    </div>
+    <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:2px">
+      Se avisan todos los días por WhatsApp junto con la agenda y los recordatorios, hasta que las marques como hechas.
+    </div>
+    <div id="tareas-pendientes-list"><div class="hint">Sin tareas pendientes.</div></div>
+  </div>
+
   <div class="card" style="margin-bottom:16px;border-left:3px solid var(--blue)">
     <div class="card-title">📌 Hoy</div>
     <div id="hoy-agenda-list"><div class="hint">Conectá Google Calendar para ver los eventos de hoy.</div></div>
@@ -1334,6 +1345,14 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg"><div class="fl">Hora</div><input class="fi" id="rec-hora" type="time"></div>
     </div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-recordatorio')">Cancelar</button><button class="btn-primary" onclick="saveRecordatorio()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-tarea-pendiente" onclick="if(event.target===this)closeModal('m-tarea-pendiente')">
+  <div class="modal"><h3>Nueva tarea pendiente</h3>
+    <div class="fg"><div class="fl">¿Qué hay que hacer? *</div><textarea class="fta" id="tp-desc" placeholder="Ej: Pedir el expediente al Ministerio de Trabajo"></textarea></div>
+    <div class="hint" style="margin-top:-6px;margin-bottom:10px">Sin fecha — se recuerda todos los días hasta que la marques como hecha.</div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-tarea-pendiente')">Cancelar</button><button class="btn-primary" onclick="saveTareaPendiente()">Guardar</button></div>
   </div>
 </div>
 
@@ -2703,6 +2722,45 @@ function saveRecordatorio(){
   if(!desc||!fecha){alert('Contá qué querés recordar y elegí la fecha.');return;}
   db.collection('recordatorios').add({desc:desc,fecha:fecha,hora:document.getElementById('rec-hora').value,avisoEnviado:false,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-recordatorio');showToast('Recordatorio guardado ✓');['rec-desc','rec-fecha','rec-hora'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});});
 }
+
+// ─── TAREAS PENDIENTES ───
+// A diferencia de los recordatorios, no tienen fecha propia: existen mientras
+// no se marquen como hechas, y por eso se avisan por WhatsApp TODOS los días
+// junto con la agenda (ver enviar_agenda_diaria.py) hasta que se completen.
+function initTareasPendientes(){
+  db.collection('tareas_pendientes').orderBy('creadoEn','asc').onSnapshot(function(snap){
+    var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});
+    renderTareasPendientes(list);
+  },function(){db.collection('tareas_pendientes').get().then(function(snap){var list=[];snap.forEach(function(d){var x=d.data();x.id=d.id;list.push(x);});renderTareasPendientes(list);});});
+}
+function renderTareasPendientes(list){
+  var el=document.getElementById('tareas-pendientes-list');
+  if(!el)return;
+  if(list.length===0){el.innerHTML='<div class="hint">Sin tareas pendientes.</div>';return;}
+  var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">';
+  list.forEach(function(t){
+    html+='<div style="background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:12px">'+
+      '<div style="font-size:14px;font-weight:600;color:var(--text)">'+(t.desc||'')+'</div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button data-tid="'+t.id+'" data-taction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer">✓ Hecha</button>'+
+        '<button data-tid="'+t.id+'" data-taction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>'+
+      '</div></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  el.querySelectorAll('[data-taction]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=this.getAttribute('data-tid'),action=this.getAttribute('data-taction');
+      if(action==='done')db.collection('tareas_pendientes').doc(id).delete().then(function(){showToast('Tarea completada ✓');});
+      else if(confirm('¿Eliminar esta tarea?'))db.collection('tareas_pendientes').doc(id).delete();
+    });
+  });
+}
+function saveTareaPendiente(){
+  var desc=document.getElementById('tp-desc').value.trim();
+  if(!desc){alert('Contá qué hay que hacer.');return;}
+  db.collection('tareas_pendientes').add({desc:desc,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-tarea-pendiente');showToast('Tarea guardada ✓');document.getElementById('tp-desc').value='';});
+}
 function enviarWhatsAppRecordatorio(r){
   fetch(BOT_URL+'/notificar-recordatorio',{
     method:'POST',headers:{'Content-Type':'application/json'},
@@ -4071,6 +4129,7 @@ function initApp() {
     initLinksRapidos();
     initHonorariosDash();
     initRecordatorios();
+    initTareasPendientes();
     applyCurrencyInputs();
     initGastosRecientes();
     initCorreoDash();

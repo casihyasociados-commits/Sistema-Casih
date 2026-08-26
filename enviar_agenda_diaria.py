@@ -41,6 +41,18 @@ def obtener_recordatorios_hoy():
         print("No se pudieron obtener los recordatorios del día:", str(e))
         return []
 
+# A diferencia de los recordatorios, las tareas pendientes no tienen fecha:
+# se avisan TODOS los días hasta que alguien las marca como hechas desde el
+# sistema (ahí se borran y dejan de aparecer acá).
+def obtener_tareas_pendientes():
+    try:
+        r = requests.get("https://sistema-casih.onrender.com/tareas-pendientes", timeout=15)
+        r.raise_for_status()
+        return r.json()
+    except Exception as e:
+        print("No se pudieron obtener las tareas pendientes:", str(e))
+        return []
+
 def enviar_whatsapp(mensaje):
     instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
     token = os.environ.get("GREEN_API_TOKEN")
@@ -61,6 +73,7 @@ if __name__ == "__main__":
     try:
         eventos, fecha_str = obtener_eventos_hoy()
         recordatorios = obtener_recordatorios_hoy()
+        tareas = obtener_tareas_pendientes()
 
         texto_mensaje = f"📅 *AGENDA DEL DÍA - {fecha_str}*\n\n"
 
@@ -84,6 +97,11 @@ if __name__ == "__main__":
                     texto_mensaje += f"🕐 *{r['hora']} hs* - {r['texto']}\n"
                 else:
                     texto_mensaje += f"• {r['texto']}\n"
+
+        if tareas:
+            texto_mensaje += "\n✅ *TAREAS PENDIENTES*\n\n"
+            for t in tareas:
+                texto_mensaje += f"• {t['texto']}\n"
 
         res = enviar_whatsapp(texto_mensaje)
         print("Mensaje enviado con éxito:", res)
