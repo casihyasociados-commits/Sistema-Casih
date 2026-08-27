@@ -1388,6 +1388,10 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal"><h3>Nueva tarea pendiente</h3>
     <div class="fg"><div class="fl">¿Qué hay que hacer? *</div><textarea class="fta" id="tp-desc" placeholder="Ej: Pedir el expediente al Ministerio de Trabajo"></textarea></div>
     <div class="hint" style="margin-top:-6px;margin-bottom:10px">Sin fecha — se recuerda todos los días hasta que la marques como hecha.</div>
+    <div class="fg"><div class="fl">Recordarme en (días) para consultar avances</div><input class="fi" id="tp-recordar-dias" type="number" min="1" placeholder="Ej: 5 (opcional)"></div>
+    <div class="hint" style="margin-top:-6px;margin-bottom:10px">Si lo completás, ese día se manda un WhatsApp aparte al número personal de seguimiento — no al grupo.</div>
+    <div class="fg"><div class="fl">Tiempo ideal para resolverla (días)</div><input class="fi" id="tp-plazo-dias" type="number" min="1" placeholder="Ej: 10 (opcional)"></div>
+    <div class="hint" style="margin-top:-6px">El aviso diario al grupo la va a marcar cuando falte poco o se pase de esa fecha.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-tarea-pendiente')">Cancelar</button><button class="btn-primary" onclick="saveTareaPendiente()">Guardar</button></div>
   </div>
 </div>
@@ -3012,8 +3016,20 @@ function renderTareasPendientes(list){
   if(list.length===0){el.innerHTML='<div class="hint">Sin tareas pendientes.</div>';return;}
   var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">';
   list.forEach(function(t){
+    var segLinea='';
+    if(t.fechaRecordatorio){
+      segLinea='<div style="font-size:11px;color:var(--text3);margin-top:4px">⏰ Seguimiento personal: '+fmtDisp(t.fechaRecordatorio)+(t.recordatorioEnviado?' (avisado ✓)':'')+'</div>';
+    }
+    var plazoLinea='';
+    if(t.fechaPlazoIdeal){
+      var diasRest=Math.round((new Date(t.fechaPlazoIdeal+'T00:00:00')-today)/864e5);
+      var plazoColor='var(--text3)';
+      if(diasRest<0)plazoColor='var(--red)';else if(diasRest<=2)plazoColor='#E8A33D';
+      plazoLinea='<div style="font-size:11px;color:'+plazoColor+';margin-top:4px">🎯 Plazo ideal: '+fmtDisp(t.fechaPlazoIdeal)+'</div>';
+    }
     html+='<div style="background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:12px">'+
       '<div style="font-size:14px;font-weight:600;color:var(--text)">'+(t.desc||'')+'</div>'+
+      segLinea+plazoLinea+
       '<div style="display:flex;gap:6px;margin-top:10px">'+
         '<button data-tid="'+t.id+'" data-taction="done" style="flex:1;font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer">✓ Hecha</button>'+
         '<button data-tid="'+t.id+'" data-taction="del" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>'+
@@ -3032,7 +3048,17 @@ function renderTareasPendientes(list){
 function saveTareaPendiente(){
   var desc=document.getElementById('tp-desc').value.trim();
   if(!desc){alert('Contá qué hay que hacer.');return;}
-  db.collection('tareas_pendientes').add({desc:desc,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){closeModal('m-tarea-pendiente');showToast('Tarea guardada ✓');document.getElementById('tp-desc').value='';});
+  var data={desc:desc,creadoPor:currentUserData?currentUserData.nombre:'',creadoEn:firebase.firestore.FieldValue.serverTimestamp()};
+  var dias=parseInt(document.getElementById('tp-recordar-dias').value,10);
+  if(dias>0){
+    data.fechaRecordatorio=fmt(new Date(today.getTime()+dias*864e5));
+    data.recordatorioEnviado=false;
+  }
+  var diasPlazo=parseInt(document.getElementById('tp-plazo-dias').value,10);
+  if(diasPlazo>0){
+    data.fechaPlazoIdeal=fmt(new Date(today.getTime()+diasPlazo*864e5));
+  }
+  db.collection('tareas_pendientes').add(data).then(function(){closeModal('m-tarea-pendiente');showToast('Tarea guardada ✓');document.getElementById('tp-desc').value='';document.getElementById('tp-recordar-dias').value='';document.getElementById('tp-plazo-dias').value='';});
 }
 function enviarWhatsAppRecordatorio(r){
   fetch(BOT_URL+'/notificar-recordatorio',{

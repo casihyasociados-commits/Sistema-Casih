@@ -303,6 +303,37 @@ def notificar_recordatorio():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+# --- SEGUIMIENTO PERSONAL DE TAREAS PENDIENTES ---
+# Ademas del aviso diario a TODO el grupo, una tarea puede pedir "recordarme
+# en X dias": ese dia puntual (fechaRecordatorio) se avisa aparte, por privado,
+# al numero personal de seguimiento -- no al grupo. Se manda una sola vez
+# (recordatorioEnviado) aunque el cron pase de largo esa fecha.
+WHATSAPP_SEGUIMIENTO_TAREAS = os.environ.get("WHATSAPP_SEGUIMIENTO_PERSONAL") or "5493515102323@c.us"
+
+@app.route('/revisar-seguimientos-tareas', methods=['GET'])
+def revisar_seguimientos_tareas():
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    hoy = datetime.now(tz).strftime('%Y-%m-%d')
+    avisadas = 0
+    try:
+        docs = db.collection('tareas_pendientes').where('fechaRecordatorio', '<=', hoy).stream()
+        for doc in docs:
+            t = doc.to_dict()
+            if t.get('recordatorioEnviado'):
+                continue
+            desc = (t.get('desc') or '').strip()
+            if not desc:
+                continue
+            msg = "⏰ *Seguimiento de tarea*\n\nPediste que te avise para consultar el avance de esto:\n\n%s" % desc
+            if responder_whatsapp(WHATSAPP_SEGUIMIENTO_TAREAS, msg):
+                doc.reference.update({'recordatorioEnviado': True})
+                avisadas += 1
+    except Exception as e:
+        print("Error revisando seguimientos de tareas:", str(e))
+    resp = jsonify({"avisadas": avisadas})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- RECORDATORIOS DE HOY (para sumar a la agenda diaria) ---
 @app.route('/recordatorios-del-dia', methods=['GET'])
 def recordatorios_del_dia():
@@ -341,13 +372,28 @@ def recordatorios_del_dia():
 @app.route('/tareas-pendientes', methods=['GET'])
 def tareas_pendientes():
     items = []
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    hoy = datetime.now(tz).date()
     try:
         docs = db.collection('tareas_pendientes').order_by('creadoEn').stream()
         for doc in docs:
             t = doc.to_dict()
             desc = (t.get('desc') or '').strip()
-            if desc:
-                items.append({'texto': desc})
+            if not desc:
+                continue
+            texto = desc
+            fecha_plazo = (t.get('fechaPlazoIdeal') or '').strip()
+            if fecha_plazo:
+                try:
+                    dias_restantes = (datetime.strptime(fecha_plazo, '%Y-%m-%d').date() - hoy).days
+                    if dias_restantes < 0:
+                        texto = '🚨 FUERA DE PLAZO (venció hace %d día/s) - %s' % (-dias_restantes, desc)
+                    elif dias_restantes <= 2:
+                        texto = '⚠️ Se acerca el plazo ideal (%s) - %s' % (
+                            'hoy' if dias_restantes == 0 else 'quedan %d día/s' % dias_restantes, desc)
+                except ValueError:
+                    pass
+            items.append({'texto': texto})
     except Exception as e:
         print("Error obteniendo tareas pendientes:", str(e))
     resp = jsonify(items)

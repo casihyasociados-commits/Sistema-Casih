@@ -53,6 +53,14 @@ def obtener_tareas_pendientes():
         print("No se pudieron obtener las tareas pendientes:", str(e))
         return []
 
+def revisar_seguimientos_tareas():
+    try:
+        r = requests.get("https://sistema-casih.onrender.com/revisar-seguimientos-tareas", timeout=15)
+        r.raise_for_status()
+        print("Seguimientos de tareas revisados:", r.json())
+    except Exception as e:
+        print("No se pudo revisar seguimientos de tareas:", str(e))
+
 def enviar_whatsapp(mensaje):
     instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
     token = os.environ.get("GREEN_API_TOKEN")
@@ -105,6 +113,8 @@ if __name__ == "__main__":
 
         res = enviar_whatsapp(texto_mensaje)
         print("Mensaje enviado con éxito:", res)
-        
+
+        revisar_seguimientos_tareas()
+
     except Exception as e:
         print("Error al ejecutar el script:", str(e))
