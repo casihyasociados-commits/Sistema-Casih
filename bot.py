@@ -388,7 +388,7 @@ def doctor_ia():
         respuesta = "".join([b.text for b in response.content if b.type == "text"]).strip()
     except Exception as e:
         print("Error en Doctor IA:", str(e))
-        resp = jsonify({"error": "No se pudo obtener respuesta. Probá de nuevo.", "detalle": str(e), "anthropic_version": getattr(anthropic, '__version__', '?')})
+        resp = jsonify({"error": "No se pudo obtener respuesta. Probá de nuevo."})
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 500
 
