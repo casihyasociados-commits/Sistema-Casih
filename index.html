@@ -450,6 +450,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="nav-btn" onclick="goTo('tareas')">Agenda</button>
     <button class="nav-btn" onclick="goTo('admin')">Contable</button>
     <button class="nav-btn" onclick="goTo('escritos')">Escritos IA</button>
+    <button class="nav-btn" onclick="goTo('doctor-ia')">Doctor IA</button>
   </div>
   <div class="user-badge">
     <div class="user-avatar" id="nav-avatar">--</div>
@@ -482,6 +483,7 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="home-nav-btn" onclick="goTo('tareas')"><span class="home-nav-ico">📅</span><span class="home-nav-lbl">Agenda</span><span class="home-nav-desc">Carga de recordatorios vía WhatsApp<br>Carga de tareas pendientes<br>Calendario semanal del estudio<br>Eventos del día del estudio</span></button>
     <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Contable</span><span class="home-nav-desc">Carga de gastos e ingresos del estudio<br>Deudas pendientes de cobro<br>Balance anual</span></button>
     <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span><span class="home-nav-desc">Redacción de TCL con IA<br>Redacción de denuncias con IA<br>Redacción de demandas con IA</span></button>
+    <button class="home-nav-btn" onclick="goTo('doctor-ia')"><span class="home-nav-ico">🩺</span><span class="home-nav-lbl">Doctor IA</span><span class="home-nav-desc">Consultas rápidas de derecho laboral<br>Respondidas por IA</span></button>
   </div>
   <div class="card" style="margin-bottom:24px;border-left:3px solid var(--green)">
     <div class="card-head">
@@ -1362,6 +1364,28 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
+<!-- DOCTOR IA -->
+<div class="section" id="sec-doctor-ia">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Doctor IA</div>
+      <div class="page-sub">Consultas rápidas de derecho laboral, respondidas por IA — no reemplaza revisar el expediente ni la opinión del abogado</div>
+    </div>
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh)">
+    <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 4px 10px">
+      <div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA.<br>No tiene acceso a los datos de los clientes del sistema.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+      <textarea class="fta" id="dia-input" placeholder="Escribí tu consulta..." style="min-height:44px;max-height:120px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarDoctorIA();}"></textarea>
+      <button class="btn-primary" id="dia-btn-enviar" onclick="enviarDoctorIA()" style="align-self:flex-end">Enviar</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+      <button class="btn-sm" onclick="reiniciarDoctorIA()">🗑 Borrar conversación</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="m-honorario-dash" onclick="if(event.target===this)closeModal('m-honorario-dash')">
   <div class="modal"><h3>Registrar honorario</h3>
     <div class="fg"><div class="fl">Cliente *</div><input class="fi" id="hd-cliente-search" placeholder="Escribí para buscar..." oninput="filterClientSearch(this.value,'hd-cliente')"><select class="fs" id="hd-cliente" style="margin-top:4px"><option value="">— Seleccionar cliente —</option></select></div>
@@ -1542,6 +1566,55 @@ input.currency-input{letter-spacing:0.5px;}
 <script>
 // ─── FIREBASE CONFIG ───
 const BOT_URL = "https://sistema-casih.onrender.com";
+
+// ─── DOCTOR IA (chat de consultas) ───
+var DOCTOR_IA_HISTORIAL=[];
+function pintarMensajeDoctorIA(role,texto){
+  var chat=document.getElementById('dia-chat');
+  var esUser=role==='user';
+  var bub=document.createElement('div');
+  bub.style.cssText='max-width:85%;padding:10px 13px;border-radius:12px;font-size:14px;line-height:1.5;white-space:pre-wrap;align-self:'+(esUser?'flex-end':'flex-start')+';background:'+(esUser?'var(--blue-bg)':'var(--bg3)')+';color:'+(esUser?'var(--blue)':'var(--text)')+';border:1px solid '+(esUser?'var(--blue-border,var(--border2))':'var(--border)')+'';
+  bub.textContent=texto;
+  chat.appendChild(bub);
+  chat.scrollTop=chat.scrollHeight;
+  return bub;
+}
+function enviarDoctorIA(){
+  var input=document.getElementById('dia-input');
+  var pregunta=input.value.trim();
+  if(!pregunta)return;
+  var chat=document.getElementById('dia-chat');
+  if(DOCTOR_IA_HISTORIAL.length===0)chat.innerHTML='';
+  pintarMensajeDoctorIA('user',pregunta);
+  input.value='';
+  var btn=document.getElementById('dia-btn-enviar');
+  btn.disabled=true;btn.textContent='...';
+  var pensando=pintarMensajeDoctorIA('assistant','Pensando...');
+  fetch(BOT_URL+'/doctor-ia',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mensaje:pregunta,historial:DOCTOR_IA_HISTORIAL})
+  }).then(function(r){return r.json();}).then(function(res){
+    pensando.remove();
+    if(res.respuesta){
+      pintarMensajeDoctorIA('assistant',res.respuesta);
+      DOCTOR_IA_HISTORIAL.push({role:'user',texto:pregunta});
+      DOCTOR_IA_HISTORIAL.push({role:'assistant',texto:res.respuesta});
+    }else{
+      pintarMensajeDoctorIA('assistant','⚠️ '+(res.error||'No se pudo obtener respuesta.'));
+    }
+  }).catch(function(){
+    pensando.remove();
+    pintarMensajeDoctorIA('assistant','⚠️ No se pudo conectar con el servidor.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='Enviar';
+  });
+}
+function reiniciarDoctorIA(){
+  if(DOCTOR_IA_HISTORIAL.length&&!confirm('¿Borrar toda la conversación?'))return;
+  DOCTOR_IA_HISTORIAL=[];
+  document.getElementById('dia-chat').innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA.<br>No tiene acceso a los datos de los clientes del sistema.</div>';
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyAJgmhuG2v6Bnun37mgqLUA0f0KLdcnvY8",
   authDomain: "sistemacasih.firebaseapp.com",
@@ -1620,7 +1693,7 @@ function closeModal(id){document.getElementById(id).className='modal-bg';}
 function goTo(s){
   document.querySelectorAll('.section').forEach(function(x){x.className='section';});
   document.getElementById('sec-'+s).className='section active';
-  ['dashboard','clientes','tareas','admin','escritos'].forEach(function(n,i){
+  ['dashboard','clientes','tareas','admin','escritos','doctor-ia'].forEach(function(n,i){
     document.querySelectorAll('.nav-btn')[i].className='nav-btn'+(n===s?' active':'');
   });
   if(s==='clientes'){
@@ -1638,7 +1711,8 @@ var DASH_SECCIONES=[
   {label:'Clientes',ico:'👥',section:'clientes',kw:'clientes carpetas seguimiento correo tcl publicidad consumidor'},
   {label:'Agenda',ico:'📅',section:'tareas',kw:'agenda calendario recordatorios eventos whatsapp'},
   {label:'Contable',ico:'📊',section:'admin',kw:'contable gastos ingresos balance estudios medicos deudas'},
-  {label:'Escritos IA',ico:'📝',section:'escritos',kw:'escritos ia denuncia telegrama despido indirecto demanda tcl'}
+  {label:'Escritos IA',ico:'📝',section:'escritos',kw:'escritos ia denuncia telegrama despido indirecto demanda tcl'},
+  {label:'Doctor IA',ico:'🩺',section:'doctor-ia',kw:'doctor ia chat preguntas consultas ia claude asistente'}
 ];
 function filtrarBusquedaGlobal(){
   var input=document.getElementById('dash-buscar-global');

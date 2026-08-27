@@ -333,6 +333,69 @@ def revisar_seguimientos_tareas():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+# --- DOCTOR IA (chat de consultas del estudio) ---
+SYSTEM_PROMPT_DOCTOR_IA = (
+    "Sos 'Doctor IA', el asistente interno del estudio jurídico Casih & Asociados, "
+    "especializado en derecho laboral argentino. Te consulta el personal del estudio "
+    "(abogados y secretaría), no clientes externos.\n\n"
+    "Reglas:\n"
+    "- Respondé de forma clara, breve y práctica, como para alguien que ya conoce el oficio.\n"
+    "- No tenés acceso a los datos de clientes ni expedientes del sistema. Si te preguntan "
+    "algo puntual de un caso concreto (fechas, montos, números de expediente), aclará que "
+    "no tenés esa información y que hay que revisarla en el sistema.\n"
+    "- No inventes jurisprudencia, artículos de ley ni cifras si no estás seguro -- avisá "
+    "la incertidumbre en vez de afirmar algo falso."
+)
+
+@app.route('/doctor-ia', methods=['POST', 'OPTIONS'])
+def doctor_ia():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    pregunta = (d.get('mensaje') or '').strip()
+    if not pregunta:
+        resp = jsonify({"error": "Falta el mensaje."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    mensajes = []
+    for h in (d.get('historial') or [])[-10:]:
+        role = h.get('role')
+        texto = (h.get('texto') or '').strip()
+        if role in ('user', 'assistant') and texto:
+            mensajes.append({"role": role, "content": texto})
+    mensajes.append({"role": "user", "content": pregunta})
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        resp = jsonify({"error": "Falta configurar ANTHROPIC_API_KEY en el servidor."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=1024,
+            system=SYSTEM_PROMPT_DOCTOR_IA,
+            messages=mensajes
+        )
+        respuesta = "".join([b.text for b in response.content if b.type == "text"]).strip()
+    except Exception as e:
+        print("Error en Doctor IA:", str(e))
+        resp = jsonify({"error": "No se pudo obtener respuesta. Probá de nuevo."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    resp = jsonify({"respuesta": respuesta})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- RECORDATORIOS DE HOY (para sumar a la agenda diaria) ---
 @app.route('/recordatorios-del-dia', methods=['GET'])
 def recordatorios_del_dia():
