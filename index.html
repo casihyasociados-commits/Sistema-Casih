@@ -262,7 +262,11 @@ tr:hover td{background:var(--bg3);}
 .client-paginacion button:disabled{opacity:.4;cursor:default;}
 
 /* ══════════ SEGUIMIENTO ART — TABLERO KANBAN ══════════ */
-.art-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;}
+.art-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;scrollbar-color:var(--border2) transparent;scrollbar-width:thin;}
+.art-board::-webkit-scrollbar{height:8px;}
+.art-board::-webkit-scrollbar-track{background:transparent;}
+.art-board::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.art-board::-webkit-scrollbar-thumb:hover{background:var(--text3);}
 .art-col{flex:0 0 230px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;}
 .art-col-header{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding-bottom:8px;margin-bottom:2px;border-bottom:1px solid var(--border);}
 .art-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;}
@@ -2111,22 +2115,38 @@ function archivarClienteDash(id,avisar){
 var CLIENTES_ART=[];
 var ART_CLIENTE_SELECCIONADO=null;
 var ART_ETAPAS=[
-  {nombre:'Consulta inicial',alertaDias:7},
+  {nombre:'Evaluación',alertaDias:7},
   {nombre:'1ª visita al médico',alertaDias:7},
-  {nombre:'Estudios indicados',alertaDias:20},
-  {nombre:'Esperando resultados',alertaDias:7},
+  {nombre:'Proceso de estudios médicos',alertaDias:20},
   {nombre:'2ª visita (revisión)',alertaDias:7},
   {nombre:'Certificado emitido',alertaDias:7},
   {nombre:'Reclamo a la ART',alertaDias:null}
 ];
 
+// Migracion unica: al unificar "Estudios indicados" y "Esperando resultados"
+// en una sola columna ("Proceso de estudios medicos") el tablero paso de 7 a
+// 6 columnas, asi que todo lo que estaba en la etapa 3 en adelante (vieja
+// numeracion) se corre un lugar. Se corrige en memoria al toque (para que el
+// primer render ya sea correcto) y se marca con migradoV2 en Firestore para
+// no volver a correrla sobre un registro ya migrado.
+function migrarEtapaArtV2(x){
+  if(x.migradoV2)return x;
+  if((x.etapa||0)>=3){
+    x.etapa=x.etapa-1;
+    db.collection('clientes_art').doc(x.id).update({etapa:x.etapa,migradoV2:true});
+  }else{
+    db.collection('clientes_art').doc(x.id).update({migradoV2:true});
+  }
+  x.migradoV2=true;
+  return x;
+}
 function initClientesArt(){
   db.collection('clientes_art').onSnapshot(function(snap){
-    CLIENTES_ART=[];snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_ART.push(x);});
+    CLIENTES_ART=[];snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_ART.push(migrarEtapaArtV2(x));});
     renderClientesArt();
   },function(){
     db.collection('clientes_art').get().then(function(snap){
-      CLIENTES_ART=[];snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_ART.push(x);});
+      CLIENTES_ART=[];snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_ART.push(migrarEtapaArtV2(x));});
       renderClientesArt();
     });
   });
@@ -2655,9 +2675,16 @@ function editCliente(id){
   var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
   if(!c)return;
   var setVal=function(eid,v){var el=document.getElementById(eid);if(el)el.value=v||'';};
-  // Separar nombre y apellido si están juntos
+  // Separar nombre y apellido si están juntos. Si el apellido ya viene
+  // guardado aparte, se le saca al nombre completo esa punta exacta (asi
+  // funciona bien con apellidos compuestos); si no, se parte por el primer
+  // espacio como aproximacion.
   var partes=(c.nombre||'').trim().split(' ');
-  setVal('cn-n',c.apellido||partes[0]||c.nombre);
+  var nombreSolo=partes[0]||c.nombre;
+  if(c.apellido&&c.nombre&&c.nombre.slice(-c.apellido.length)===c.apellido){
+    nombreSolo=c.nombre.slice(0,c.nombre.length-c.apellido.length).trim()||nombreSolo;
+  }
+  setVal('cn-n',nombreSolo);
   setVal('cn-apellido',c.apellido||(partes.length>1?partes.slice(1).join(' '):''));
   setVal('cn-dni',c.dni);setVal('cn-edad',c.edad);setVal('cn-cuil',c.cuil);setVal('cn-tel',c.tel);setVal('cn-dom',c.domicilio);
   setVal('cn-estado-civil',c.estadoCivil);setVal('cn-nacionalidad',c.nacionalidad||'Argentina');
