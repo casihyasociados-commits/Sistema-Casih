@@ -2118,7 +2118,8 @@ function renderClientesArt(){
         (c.tel?'<div style="color:var(--text3);margin-top:2px">'+c.tel+'</div>':'')+
         (c.notas?'<div style="margin-top:6px;color:var(--text2)">'+c.notas+'</div>':'')+
         '<div style="margin-top:6px;font-size:11px;color:'+(alerta?'var(--red)':'var(--text3)')+'">'+dias+' día'+(dias===1?'':'s')+' en esta etapa'+(alerta?' ⚠️':'')+'</div>'+
-        '<div class="btn-row" style="margin-top:8px;gap:6px">'+
+        '<button data-art-ver="'+encodeURIComponent(c.nombre||'')+'" style="margin-top:6px;width:100%;text-align:left;font-size:11px;padding:4px 0;background:transparent;border:none;color:var(--blue);cursor:pointer">👁 Ver información de cliente</button>'+
+        '<div class="btn-row" style="margin-top:6px;gap:6px">'+
           (esUltima?'':'<button data-art-avanzar="'+c.id+'" class="btn-sm" style="flex:1;padding:6px">Avanzar →</button>')+
           '<button data-art-quitar="'+c.id+'" style="font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>'+
         '</div>'+
@@ -2128,6 +2129,7 @@ function renderClientesArt(){
   }).join('');
   cont.querySelectorAll('[data-art-avanzar]').forEach(function(btn){btn.addEventListener('click',function(){avanzarClienteArt(this.getAttribute('data-art-avanzar'));});});
   cont.querySelectorAll('[data-art-quitar]').forEach(function(btn){btn.addEventListener('click',function(){quitarClienteArt(this.getAttribute('data-art-quitar'));});});
+  cont.querySelectorAll('[data-art-ver]').forEach(function(btn){btn.addEventListener('click',function(){verClienteDesdeArt(decodeURIComponent(this.getAttribute('data-art-ver')));});});
 }
 
 function avanzarClienteArt(id){
@@ -2139,6 +2141,14 @@ function quitarClienteArt(id){
   var c=CLIENTES_ART.find(function(x){return x.id===id;});
   if(!confirm('¿Quitar a '+((c&&c.nombre)||'este cliente')+' del Seguimiento ART?\n\nNo se borra de Clientes, solo de este tablero.'))return;
   db.collection('clientes_art').doc(id).delete();
+}
+
+// El nombre es una copia (no hay id del cliente original guardado), asi que
+// si no aparece puede ser que lo hayan renombrado o eliminado de Clientes.
+function verClienteDesdeArt(nombre){
+  var c=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});
+  if(!c){showToast('No se encontró "'+nombre+'" en Clientes (¿lo renombraron o eliminaron?)');return;}
+  irAClienteDesdeBusqueda(nombre);
 }
 
 function abrirModalArt(){
