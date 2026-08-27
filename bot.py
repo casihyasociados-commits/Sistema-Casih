@@ -260,7 +260,6 @@ def nuevo_cliente_remoto():
         'fechaIngreso': (d.get('fechaIngreso') or '').strip(),
         'fechaEgreso': (d.get('fechaEgreso') or '').strip(),
         'jornada': (d.get('jornada') or '').strip(),
-        'notas': (d.get('notas') or '').strip(),
         'tipo': 'posible',
         'origenFormulario': True,
         'expte': '', 'etapa': 'Cita', 'fecha': hoy,

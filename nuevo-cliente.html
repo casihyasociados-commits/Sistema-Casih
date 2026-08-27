@@ -27,8 +27,12 @@
   .fi,.fs,.fta{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 13px;color:var(--text);font-family:inherit;font-size:15px;}
   .fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--blue);}
   .fta{min-height:80px;resize:vertical;}
-  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .g2 .fg{margin-bottom:0;}
   @media(max-width:420px){.g2{grid-template-columns:1fr;}}
+  .checkfg{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 13px;}
+  .checkfg input{width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;}
+  .checkfg label{font-size:14px;color:var(--text);cursor:pointer;}
   .hp{position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;}
   .btn-primary{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);padding:15px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px;}
   .btn-primary:hover{background:#6BA6F2;}
@@ -86,16 +90,9 @@
       <div class="fg"><div class="fl">¿Qué tareas hacés?</div><input class="fi" id="categoria" placeholder="Ej: vendedor, administrativo, oficial..."></div>
       <div class="fg"><div class="fl">Antigüedad</div><input class="fi" id="antiguedad" placeholder="Ej: 3 años y 2 meses"></div>
     </div>
-    <div class="g2">
-      <div class="fg"><div class="fl">Fecha en la que entraste a trabajar</div><input class="fi" id="fechaIngreso" placeholder="Ej: 03/2010"></div>
-      <div class="fg"><div class="fl">Fecha en la que dejaste (si ya no trabajás ahí)</div><input class="fi" id="fechaEgreso" placeholder="Ej: 22/05/2025"></div>
-    </div>
+    <div class="fg"><div class="fl">Fecha en la que entraste a trabajar</div><input class="fi" id="fechaIngreso" placeholder="Ej: 03/2010"></div>
+    <div class="fg"><div class="checkfg"><input type="checkbox" id="seguisTrabajando" checked><label for="seguisTrabajando">¿Seguís trabajando ahí?</label></div></div>
     <div class="fg"><div class="fl">Días y horario que trabajás / trabajabas</div><input class="fi" id="jornada" placeholder="Ej: Lunes a Viernes, 7 a 17 hs"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Contanos qué te pasó</div>
-    <div class="fg"><textarea class="fta" id="notas" placeholder="Contá con tus palabras el motivo de tu consulta..."></textarea></div>
   </div>
 
   <input class="fi hp" id="sitioWeb" tabindex="-1" autocomplete="off">
@@ -127,13 +124,14 @@ function enviarFormulario(){
     msgEl.textContent='Dejanos un teléfono para poder contactarte.';msgEl.style.display='block';return;
   }
 
+  var seguisTrabajando=document.getElementById('seguisTrabajando').checked;
   var data={
     nombre:nombre,apellido:apellido,dni:v('dni'),cuil:v('cuil'),edad:v('edad'),
     estadoCivil:v('estadoCivil'),nacionalidad:v('nacionalidad'),situacionLaboral:v('situacionLaboral'),
     fechaNac:v('fechaNac'),tel:tel,email:v('email'),domicilio:v('domicilio'),ciudad:v('ciudad'),
     empleador:v('empleador'),categoria:v('categoria'),antiguedad:v('antiguedad'),
-    fechaIngreso:v('fechaIngreso'),fechaEgreso:v('fechaEgreso'),jornada:v('jornada'),
-    notas:v('notas'),sitioWeb:v('sitioWeb')
+    fechaIngreso:v('fechaIngreso'),fechaEgreso:seguisTrabajando?'':'Ya no trabaja ahí (fecha a confirmar)',jornada:v('jornada'),
+    sitioWeb:v('sitioWeb')
   };
 
   var btn=document.getElementById('btn-enviar');
