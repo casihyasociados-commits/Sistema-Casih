@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casih & Asociados — Nueva consulta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0C;--bg2:#131316;--bg3:#1A1A1F;
+    --border:#26262C;--border2:#34343C;
+    --text:#FFFFFF;--text2:#B8B8C0;--text3:#7C7C88;
+    --blue:#5B9BF0;--green:#3DD68C;--red:#E85D5D;
+    --radius:12px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+  body{padding:24px 16px 60px;max-width:560px;margin:0 auto;}
+  .brand{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:2px;}
+  .sub{font-size:13px;color:var(--text3);margin-bottom:24px;}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+  .card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+  .fg{margin-bottom:14px;}
+  .fg:last-child{margin-bottom:0;}
+  .fl{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+  .fi,.fs,.fta{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 13px;color:var(--text);font-family:inherit;font-size:15px;}
+  .fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--blue);}
+  .fta{min-height:80px;resize:vertical;}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:420px){.g2{grid-template-columns:1fr;}}
+  .hp{position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;}
+  .btn-primary{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);padding:15px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px;}
+  .btn-primary:hover{background:#6BA6F2;}
+  .btn-primary:disabled{opacity:.6;cursor:default;}
+  .hint{font-size:12px;color:var(--text3);}
+  .req{color:var(--blue);}
+  .msg{display:none;font-size:13px;padding:10px 12px;border-radius:var(--radius-sm);margin-top:12px;}
+  .msg.error{display:block;background:#2B0F0F;color:var(--red);border:1px solid #4a1f1f;}
+  #pantalla-gracias{display:none;text-align:center;padding:60px 16px;}
+  #pantalla-gracias .ico{font-size:40px;margin-bottom:16px;}
+  #pantalla-gracias h2{font-family:'DM Serif Display',serif;font-size:26px;margin:0 0 10px;}
+  #pantalla-gracias p{color:var(--text2);font-size:15px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div id="pantalla-form">
+  <div class="brand">Casih <span style="color:var(--blue)">&</span> Asociados</div>
+  <div class="sub">Contanos tu situación y nos ponemos en contacto — no hace falta que vengas al estudio para esto.</div>
+
+  <div class="card">
+    <div class="card-title">Tus datos</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nombre <span class="req">*</span></div><input class="fi" id="nombre" placeholder="Nombre"></div>
+      <div class="fg"><div class="fl">Apellido <span class="req">*</span></div><input class="fi" id="apellido" placeholder="Apellido"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">DNI</div><input class="fi" id="dni" placeholder="Ej: 20.123.456"></div>
+      <div class="fg"><div class="fl">CUIL</div><input class="fi" id="cuil" placeholder="Ej: 20-30123456-1"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Edad</div><input class="fi" id="edad" type="number" placeholder="Ej: 35"></div>
+      <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="estadoCivil" placeholder="Ej: soltero/a"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="nacionalidad" value="Argentina"></div>
+      <div class="fg"><div class="fl">¿Trabajás actualmente?</div><input class="fi" id="situacionLaboral" placeholder="Ej: desempleado/a, en otro trabajo..."></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha de nacimiento</div><input class="fi" id="fechaNac" placeholder="Ej: 25/09/1964"></div>
+      <div class="fg"><div class="fl">Teléfono <span class="req">*</span></div><input class="fi" id="tel" type="tel" placeholder="Ej: 351 6154521"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Correo electrónico</div><input class="fi" id="email" type="email" placeholder="Ej: nombre@mail.com"></div>
+      <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="domicilio" placeholder="Calle, número, barrio"></div>
+    </div>
+    <div class="fg"><div class="fl">Ciudad / Provincia</div><input class="fi" id="ciudad" value="Ciudad de Córdoba"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tu trabajo</div>
+    <div class="hint" style="margin-bottom:14px">Completá esto si tu consulta tiene que ver con tu empleo — si no, podés dejarlo en blanco.</div>
+    <div class="fg"><div class="fl">Empresa donde trabajás / trabajabas</div><input class="fi" id="empleador" placeholder="Nombre de la empresa"></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">¿Qué tareas hacés?</div><input class="fi" id="categoria" placeholder="Ej: vendedor, administrativo, oficial..."></div>
+      <div class="fg"><div class="fl">Antigüedad</div><input class="fi" id="antiguedad" placeholder="Ej: 3 años y 2 meses"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Fecha en la que entraste a trabajar</div><input class="fi" id="fechaIngreso" placeholder="Ej: 03/2010"></div>
+      <div class="fg"><div class="fl">Fecha en la que dejaste (si ya no trabajás ahí)</div><input class="fi" id="fechaEgreso" placeholder="Ej: 22/05/2025"></div>
+    </div>
+    <div class="fg"><div class="fl">Días y horario que trabajás / trabajabas</div><input class="fi" id="jornada" placeholder="Ej: Lunes a Viernes, 7 a 17 hs"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Contanos qué te pasó</div>
+    <div class="fg"><textarea class="fta" id="notas" placeholder="Contá con tus palabras el motivo de tu consulta..."></textarea></div>
+  </div>
+
+  <input class="fi hp" id="sitioWeb" tabindex="-1" autocomplete="off">
+
+  <button class="btn-primary" id="btn-enviar" onclick="enviarFormulario()">Enviar consulta</button>
+  <div class="msg error" id="msg-error"></div>
+  <div class="hint" style="text-align:center;margin-top:14px">Los campos marcados con <span class="req">*</span> son los únicos obligatorios.</div>
+</div>
+
+<div id="pantalla-gracias">
+  <div class="ico">✅</div>
+  <h2>¡Listo, gracias!</h2>
+  <p>Recibimos tu consulta. Nos vamos a poner en contacto a la brevedad.</p>
+</div>
+
+<script>
+const BOT_URL = "https://sistema-casih.onrender.com";
+
+function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+
+function enviarFormulario(){
+  var nombre=v('nombre'), apellido=v('apellido'), tel=v('tel');
+  var msgEl=document.getElementById('msg-error');
+  msgEl.style.display='none';
+  if(!nombre||!apellido){
+    msgEl.textContent='Falta tu nombre o tu apellido.';msgEl.style.display='block';return;
+  }
+  if(!tel){
+    msgEl.textContent='Dejanos un teléfono para poder contactarte.';msgEl.style.display='block';return;
+  }
+
+  var data={
+    nombre:nombre,apellido:apellido,dni:v('dni'),cuil:v('cuil'),edad:v('edad'),
+    estadoCivil:v('estadoCivil'),nacionalidad:v('nacionalidad'),situacionLaboral:v('situacionLaboral'),
+    fechaNac:v('fechaNac'),tel:tel,email:v('email'),domicilio:v('domicilio'),ciudad:v('ciudad'),
+    empleador:v('empleador'),categoria:v('categoria'),antiguedad:v('antiguedad'),
+    fechaIngreso:v('fechaIngreso'),fechaEgreso:v('fechaEgreso'),jornada:v('jornada'),
+    notas:v('notas'),sitioWeb:v('sitioWeb')
+  };
+
+  var btn=document.getElementById('btn-enviar');
+  btn.disabled=true;btn.textContent='Enviando...';
+
+  fetch(BOT_URL+'/nuevo-cliente-remoto',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)
+  }).then(function(r){return r.json();}).then(function(res){
+    if(res.status==='ok'){
+      document.getElementById('pantalla-form').style.display='none';
+      document.getElementById('pantalla-gracias').style.display='block';
+    }else{
+      msgEl.textContent=res.detalle||'No se pudo enviar. Probá de nuevo.';msgEl.style.display='block';
+      btn.disabled=false;btn.textContent='Enviar consulta';
+    }
+  }).catch(function(){
+    msgEl.textContent='No se pudo conectar. Revisá tu conexión y probá de nuevo.';msgEl.style.display='block';
+    btn.disabled=false;btn.textContent='Enviar consulta';
+  });
+}
+</script>
+</body>
+</html>

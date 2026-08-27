@@ -206,6 +206,83 @@ def notificar_nuevo_cliente():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+# --- FORMULARIO PUBLICO DE NUEVO CLIENTE (sin login) ---
+# Lo llena el cliente mismo desde un link (nuevo-cliente.html), antes de venir
+# al estudio. Va server-side con el Admin SDK -- asi no hace falta abrir las
+# reglas de Firestore para escritura publica, todo pasa por este endpoint que
+# valida lo minimo y arma el mismo documento que carga la secretaria a mano.
+@app.route('/nuevo-cliente-remoto', methods=['POST', 'OPTIONS'])
+def nuevo_cliente_remoto():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    # Campo trampa: invisible para una persona, pero los bots que completan
+    # todos los inputs de un formulario suelen llenarlo igual.
+    if (d.get('sitioWeb') or '').strip():
+        return error('Solicitud inválida.')
+
+    nombre = (d.get('nombre') or '').strip()
+    apellido = (d.get('apellido') or '').strip()
+    if not nombre or not apellido:
+        return error('Falta el nombre o el apellido.')
+
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    hoy = datetime.now(tz).strftime('%Y-%m-%d')
+
+    data = {
+        'nombre': ('%s %s' % (nombre, apellido)).strip(),
+        'apellido': apellido,
+        'dni': (d.get('dni') or '').strip(),
+        'cuil': (d.get('cuil') or '').strip(),
+        'edad': (d.get('edad') or '').strip(),
+        'estadoCivil': (d.get('estadoCivil') or '').strip(),
+        'nacionalidad': (d.get('nacionalidad') or 'Argentina').strip(),
+        'situacionLaboral': (d.get('situacionLaboral') or '').strip(),
+        'fechaNac': (d.get('fechaNac') or '').strip(),
+        'tel': (d.get('tel') or '').strip(),
+        'email': (d.get('email') or '').strip(),
+        'domicilio': (d.get('domicilio') or '').strip(),
+        'ciudad': (d.get('ciudad') or '').strip(),
+        'empleador': (d.get('empleador') or '').strip(),
+        'antiguedad': (d.get('antiguedad') or '').strip(),
+        'categoria': (d.get('categoria') or '').strip(),
+        'fechaIngreso': (d.get('fechaIngreso') or '').strip(),
+        'fechaEgreso': (d.get('fechaEgreso') or '').strip(),
+        'jornada': (d.get('jornada') or '').strip(),
+        'notas': (d.get('notas') or '').strip(),
+        'tipo': 'posible',
+        'origenFormulario': True,
+        'expte': '', 'etapa': 'Cita', 'fecha': hoy,
+        'drive': '', 'driveFolderId': '',
+        'enRevision': True,
+        'creadoEn': firestore.SERVER_TIMESTAMP,
+    }
+
+    try:
+        db.collection('clientes').add(data)
+    except Exception as e:
+        print("Error guardando cliente remoto:", str(e))
+        return error('No se pudo guardar. Probá de nuevo en un momento.', 500)
+
+    grupo = os.environ.get("GREEN_API_GROUP_ID")
+    if grupo:
+        responder_whatsapp(grupo, "🆕 *Nuevo cliente desde el formulario web*\n\n👤 %s\n📞 %s\n\nRevisar en Inicio → Clientes nuevos por revisar." % (data['nombre'], data['tel'] or '—'))
+
+    resp = jsonify({"status": "ok"})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- AVISO DE RECORDATORIO (grupo de WhatsApp) ---
 @app.route('/notificar-recordatorio', methods=['POST', 'OPTIONS'])
 def notificar_recordatorio():
