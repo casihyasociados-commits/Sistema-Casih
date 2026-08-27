@@ -483,6 +483,16 @@ input.currency-input{letter-spacing:0.5px;}
     <button class="home-nav-btn" onclick="goTo('admin')"><span class="home-nav-ico">📊</span><span class="home-nav-lbl">Contable</span><span class="home-nav-desc">Carga de gastos e ingresos del estudio<br>Deudas pendientes de cobro<br>Balance anual</span></button>
     <button class="home-nav-btn" onclick="goTo('escritos')"><span class="home-nav-ico">📝</span><span class="home-nav-lbl">Escritos IA</span><span class="home-nav-desc">Redacción de TCL con IA<br>Redacción de denuncias con IA<br>Redacción de demandas con IA</span></button>
   </div>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--green)">
+    <div class="card-head">
+      <span class="card-head-title">📋 Formulario para clientes nuevos</span>
+    </div>
+    <div class="hint" style="margin-bottom:14px">Para alguien que todavía no vino al estudio — le mandás el link, lo completa desde el celular y aparece solo en "Clientes nuevos por revisar".</div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="compartirFormularioClienteWhatsApp()">📤 Compartir por WhatsApp</button>
+      <button class="btn-sm" onclick="copiarLinkFormularioCliente()">🔗 Copiar link</button>
+    </div>
+  </div>
   <div class="card" style="margin-bottom:0">
     <div class="card-head">
       <span class="card-head-title">Accesos rápidos</span>
@@ -1900,6 +1910,20 @@ function setCtab(t){
 function servLbl(c){
   if(c.servicios&&c.servicios.length)return c.servicios.join(', ');
   return mLbl[c.motivo]||c.motivo||'';
+}
+
+// ─── FORMULARIO PÚBLICO DE NUEVO CLIENTE ───
+var LINK_FORMULARIO_CLIENTE='https://casihyasociados-commits.github.io/Sistema-Casih/nuevo-cliente.html';
+
+function compartirFormularioClienteWhatsApp(){
+  var texto='Hola! Te dejo un formulario cortito para contarnos tu consulta antes de venir al estudio:\n'+LINK_FORMULARIO_CLIENTE;
+  window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');
+}
+function copiarLinkFormularioCliente(){
+  navigator.clipboard.writeText(LINK_FORMULARIO_CLIENTE).then(function(){showToast('Link copiado ✓');}).catch(function(){
+    var ta=document.createElement('textarea');ta.value=LINK_FORMULARIO_CLIENTE;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);showToast('Link copiado ✓');
+  });
 }
 
 function enviarFichaWhatsApp(id){
