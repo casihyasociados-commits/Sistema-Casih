@@ -258,6 +258,13 @@ tr:hover td{background:var(--bg3);}
 
 /* ══════════ CLIENTES ══════════ */
 .client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--sp-3);}
+
+/* ══════════ SEGUIMIENTO ART — TABLERO KANBAN ══════════ */
+.art-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;}
+.art-col{flex:0 0 230px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.art-col-header{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding-bottom:8px;margin-bottom:2px;border-bottom:1px solid var(--border);}
+.art-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:12px;}
+.art-card.alerta{border-color:var(--red);background:var(--red-bg);}
 .client-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-5);border-left:3px solid var(--border2);transition:border-color .15s,background .15s;}
 .client-card:hover{background:var(--bg3);}
 .client-card.estudio{border-left-color:var(--purple);}
@@ -519,6 +526,18 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
   <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
   <div id="sec-consumidor-grid" style="display:none"></div>
+
+  <div class="sec-lbl" style="margin-top:32px">Seguimiento ART</div>
+  <div class="card" style="margin-bottom:0">
+    <div class="card-head">
+      <span class="card-head-title">🩺 Seguimiento ART</span>
+      <button class="btn-primary" onclick="abrirModalArt()">+ Agregar cliente</button>
+    </div>
+    <div class="hint" style="margin-bottom:12px">
+      Tablero independiente de las carpetas de arriba — un cliente puede estar acá y seguir en Del estudio, Publicidad, etc. sin mezclarse. Quitarlo de acá no lo borra de Clientes.
+    </div>
+    <div class="art-board" id="art-board"></div>
+  </div>
 </div>
 
 <!-- TAREAS -->
@@ -1367,6 +1386,22 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
+<div class="modal-bg" id="m-art-agregar" onclick="if(event.target===this)closeModal('m-art-agregar')">
+  <div class="modal"><h3>Agregar cliente a Seguimiento ART</h3>
+    <div class="fg" style="position:relative">
+      <div class="fl">Buscar cliente *</div>
+      <input class="fi" id="art-cl-search" placeholder="Escribí el nombre..." oninput="filtrarClientesArt()" onfocus="filtrarClientesArt()" autocomplete="off">
+      <div id="art-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+    </div>
+    <div class="fg" id="art-cl-seleccionado-wrap" style="display:none">
+      <div class="fl">Cliente elegido</div>
+      <div id="art-cl-seleccionado" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:13px;color:var(--text)"></div>
+    </div>
+    <div class="fg"><div class="fl">Notas (opcional)</div><textarea class="fta" id="art-cl-notas" placeholder="Algo específico de este seguimiento..."></textarea></div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-art-agregar')">Cancelar</button><button class="btn-primary" onclick="guardarClienteArt()">Agregar</button></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="m-evento-rapido" onclick="if(event.target===this)closeModal('m-evento-rapido')">
   <div class="modal"><h3>Nuevo evento</h3>
     <div class="fg"><div class="fl">¿Qué es el evento? *</div><textarea class="fta" id="er-desc" placeholder="Ej: Audiencia García c/ Empresa SA"></textarea></div>
@@ -2028,6 +2063,129 @@ function archivarClienteDash(id,avisar){
   }).then(function(r){return r.json();}).then(function(res){
     if(!res||!res.ok)showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');
   }).catch(function(){showToast('⚠️ No se pudo avisar por WhatsApp, pero el cliente se archivó igual.');}).finally(archivar);
+}
+
+// ─── SEGUIMIENTO ART (tablero Kanban) ───
+// Lista totalmente independiente de CLIENTES_CACHE: al agregar un cliente se
+// copian nombre y telefono a un registro nuevo en clientes_art, sin ningun
+// vinculo posterior. Editar el telefono en la ficha de Clientes no toca este
+// registro, y quitarlo de aca no borra ni modifica el cliente original.
+var CLIENTES_ART=[];
+var ART_CLIENTE_SELECCIONADO=null;
+var ART_ETAPAS=[
+  {nombre:'Consulta inicial',alertaDias:7},
+  {nombre:'1ª visita al médico',alertaDias:7},
+  {nombre:'Estudios indicados',alertaDias:20},
+  {nombre:'Esperando resultados',alertaDias:7},
+  {nombre:'2ª visita (revisión)',alertaDias:7},
+  {nombre:'Certificado emitido',alertaDias:7},
+  {nombre:'Reclamo a la ART',alertaDias:null}
+];
+
+function initClientesArt(){
+  db.collection('clientes_art').onSnapshot(function(snap){
+    CLIENTES_ART=[];snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_ART.push(x);});
+    renderClientesArt();
+  },function(){
+    db.collection('clientes_art').get().then(function(snap){
+      CLIENTES_ART=[];snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_ART.push(x);});
+      renderClientesArt();
+    });
+  });
+}
+
+function diasEnEtapaArt(c){
+  if(!c.fechaIngresoEtapa)return 0;
+  var f=new Date(c.fechaIngresoEtapa);
+  return Math.max(0,Math.round((today-f)/864e5));
+}
+function tieneAlertaArt(c){
+  var etapa=ART_ETAPAS[c.etapa||0];
+  if(!etapa||etapa.alertaDias==null)return false;
+  return diasEnEtapaArt(c)>=etapa.alertaDias;
+}
+
+function renderClientesArt(){
+  var cont=document.getElementById('art-board');
+  if(!cont)return;
+  cont.innerHTML=ART_ETAPAS.map(function(etapa,idx){
+    var enEtapa=CLIENTES_ART.filter(function(c){return (c.etapa||0)===idx;});
+    var esUltima=idx===ART_ETAPAS.length-1;
+    var cardsHtml=enEtapa.length===0?'<div class="hint" style="font-size:11px">Sin clientes</div>':enEtapa.map(function(c){
+      var dias=diasEnEtapaArt(c),alerta=tieneAlertaArt(c);
+      return '<div class="art-card'+(alerta?' alerta':'')+'">'+
+        '<div style="font-weight:600;color:var(--text)">'+(c.nombre||'')+'</div>'+
+        (c.tel?'<div style="color:var(--text3);margin-top:2px">'+c.tel+'</div>':'')+
+        (c.notas?'<div style="margin-top:6px;color:var(--text2)">'+c.notas+'</div>':'')+
+        '<div style="margin-top:6px;font-size:11px;color:'+(alerta?'var(--red)':'var(--text3)')+'">'+dias+' día'+(dias===1?'':'s')+' en esta etapa'+(alerta?' ⚠️':'')+'</div>'+
+        '<div class="btn-row" style="margin-top:8px;gap:6px">'+
+          (esUltima?'':'<button data-art-avanzar="'+c.id+'" class="btn-sm" style="flex:1;padding:6px">Avanzar →</button>')+
+          '<button data-art-quitar="'+c.id+'" style="font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    return '<div class="art-col"><div class="art-col-header"><span>'+etapa.nombre+'</span><span>'+enEtapa.length+'</span></div>'+cardsHtml+'</div>';
+  }).join('');
+  cont.querySelectorAll('[data-art-avanzar]').forEach(function(btn){btn.addEventListener('click',function(){avanzarClienteArt(this.getAttribute('data-art-avanzar'));});});
+  cont.querySelectorAll('[data-art-quitar]').forEach(function(btn){btn.addEventListener('click',function(){quitarClienteArt(this.getAttribute('data-art-quitar'));});});
+}
+
+function avanzarClienteArt(id){
+  var c=CLIENTES_ART.find(function(x){return x.id===id;});
+  if(!c||(c.etapa||0)>=ART_ETAPAS.length-1)return;
+  db.collection('clientes_art').doc(id).update({etapa:(c.etapa||0)+1,fechaIngresoEtapa:fmt(today)});
+}
+function quitarClienteArt(id){
+  var c=CLIENTES_ART.find(function(x){return x.id===id;});
+  if(!confirm('¿Quitar a '+((c&&c.nombre)||'este cliente')+' del Seguimiento ART?\n\nNo se borra de Clientes, solo de este tablero.'))return;
+  db.collection('clientes_art').doc(id).delete();
+}
+
+function abrirModalArt(){
+  ART_CLIENTE_SELECCIONADO=null;
+  document.getElementById('art-cl-search').value='';
+  document.getElementById('art-cl-dropdown').style.display='none';
+  document.getElementById('art-cl-seleccionado-wrap').style.display='none';
+  document.getElementById('art-cl-notas').value='';
+  openModal('m-art-agregar');
+}
+function filtrarClientesArt(){
+  var q=document.getElementById('art-cl-search').value.trim().toLowerCase();
+  var dd=document.getElementById('art-cl-dropdown');
+  if(!q){dd.style.display='none';return;}
+  var list=CLIENTES_CACHE.filter(function(c){return (c.nombre||'').toLowerCase().indexOf(q)>-1;}).slice(0,8);
+  dd.innerHTML=list.length===0
+    ?'<div style="padding:10px 12px;font-size:12px;color:var(--text3)">Sin resultados.</div>'
+    :list.map(function(c){return '<div data-nombre="'+c.nombre.replace(/"/g,'&quot;')+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)">'+c.nombre+(c.tel?'<span style="font-size:11px;color:var(--text3);margin-left:8px">'+c.tel+'</span>':'')+'</div>';}).join('');
+  dd.style.display='block';
+  dd.querySelectorAll('[data-nombre]').forEach(function(item){
+    item.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      var nombre=this.getAttribute('data-nombre');
+      ART_CLIENTE_SELECCIONADO=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;
+      dd.style.display='none';
+      document.getElementById('art-cl-search').value=nombre;
+      var sel=document.getElementById('art-cl-seleccionado'),wrap=document.getElementById('art-cl-seleccionado-wrap');
+      if(ART_CLIENTE_SELECCIONADO){
+        wrap.style.display='block';
+        sel.innerHTML='<b>'+ART_CLIENTE_SELECCIONADO.nombre+'</b>'+(ART_CLIENTE_SELECCIONADO.tel?' · '+ART_CLIENTE_SELECCIONADO.tel:' · sin teléfono cargado');
+      }
+    });
+  });
+}
+function guardarClienteArt(){
+  if(!ART_CLIENTE_SELECCIONADO){alert('Elegí un cliente de la lista.');return;}
+  db.collection('clientes_art').add({
+    nombre:ART_CLIENTE_SELECCIONADO.nombre,
+    tel:ART_CLIENTE_SELECCIONADO.tel||'',
+    notas:document.getElementById('art-cl-notas').value.trim(),
+    etapa:0,
+    fechaIngresoEtapa:fmt(today),
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    closeModal('m-art-agregar');
+    showToast('Cliente agregado a Seguimiento ART ✓');
+  });
 }
 
 // ─── DEFENSA DEL CONSUMIDOR ───
@@ -4136,6 +4294,7 @@ function initApp() {
     initEstudiosPagadosDash();
     initCalendar();
     initConsumidor();
+    initClientesArt();
     initBorradoresEscritos();
   }, 300);
   // Cargar clientes iniciales si Firestore está vacío
