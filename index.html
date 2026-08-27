@@ -258,6 +258,8 @@ tr:hover td{background:var(--bg3);}
 
 /* ══════════ CLIENTES ══════════ */
 .client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--sp-3);}
+.client-paginacion{align-items:center;justify-content:center;gap:16px;margin-top:20px;}
+.client-paginacion button:disabled{opacity:.4;cursor:default;}
 
 /* ══════════ SEGUIMIENTO ART — TABLERO KANBAN ══════════ */
 .art-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;}
@@ -520,11 +522,12 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
   <div class="buscador">
     <span class="buscador-ico">🔍</span>
-    <input class="fi buscador-input" id="c-buscar" placeholder="Buscar cliente por nombre o apellido..." oninput="renderClientes();renderConsumidorGrid()" autocomplete="off">
+    <input class="fi buscador-input" id="c-buscar" placeholder="Buscar cliente por nombre o apellido..." oninput="clientesPaginaActual=1;renderClientes();renderConsumidorGrid()" autocomplete="off">
     <button class="buscador-x" id="c-buscar-x" onclick="limpiarBusquedaClientes()" title="Limpiar">✕</button>
   </div>
   <div class="client-grid" id="client-grid"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
   <div class="empty-state" id="client-empty" style="display:none">No hay clientes en esta categoría todavía.</div>
+  <div class="client-paginacion" id="client-paginacion" style="display:none"></div>
   <div id="sec-consumidor-grid" style="display:none"></div>
 
   <div class="sec-lbl" style="margin-top:32px">Seguimiento ART</div>
@@ -1859,6 +1862,7 @@ function textoBusquedaClientes(){
 function limpiarBusquedaClientes(){
   var el=document.getElementById('c-buscar');
   if(el){el.value='';el.focus();}
+  clientesPaginaActual=1;
   renderClientes();renderConsumidorGrid();
 }
 function coincideBusqueda(nombre,q){
@@ -1879,6 +1883,7 @@ function updateClienteSelects(){
 
 function setCtab(t){
   curCtab=t;
+  clientesPaginaActual=1;
   document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','consumidor','finalizado'][i]===t?' active':'');});
   var isConsumidor=t==='consumidor';
   document.getElementById('client-grid').style.display=isConsumidor?'none':'grid';
@@ -1917,8 +1922,19 @@ function enviarFichaWhatsApp(id){
   window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');
 }
 
+var CLIENTES_POR_PAGINA=24;
+var clientesPaginaActual=1;
+
+function irAPaginaClientes(n){
+  clientesPaginaActual=n;
+  renderClientes();
+  var gr=document.getElementById('client-grid');
+  if(gr)gr.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function renderClientes(){
   var gr=document.getElementById('client-grid'),em=document.getElementById('client-empty');
+  var pagCont=document.getElementById('client-paginacion');
   if(!gr)return;
   var caja=document.querySelector('.buscador');
   if(!curCtab){
@@ -1927,6 +1943,7 @@ function renderClientes(){
     em.textContent='Elegí una carpeta arriba para ver los clientes.';
     em.style.display='block';
     if(caja)caja.style.display='none';
+    if(pagCont)pagCont.style.display='none';
     return;
   }
   if(caja)caja.style.display='';
@@ -1943,9 +1960,30 @@ function renderClientes(){
     gr.innerHTML='';
     em.textContent=q?'Ningún cliente coincide con "'+q+'".':'No hay clientes en esta categoría todavía.';
     em.style.display='block';
+    if(pagCont)pagCont.style.display='none';
     return;
   }
   em.style.display='none';
+
+  var totalPaginas=Math.max(1,Math.ceil(list.length/CLIENTES_POR_PAGINA));
+  if(clientesPaginaActual>totalPaginas)clientesPaginaActual=totalPaginas;
+  if(clientesPaginaActual<1)clientesPaginaActual=1;
+  var inicioPag=(clientesPaginaActual-1)*CLIENTES_POR_PAGINA;
+  var listCompleta=list;
+  list=list.slice(inicioPag,inicioPag+CLIENTES_POR_PAGINA);
+
+  if(pagCont){
+    if(totalPaginas<=1){
+      pagCont.style.display='none';
+    }else{
+      pagCont.style.display='flex';
+      pagCont.innerHTML=
+        '<button class="btn-sm"'+(clientesPaginaActual<=1?' disabled':'')+' onclick="irAPaginaClientes('+(clientesPaginaActual-1)+')">‹ Anterior</button>'+
+        '<span style="font-size:13px;color:var(--text3)">Página '+clientesPaginaActual+' de '+totalPaginas+' · '+listCompleta.length+' clientes</span>'+
+        '<button class="btn-sm"'+(clientesPaginaActual>=totalPaginas?' disabled':'')+' onclick="irAPaginaClientes('+(clientesPaginaActual+1)+')">Siguiente ›</button>';
+    }
+  }
+
   gr.innerHTML=list.map(function(c){
     var t=tipoCliente(c);
     var avCls=t==='estudio'?'av-purple':t==='publicidad'?'av-blue':'av-orange';
@@ -1962,7 +2000,7 @@ function renderClientes(){
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa||'')+'</span><span class="cc-tel">'+(c.tel||'')+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
       '<div class="cc-footer" style="margin-top:var(--sp-3)"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
-      '<div class="cc-actions">'+driveBtn+'<button class="btn-wa" onclick="enviarFichaWhatsApp(\''+c.id+'\')">📤 Enviar ficha por WhatsApp</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">✏️ Editar información</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
+      '<div class="cc-actions">'+driveBtn+'<button class="btn-wa" onclick="enviarFichaWhatsApp(\''+c.id+'\')">📤 Enviar ficha por WhatsApp</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">✏️ Editar información</button><button class="btn-sm" onclick="agregarClienteArtDesdeListado(\''+c.id+'\')">🩺 Agregar a Seguimiento ART</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
 }
@@ -2149,6 +2187,22 @@ function verClienteDesdeArt(nombre){
   var c=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});
   if(!c){showToast('No se encontró "'+nombre+'" en Clientes (¿lo renombraron o eliminaron?)');return;}
   irAClienteDesdeBusqueda(nombre);
+}
+
+// Atajo desde la tarjeta del listado de Clientes: agrega directo, sin pasar
+// por el buscador del modal (el cliente ya está identificado por id). El
+// cliente no se mueve ni desaparece del listado -- sigue en su carpeta igual
+// que antes, esto solo crea la copia independiente en clientes_art.
+function agregarClienteArtDesdeListado(id){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===id;});
+  if(!c)return;
+  if(CLIENTES_ART.some(function(x){return x.nombre===c.nombre;})){showToast('Ya está en Seguimiento ART.');return;}
+  if(!confirm('¿Agregar a '+c.nombre+' a Seguimiento ART?\n\nSigue apareciendo igual acá en Clientes.'))return;
+  db.collection('clientes_art').add({
+    nombre:c.nombre,tel:c.tel||'',notas:'',etapa:0,
+    fechaIngresoEtapa:fmt(today),
+    creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){showToast('Agregado a Seguimiento ART ✓');});
 }
 
 function abrirModalArt(){
