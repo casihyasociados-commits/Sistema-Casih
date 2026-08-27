@@ -1269,6 +1269,28 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
+<!-- DOCTOR IA -->
+<div class="section" id="sec-doctor-ia">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Doctor IA</div>
+      <div class="page-sub">Consultas rápidas de derecho laboral, respondidas por IA — no reemplaza revisar el expediente ni la opinión del abogado</div>
+    </div>
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh)">
+    <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 4px 10px">
+      <div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA.<br>No tiene acceso a los datos de los clientes del sistema.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+      <textarea class="fta" id="dia-input" placeholder="Escribí tu consulta..." style="min-height:44px;max-height:120px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarDoctorIA();}"></textarea>
+      <button class="btn-primary" id="dia-btn-enviar" onclick="enviarDoctorIA()" style="align-self:flex-end">Enviar</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+      <button class="btn-sm" onclick="reiniciarDoctorIA()">🗑 Borrar conversación</button>
+    </div>
+  </div>
+</div>
+
 </div><!-- end main -->
 </div><!-- end app -->
 
@@ -1361,28 +1383,6 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div class="fg"><div class="fl">Concepto *</div><input class="fi" id="ga-co" placeholder="Ej: Alquiler oficina"></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-gasto')">Cancelar</button><button class="btn-primary" onclick="saveGasto()">Guardar</button></div>
-  </div>
-</div>
-
-<!-- DOCTOR IA -->
-<div class="section" id="sec-doctor-ia">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Doctor IA</div>
-      <div class="page-sub">Consultas rápidas de derecho laboral, respondidas por IA — no reemplaza revisar el expediente ni la opinión del abogado</div>
-    </div>
-  </div>
-  <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh)">
-    <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 4px 10px">
-      <div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA.<br>No tiene acceso a los datos de los clientes del sistema.</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-      <textarea class="fta" id="dia-input" placeholder="Escribí tu consulta..." style="min-height:44px;max-height:120px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarDoctorIA();}"></textarea>
-      <button class="btn-primary" id="dia-btn-enviar" onclick="enviarDoctorIA()" style="align-self:flex-end">Enviar</button>
-    </div>
-    <div style="display:flex;justify-content:flex-end;margin-top:6px">
-      <button class="btn-sm" onclick="reiniciarDoctorIA()">🗑 Borrar conversación</button>
-    </div>
   </div>
 </div>
 
