@@ -342,7 +342,8 @@ SYSTEM_PROMPT_DOCTOR_IA = (
     "- Respondé de forma clara, breve y práctica, como para alguien que ya conoce el oficio.\n"
     "- No tenés acceso a los datos de clientes ni expedientes del sistema. Si te preguntan "
     "algo puntual de un caso concreto (fechas, montos, números de expediente), aclará que "
-    "no tenés esa información y que hay que revisarla en el sistema.\n"
+    "no tenés esa información y que hay que revisarla en el sistema, salvo que te la hayan "
+    "adjuntado directamente como imagen o PDF en el mensaje -- en ese caso analizala.\n"
     "- No inventes jurisprudencia, artículos de ley ni cifras si no estás seguro -- avisá "
     "la incertidumbre en vez de afirmar algo falso."
 )
@@ -358,7 +359,10 @@ def doctor_ia():
 
     d = request.get_json(silent=True) or {}
     pregunta = (d.get('mensaje') or '').strip()
-    if not pregunta:
+    adjunto = d.get('adjunto') or {}
+    mime = (adjunto.get('mimeType') or '').strip()
+    data_b64 = (adjunto.get('data') or '').strip()
+    if not pregunta and not (mime and data_b64):
         resp = jsonify({"error": "Falta el mensaje."})
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 400
@@ -369,7 +373,22 @@ def doctor_ia():
         texto = (h.get('texto') or '').strip()
         if role in ('user', 'assistant') and texto:
             mensajes.append({"role": role, "content": texto})
-    mensajes.append({"role": "user", "content": pregunta})
+
+    if mime and data_b64:
+        bloque_archivo = None
+        if mime == 'application/pdf':
+            bloque_archivo = {"type": "document", "source": {"type": "base64", "media_type": mime, "data": data_b64}}
+        elif mime.startswith('image/'):
+            bloque_archivo = {"type": "image", "source": {"type": "base64", "media_type": mime, "data": data_b64}}
+        if bloque_archivo:
+            contenido = [bloque_archivo]
+            if pregunta:
+                contenido.append({"type": "text", "text": pregunta})
+            mensajes.append({"role": "user", "content": contenido})
+        else:
+            mensajes.append({"role": "user", "content": pregunta or "Analizá este archivo adjunto."})
+    else:
+        mensajes.append({"role": "user", "content": pregunta})
 
     api_key = os.environ.get('ANTHROPIC_API_KEY')
     if not api_key:
@@ -381,7 +400,7 @@ def doctor_ia():
         client = anthropic.Anthropic(api_key=api_key)
         response = client.messages.create(
             model="claude-sonnet-5",
-            max_tokens=1024,
+            max_tokens=1536,
             system=SYSTEM_PROMPT_DOCTOR_IA,
             messages=mensajes
         )
