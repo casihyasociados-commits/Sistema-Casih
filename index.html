@@ -217,10 +217,19 @@ body{
 .btn-done:hover{background:#153020;}
 .btn-cal{font-size:var(--fs-sm);padding:9px 16px;border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
 .btn-cal:hover{background:#153020;}
-.dia-chip{font-family:inherit;font-size:12px;padding:8px 14px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:border-color .15s,color .15s;}
-.dia-chip:hover{border-color:var(--blue);color:var(--blue);}
 #dia-btn-adjuntar{font-family:inherit;font-size:17px;width:44px;height:44px;flex-shrink:0;align-self:flex-end;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:border-color .15s,color .15s;}
 #dia-btn-adjuntar:hover{border-color:var(--blue);color:var(--blue);}
+#sec-doctor-ia.active{
+  display:flex!important;flex-direction:column;
+  width:100vw;max-width:100vw;
+  margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  margin-top:-28px;margin-bottom:-28px;
+  height:calc(100vh - 60px);
+  padding:20px 32px;box-sizing:border-box;
+}
+@media(max-width:768px){
+  #sec-doctor-ia.active{padding:14px 14px;margin-top:-16px;margin-bottom:-16px;height:calc(100vh - 60px);}
+}
 .btn-cpub{font-size:var(--fs-xs);padding:7px 12px;border-color:var(--blue-bg);background:transparent;color:var(--blue);}
 .btn-cpub:hover{background:var(--blue-bg);}
 .btn-logout{font-size:var(--fs-xs);padding:6px 12px;border-color:var(--border2);background:transparent;color:var(--text3);}
@@ -1275,24 +1284,19 @@ input.currency-input{letter-spacing:0.5px;}
 
 <!-- DOCTOR IA -->
 <div class="section" id="sec-doctor-ia">
-  <div class="page-header">
+  <div class="page-header" style="margin-bottom:14px;flex-shrink:0">
     <div>
       <div class="page-title">Doctor IA</div>
       <div class="page-sub">Consultas rápidas de derecho laboral, respondidas por IA — no reemplaza revisar el expediente ni la opinión del abogado</div>
     </div>
   </div>
-  <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh);padding:16px">
-    <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px">
+  <div class="card" style="display:flex;flex-direction:column;flex:1;min-height:0;padding:16px">
+    <div id="dia-chat" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:4px">
       <div id="dia-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px 10px">
         <div style="font-size:38px">🩺</div>
         <div>
           <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Consultá algo de derecho laboral</div>
           <div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen o PDF (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:440px">
-          <button class="dia-chip" onclick="preguntaRapidaDoctorIA('¿Cómo se calcula la indemnización por despido sin causa?')">💰 Cálculo de indemnización</button>
-          <button class="dia-chip" onclick="preguntaRapidaDoctorIA('¿Cuántos días de preaviso corresponden según la antigüedad?')">📅 Días de preaviso</button>
-          <button class="dia-chip" onclick="preguntaRapidaDoctorIA('Explicame la diferencia entre despido directo e indirecto')">⚖️ Directo vs. indirecto</button>
         </div>
       </div>
     </div>
@@ -1301,12 +1305,12 @@ input.currency-input{letter-spacing:0.5px;}
       <button onclick="quitarAdjuntoDoctorIA()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0">✕</button>
     </div>
     <input type="file" id="dia-file-input" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" style="display:none" onchange="manejarArchivoDoctorIA(this.files[0])">
-    <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+    <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;flex-shrink:0">
       <button id="dia-btn-adjuntar" onclick="document.getElementById('dia-file-input').click()" title="Adjuntar imagen o PDF">📎</button>
       <textarea class="fta" id="dia-input" placeholder="Escribí tu consulta..." style="min-height:44px;max-height:120px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarDoctorIA();}"></textarea>
       <button class="btn-primary" id="dia-btn-enviar" onclick="enviarDoctorIA()" style="align-self:flex-end">Enviar</button>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;flex-shrink:0">
       <button class="btn-sm" onclick="reiniciarDoctorIA()">🗑 Borrar conversación</button>
     </div>
   </div>
@@ -1599,21 +1603,57 @@ var DOCTOR_IA_PLACEHOLDER='<div id="dia-empty" style="flex:1;display:flex;flex-d
   '<div style="font-size:38px">🩺</div>'+
   '<div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Consultá algo de derecho laboral</div>'+
   '<div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen o PDF (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div></div>'+
-  '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:440px">'+
-  '<button class="dia-chip" onclick="preguntaRapidaDoctorIA(\'¿Cómo se calcula la indemnización por despido sin causa?\')">💰 Cálculo de indemnización</button>'+
-  '<button class="dia-chip" onclick="preguntaRapidaDoctorIA(\'¿Cuántos días de preaviso corresponden según la antigüedad?\')">📅 Días de preaviso</button>'+
-  '<button class="dia-chip" onclick="preguntaRapidaDoctorIA(\'Explicame la diferencia entre despido directo e indirecto\')">⚖️ Directo vs. indirecto</button>'+
-  '</div></div>';
-function preguntaRapidaDoctorIA(texto){
-  document.getElementById('dia-input').value=texto;
-  enviarDoctorIA();
+  '</div>';
+function escapeHtmlDoctorIA(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function renderMarkdownDoctorIA(md){
+  function inline(text){
+    text=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    text=text.replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g,'$1<em>$2</em>');
+    text=text.replace(/`([^`]+)`/g,'<code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:.92em">$1</code>');
+    return text;
+  }
+  var lines=escapeHtmlDoctorIA(md).split('\n');
+  var html='',inList=null;
+  function closeList(){if(inList){html+='</'+inList+'>';inList=null;}}
+  lines.forEach(function(line){
+    var h=line.match(/^(#{1,4})\s+(.*)$/);
+    var ul=line.match(/^[-*]\s+(.*)$/);
+    var ol=line.match(/^\d+\.\s+(.*)$/);
+    if(h){
+      closeList();
+      var lvl=h[1].length;
+      var size=lvl===1?'17px':lvl===2?'15.5px':'14.5px';
+      html+='<div style="font-weight:700;font-size:'+size+';margin:12px 0 5px;color:var(--text)">'+inline(h[2])+'</div>';
+    }else if(ul){
+      if(inList!=='ul'){closeList();html+='<ul style="margin:2px 0 10px 20px;padding:0">';inList='ul';}
+      html+='<li style="margin-bottom:4px">'+inline(ul[1])+'</li>';
+    }else if(ol){
+      if(inList!=='ol'){closeList();html+='<ol style="margin:2px 0 10px 20px;padding:0">';inList='ol';}
+      html+='<li style="margin-bottom:4px">'+inline(ol[1])+'</li>';
+    }else if(line.trim()===''){
+      closeList();
+      html+='<div style="height:8px"></div>';
+    }else{
+      closeList();
+      html+='<div style="margin-bottom:2px">'+inline(line)+'</div>';
+    }
+  });
+  closeList();
+  return html;
 }
 function pintarMensajeDoctorIA(role,texto){
   var chat=document.getElementById('dia-chat');
   var esUser=role==='user';
   var bub=document.createElement('div');
-  bub.style.cssText='max-width:85%;padding:10px 13px;border-radius:12px;font-size:14px;line-height:1.5;white-space:pre-wrap;align-self:'+(esUser?'flex-end':'flex-start')+';background:'+(esUser?'var(--blue-bg)':'var(--bg3)')+';color:'+(esUser?'var(--blue)':'var(--text)')+';border:1px solid '+(esUser?'var(--blue-border,var(--border2))':'var(--border)')+'';
-  bub.textContent=texto;
+  bub.style.cssText='max-width:'+(esUser?'85%':'92%')+';padding:11px 15px;border-radius:12px;font-size:14.5px;line-height:1.6;align-self:'+(esUser?'flex-end':'flex-start')+';background:'+(esUser?'var(--blue-bg)':'var(--bg3)')+';color:'+(esUser?'var(--blue)':'var(--text)')+';border:1px solid '+(esUser?'var(--blue-border,var(--border2))':'var(--border)')+'';
+  if(esUser){
+    bub.style.whiteSpace='pre-wrap';
+    bub.textContent=texto;
+  }else{
+    bub.innerHTML=renderMarkdownDoctorIA(texto);
+  }
   chat.appendChild(bub);
   chat.scrollTop=chat.scrollHeight;
   return bub;
