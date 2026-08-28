@@ -1296,7 +1296,7 @@ input.currency-input{letter-spacing:0.5px;}
         <div style="font-size:38px">🩺</div>
         <div>
           <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Consultá algo de derecho laboral</div>
-          <div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen o PDF (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div>
+          <div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen, PDF o Word (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div>
         </div>
       </div>
     </div>
@@ -1304,9 +1304,9 @@ input.currency-input{letter-spacing:0.5px;}
       <span id="dia-adjunto-nombre"></span>
       <button onclick="quitarAdjuntoDoctorIA()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0">✕</button>
     </div>
-    <input type="file" id="dia-file-input" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" style="display:none" onchange="manejarArchivoDoctorIA(this.files[0])">
+    <input type="file" id="dia-file-input" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.docx" style="display:none" onchange="manejarArchivoDoctorIA(this.files[0])">
     <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;flex-shrink:0">
-      <button id="dia-btn-adjuntar" onclick="document.getElementById('dia-file-input').click()" title="Adjuntar imagen o PDF">📎</button>
+      <button id="dia-btn-adjuntar" onclick="document.getElementById('dia-file-input').click()" title="Adjuntar imagen, PDF o Word">📎</button>
       <textarea class="fta" id="dia-input" placeholder="Escribí tu consulta..." style="min-height:44px;max-height:120px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarDoctorIA();}"></textarea>
       <button class="btn-primary" id="dia-btn-enviar" onclick="enviarDoctorIA()" style="align-self:flex-end">Enviar</button>
     </div>
@@ -1602,7 +1602,7 @@ var DOCTOR_IA_ADJUNTO=null;
 var DOCTOR_IA_PLACEHOLDER='<div id="dia-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px 10px">'+
   '<div style="font-size:38px">🩺</div>'+
   '<div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Consultá algo de derecho laboral</div>'+
-  '<div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen o PDF (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div></div>'+
+  '<div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen, PDF o Word (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div></div>'+
   '</div>';
 function escapeHtmlDoctorIA(s){
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1660,8 +1660,8 @@ function pintarMensajeDoctorIA(role,texto){
 }
 function manejarArchivoDoctorIA(file){
   if(!file)return;
-  var tiposOk=['image/png','image/jpeg','image/webp','image/gif','application/pdf'];
-  if(tiposOk.indexOf(file.type)===-1){alert('Solo se pueden adjuntar imágenes (PNG, JPG, WEBP, GIF) o PDF.');return;}
+  var tiposOk=['image/png','image/jpeg','image/webp','image/gif','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if(tiposOk.indexOf(file.type)===-1){alert('Solo se pueden adjuntar imágenes (PNG, JPG, WEBP, GIF), PDF o Word (.docx). El formato .doc viejo no es compatible, solo .docx.');return;}
   if(file.size>15*1024*1024){alert('El archivo es muy grande (máx. 15MB).');return;}
   var reader=new FileReader();
   reader.onload=function(){

@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import base64
 import zipfile
 import pytz
 from io import BytesIO
@@ -364,8 +365,8 @@ SYSTEM_PROMPT_DOCTOR_IA = (
     "- No tenés acceso a los datos de clientes ni expedientes del sistema. Si te "
     "preguntan algo puntual de un caso concreto (fechas, montos, números de expediente), "
     "aclará que no tenés esa información y que hay que revisarla en el sistema, salvo "
-    "que te la hayan adjuntado directamente como imagen o PDF en el mensaje -- en ese "
-    "caso analizala.\n"
+    "que te la hayan adjuntado directamente como imagen, PDF o Word en el mensaje -- en "
+    "ese caso analizala.\n"
     "- Recordá siempre, aunque sea brevemente, que esto es una orientación de apoyo y "
     "no reemplaza la revisión final de un abogado antes de presentar algo o de asesorar "
     "a un cliente con eso."
@@ -399,17 +400,35 @@ def doctor_ia():
 
     if mime and data_b64:
         bloque_archivo = None
+        texto_docx = None
         if mime == 'application/pdf':
             bloque_archivo = {"type": "document", "source": {"type": "base64", "media_type": mime, "data": data_b64}}
         elif mime.startswith('image/'):
             bloque_archivo = {"type": "image", "source": {"type": "base64", "media_type": mime, "data": data_b64}}
+        elif mime == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            try:
+                doc = Document(BytesIO(base64.b64decode(data_b64)))
+                partes = [p.text for p in doc.paragraphs if p.text.strip()]
+                for tabla in doc.tables:
+                    for fila in tabla.rows:
+                        partes.append(' | '.join(c.text.strip() for c in fila.cells))
+                texto_docx = '\n'.join(partes).strip() or '(el documento parece estar vacío)'
+            except Exception as e:
+                print("Error leyendo Word adjunto:", str(e))
+                texto_docx = None
+
         if bloque_archivo:
             contenido = [bloque_archivo]
             if pregunta:
                 contenido.append({"type": "text", "text": pregunta})
             mensajes.append({"role": "user", "content": contenido})
+        elif texto_docx is not None:
+            texto_final = "Contenido del archivo Word adjunto:\n\n%s" % texto_docx
+            if pregunta:
+                texto_final += "\n\n---\n\n%s" % pregunta
+            mensajes.append({"role": "user", "content": texto_final})
         else:
-            mensajes.append({"role": "user", "content": pregunta or "Analizá este archivo adjunto."})
+            mensajes.append({"role": "user", "content": pregunta or "No se pudo leer el archivo adjunto."})
     else:
         mensajes.append({"role": "user", "content": pregunta})
 
