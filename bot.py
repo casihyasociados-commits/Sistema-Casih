@@ -368,7 +368,7 @@ def doctor_ia():
         return resp, 400
 
     mensajes = []
-    for h in (d.get('historial') or [])[-10:]:
+    for h in (d.get('historial') or [])[-60:]:
         role = h.get('role')
         texto = (h.get('texto') or '').strip()
         if role in ('user', 'assistant') and texto:

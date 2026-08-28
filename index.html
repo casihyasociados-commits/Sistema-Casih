@@ -1279,7 +1279,7 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
   <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh)">
     <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 4px 10px">
-      <div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA, o adjuntale una imagen o PDF (certificado, contrato, fallo) con 📎.<br>No tiene acceso a los datos de los clientes del sistema.</div>
+      <div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA, o adjuntale una imagen o PDF (certificado, contrato, fallo) con 📎.<br>No tiene acceso a los datos de los clientes del sistema.<br>La conversación se guarda mientras esta pestaña esté abierta.</div>
     </div>
     <div id="dia-adjunto-preview" style="display:none;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;margin-top:10px">
       <span id="dia-adjunto-nombre"></span>
@@ -1574,10 +1574,13 @@ input.currency-input{letter-spacing:0.5px;}
 const BOT_URL = "https://sistema-casih.onrender.com";
 
 // ─── DOCTOR IA (chat de consultas) ───
+// El historial vive solo en memoria de la pestaña -- no se guarda en
+// Firestore (para no gastar cuota del plan gratis) y se pierde al cerrar
+// o recargar la página. Mientras la pestaña sigue abierta, la conversación
+// completa se manda como contexto en cada consulta.
 var DOCTOR_IA_HISTORIAL=[];
 var DOCTOR_IA_ADJUNTO=null;
-var DOCTOR_IA_CARGADO=false;
-var DOCTOR_IA_PLACEHOLDER='<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA, o adjuntale una imagen o PDF (certificado, contrato, fallo) con 📎.<br>No tiene acceso a los datos de los clientes del sistema.</div>';
+var DOCTOR_IA_PLACEHOLDER='<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA, o adjuntale una imagen o PDF (certificado, contrato, fallo) con 📎.<br>No tiene acceso a los datos de los clientes del sistema.<br>La conversación se guarda mientras esta pestaña esté abierta.</div>';
 function pintarMensajeDoctorIA(role,texto){
   var chat=document.getElementById('dia-chat');
   var esUser=role==='user';
@@ -1587,25 +1590,6 @@ function pintarMensajeDoctorIA(role,texto){
   chat.appendChild(bub);
   chat.scrollTop=chat.scrollHeight;
   return bub;
-}
-function initDoctorIA(){
-  if(DOCTOR_IA_CARGADO||!currentUser)return;
-  DOCTOR_IA_CARGADO=true;
-  db.collection('doctor_ia_chats').doc(currentUser.uid).get().then(function(doc){
-    if(!doc.exists)return;
-    var mensajes=doc.data().mensajes||[];
-    if(!mensajes.length)return;
-    DOCTOR_IA_HISTORIAL=mensajes;
-    document.getElementById('dia-chat').innerHTML='';
-    mensajes.forEach(function(m){pintarMensajeDoctorIA(m.role,m.texto);});
-  }).catch(function(){});
-}
-function guardarHistorialDoctorIA(){
-  if(!currentUser)return;
-  db.collection('doctor_ia_chats').doc(currentUser.uid).set({
-    mensajes:DOCTOR_IA_HISTORIAL.slice(-60),
-    actualizado:firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(){});
 }
 function manejarArchivoDoctorIA(file){
   if(!file)return;
@@ -1648,7 +1632,6 @@ function enviarDoctorIA(){
       pintarMensajeDoctorIA('assistant',res.respuesta);
       DOCTOR_IA_HISTORIAL.push({role:'user',texto:pregunta});
       DOCTOR_IA_HISTORIAL.push({role:'assistant',texto:res.respuesta});
-      guardarHistorialDoctorIA();
     }else{
       pintarMensajeDoctorIA('assistant','⚠️ '+(res.error||'No se pudo obtener respuesta.'));
     }
@@ -1663,7 +1646,6 @@ function reiniciarDoctorIA(){
   if(DOCTOR_IA_HISTORIAL.length&&!confirm('¿Borrar toda la conversación?'))return;
   DOCTOR_IA_HISTORIAL=[];
   document.getElementById('dia-chat').innerHTML=DOCTOR_IA_PLACEHOLDER;
-  if(currentUser)db.collection('doctor_ia_chats').doc(currentUser.uid).delete().catch(function(){});
 }
 
 const firebaseConfig = {
@@ -1755,7 +1737,6 @@ function goTo(s){
     renderClientes();
   }
   if(s==='tareas'){renderHoyAgenda();}
-  if(s==='doctor-ia'){initDoctorIA();}
 }
 
 // ─── BUSCADOR GLOBAL DEL INICIO ───
