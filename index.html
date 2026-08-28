@@ -1655,7 +1655,9 @@ function pintarMensajeDoctorIA(role,texto){
     bub.innerHTML=renderMarkdownDoctorIA(texto);
   }
   chat.appendChild(bub);
-  chat.scrollTop=chat.scrollHeight;
+  if(esUser){
+    bub.scrollIntoView({block:'start'});
+  }
   return bub;
 }
 function manejarArchivoDoctorIA(file){
