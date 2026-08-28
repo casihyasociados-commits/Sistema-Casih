@@ -398,6 +398,7 @@ def doctor_ia():
         if role in ('user', 'assistant') and texto:
             mensajes.append({"role": role, "content": texto})
 
+    debug_docx_error = None
     if mime and data_b64:
         bloque_archivo = None
         texto_docx = None
@@ -416,6 +417,7 @@ def doctor_ia():
             except Exception as e:
                 print("Error leyendo Word adjunto:", str(e))
                 texto_docx = None
+                debug_docx_error = str(e)
 
         if bloque_archivo:
             contenido = [bloque_archivo]
@@ -453,7 +455,10 @@ def doctor_ia():
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 500
 
-    resp = jsonify({"respuesta": respuesta})
+    out = {"respuesta": respuesta}
+    if debug_docx_error:
+        out["debug_docx_error"] = debug_docx_error
+    resp = jsonify(out)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
