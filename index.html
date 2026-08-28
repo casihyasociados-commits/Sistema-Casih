@@ -217,6 +217,10 @@ body{
 .btn-done:hover{background:#153020;}
 .btn-cal{font-size:var(--fs-sm);padding:9px 16px;border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
 .btn-cal:hover{background:#153020;}
+.dia-chip{font-family:inherit;font-size:12px;padding:8px 14px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:border-color .15s,color .15s;}
+.dia-chip:hover{border-color:var(--blue);color:var(--blue);}
+#dia-btn-adjuntar{font-family:inherit;font-size:17px;width:44px;height:44px;flex-shrink:0;align-self:flex-end;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:border-color .15s,color .15s;}
+#dia-btn-adjuntar:hover{border-color:var(--blue);color:var(--blue);}
 .btn-cpub{font-size:var(--fs-xs);padding:7px 12px;border-color:var(--blue-bg);background:transparent;color:var(--blue);}
 .btn-cpub:hover{background:var(--blue-bg);}
 .btn-logout{font-size:var(--fs-xs);padding:6px 12px;border-color:var(--border2);background:transparent;color:var(--text3);}
@@ -1277,21 +1281,32 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="page-sub">Consultas rápidas de derecho laboral, respondidas por IA — no reemplaza revisar el expediente ni la opinión del abogado</div>
     </div>
   </div>
-  <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh)">
-    <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 4px 10px">
-      <div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA, o adjuntale una imagen o PDF (certificado, contrato, fallo) con 📎.<br>No tiene acceso a los datos de los clientes del sistema.<br>La conversación se guarda mientras esta pestaña esté abierta.</div>
+  <div class="card" style="display:flex;flex-direction:column;height:min(600px,70vh);padding:16px">
+    <div id="dia-chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px">
+      <div id="dia-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px 10px">
+        <div style="font-size:38px">🩺</div>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Consultá algo de derecho laboral</div>
+          <div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen o PDF (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:440px">
+          <button class="dia-chip" onclick="preguntaRapidaDoctorIA('¿Cómo se calcula la indemnización por despido sin causa?')">💰 Cálculo de indemnización</button>
+          <button class="dia-chip" onclick="preguntaRapidaDoctorIA('¿Cuántos días de preaviso corresponden según la antigüedad?')">📅 Días de preaviso</button>
+          <button class="dia-chip" onclick="preguntaRapidaDoctorIA('Explicame la diferencia entre despido directo e indirecto')">⚖️ Directo vs. indirecto</button>
+        </div>
+      </div>
     </div>
     <div id="dia-adjunto-preview" style="display:none;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;margin-top:10px">
       <span id="dia-adjunto-nombre"></span>
       <button onclick="quitarAdjuntoDoctorIA()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0">✕</button>
     </div>
     <input type="file" id="dia-file-input" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" style="display:none" onchange="manejarArchivoDoctorIA(this.files[0])">
-    <div style="display:flex;gap:8px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-      <button class="btn-sm" onclick="document.getElementById('dia-file-input').click()" style="align-self:flex-end" title="Adjuntar imagen o PDF">📎</button>
+    <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      <button id="dia-btn-adjuntar" onclick="document.getElementById('dia-file-input').click()" title="Adjuntar imagen o PDF">📎</button>
       <textarea class="fta" id="dia-input" placeholder="Escribí tu consulta..." style="min-height:44px;max-height:120px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarDoctorIA();}"></textarea>
       <button class="btn-primary" id="dia-btn-enviar" onclick="enviarDoctorIA()" style="align-self:flex-end">Enviar</button>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
       <button class="btn-sm" onclick="reiniciarDoctorIA()">🗑 Borrar conversación</button>
     </div>
   </div>
@@ -1580,7 +1595,19 @@ const BOT_URL = "https://sistema-casih.onrender.com";
 // completa se manda como contexto en cada consulta.
 var DOCTOR_IA_HISTORIAL=[];
 var DOCTOR_IA_ADJUNTO=null;
-var DOCTOR_IA_PLACEHOLDER='<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 10px">🩺 Preguntale algo de derecho laboral a Doctor IA, o adjuntale una imagen o PDF (certificado, contrato, fallo) con 📎.<br>No tiene acceso a los datos de los clientes del sistema.<br>La conversación se guarda mientras esta pestaña esté abierta.</div>';
+var DOCTOR_IA_PLACEHOLDER='<div id="dia-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px 10px">'+
+  '<div style="font-size:38px">🩺</div>'+
+  '<div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Consultá algo de derecho laboral</div>'+
+  '<div style="font-size:13px;color:var(--text3);max-width:400px;line-height:1.5">Podés adjuntar una imagen o PDF (certificado, contrato, fallo) con 📎. No tiene acceso a los datos de clientes del sistema, y la conversación se pierde si cerrás esta pestaña.</div></div>'+
+  '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:440px">'+
+  '<button class="dia-chip" onclick="preguntaRapidaDoctorIA(\'¿Cómo se calcula la indemnización por despido sin causa?\')">💰 Cálculo de indemnización</button>'+
+  '<button class="dia-chip" onclick="preguntaRapidaDoctorIA(\'¿Cuántos días de preaviso corresponden según la antigüedad?\')">📅 Días de preaviso</button>'+
+  '<button class="dia-chip" onclick="preguntaRapidaDoctorIA(\'Explicame la diferencia entre despido directo e indirecto\')">⚖️ Directo vs. indirecto</button>'+
+  '</div></div>';
+function preguntaRapidaDoctorIA(texto){
+  document.getElementById('dia-input').value=texto;
+  enviarDoctorIA();
+}
 function pintarMensajeDoctorIA(role,texto){
   var chat=document.getElementById('dia-chat');
   var esUser=role==='user';
