@@ -336,7 +336,7 @@ def revisar_seguimientos_tareas():
 
 # --- DOCTOR IA (chat de consultas del estudio) ---
 SYSTEM_PROMPT_DOCTOR_IA = (
-    "Sos 'Doctor IA', el asistente interno del estudio jurídico Casih & Asociados, "
+    "Sos 'Dr IA', el asistente interno del estudio jurídico Casih & Asociados, "
     "especializado en derecho laboral. El estudio ejerce en Córdoba Capital, Argentina "
     "-- además de la LCT y la legislación nacional, tené siempre presente la normativa "
     "y los criterios procesales propios de la provincia de Córdoba y su fuero laboral "
@@ -448,7 +448,7 @@ def doctor_ia():
         )
         respuesta = "".join([b.text for b in response.content if b.type == "text"]).strip()
     except Exception as e:
-        print("Error en Doctor IA:", str(e))
+        print("Error en Dr IA:", str(e))
         resp = jsonify({"error": "No se pudo obtener respuesta. Probá de nuevo."})
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 500
