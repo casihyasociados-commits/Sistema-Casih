@@ -1668,6 +1668,37 @@ def _tg_fin_parrafo(doc, indice):
     raise ValueError('No se encontro el parrafo %d del modelo.' % indice)
 
 
+def _tg_ultimo_parrafo(doc):
+    """Posicion del </w:p> que cierra el ULTIMO parrafo de nivel superior del body.
+
+    La plantilla trae, cerca del final, un rectangulo blanco de fondo y una
+    imagen superpuestos en la zona del cuerpo (ambos con relativeHeight="0").
+    Nuestras cajas de texto se colocan por encima usando un relativeHeight
+    mas alto, lo cual Word respeta, pero Google Docs a veces no y termina
+    dibujando el rectangulo blanco de la plantilla por encima del texto real.
+    Insertando nuestras cajas despues de TODO el contenido de la plantilla
+    (en vez de despues del primer parrafo) quedan tambien despues en el
+    orden del documento, que es el criterio que usa Google Docs cuando no
+    respeta el relativeHeight.
+    """
+    inicio = doc.index('<w:body>')
+    nivel = 0
+    pos = None
+    for m in _TG_RE_P.finditer(doc, inicio):
+        if m.group(0) == '</w:p>':
+            nivel -= 1
+            if nivel == 0:
+                pos = m.start()
+        elif doc[m.start():m.end() + 40].split('>')[0].endswith('/'):
+            if nivel == 0:
+                pos = m.start()
+        else:
+            nivel += 1
+    if pos is None:
+        raise ValueError('No se encontraron parrafos de nivel superior en el modelo.')
+    return pos
+
+
 def generar_telegrama_docx(datos):
     """Devuelve los bytes de un .docx: formulario oficial + datos ubicados."""
     with open(PLANTILLA_TELEGRAMA, 'rb') as f:
@@ -1680,7 +1711,7 @@ def generar_telegrama_docx(datos):
     doc = doc.replace('<w:t xml:space="preserve">Más de 30 palabras</w:t>',
                       '<w:t xml:space="preserve"></w:t>')
 
-    corte = _tg_fin_parrafo(doc, 0)
+    corte = _tg_ultimo_parrafo(doc)
     doc = doc[:corte] + construir_cajas_telegrama(datos) + doc[corte:]
 
     out = BytesIO()
