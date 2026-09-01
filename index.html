@@ -3648,8 +3648,41 @@ function toggleRegimenDespidoIndirecto(){
   document.getElementById('di-regimen-construccion-fields').style.display=esConstruccion?'block':'none';
 }
 
+// ─── Cliente vinculado en Escritos IA: al descargar el .docx, si el
+// cliente cargado sigue siendo el mismo que se autocompletó (por eso se
+// valida el nombre, no solo el id), se sube solo a su carpeta de Drive.
+var DI_CLIENTE_VINCULADO_ID=null, DART_CLIENTE_VINCULADO_ID=null,
+    TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null;
+
+function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombreArchivo){
+  if(!clienteId)return;
+  var cl=CLIENTES_CACHE.find(function(x){return x.id===clienteId;});
+  if(!cl||cl.nombre!==nombreEsperado)return;
+  function subir(folderId){
+    var archivo=new File([blob],nombreArchivo,{type:blob.type});
+    subirArchivoADrive(archivo,folderId,cl.nombre,function(data){
+      db.collection('documentos').add({clienteId:cl.id,clienteNombre:cl.nombre,nombre:data.name,driveId:data.id,driveLink:data.webViewLink,subidoPor:currentUserData?currentUserData.nombre:'',fecha:fmt(today),creadoEn:firebase.firestore.FieldValue.serverTimestamp()});
+      showToast('✓ Guardado en la carpeta de '+cl.nombre+' en Drive');
+    },function(){
+      showToast('⚠ No se pudo subir a la carpeta de '+cl.nombre+' en Drive');
+    });
+  }
+  if(cl.driveFolderId){
+    subir(cl.driveFolderId);
+  }else{
+    showToast('Creando carpeta de Drive para '+cl.nombre+'...');
+    crearCarpetaCliente(cl.nombre,function(folderId,folderLink){
+      if(!folderId){showToast('⚠ No se pudo crear la carpeta de Drive.');return;}
+      db.collection('clientes').doc(cl.id).update({drive:folderLink,driveFolderId:folderId});
+      cl.driveFolderId=folderId;cl.drive=folderLink;
+      subir(folderId);
+    });
+  }
+}
+
 function autocompletarClienteDespidoIndirecto(c){
   if(!c)return;
+  DI_CLIENTE_VINCULADO_ID=c.id;
   var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
   setVal('di-rem-nombre',c.nombre);
   setVal('di-rem-dni',c.dni);
@@ -3731,12 +3764,14 @@ function descargarTelegramaDespidoIndirectoDocx(){
     if(!r.ok)throw new Error('error');
     return r.blob();
   }).then(function(blob){
+    var nombreArchivo=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
-    a.href=url;a.download=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
+    a.href=url;a.download=nombreArchivo;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Formulario generado ✓');
+    subirEscritoADriveClienteVinculado(DI_CLIENTE_VINCULADO_ID,d.remNombre,blob,nombreArchivo);
   }).catch(function(){
     showToast('⚠ No se pudo generar el Word.');
   }).finally(function(){
@@ -3749,6 +3784,7 @@ var DART_FILA_COUNTER=0;
 
 function autocompletarClienteDemandaArt(c){
   if(!c)return;
+  DART_CLIENTE_VINCULADO_ID=c.id;
   var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
   setVal('dart-act-nombre',c.nombre);
   setVal('dart-act-dni',c.dni);
@@ -4018,12 +4054,14 @@ function descargarDemandaArtDocx(){
     if(!r.ok)throw new Error('error');
     return r.blob();
   }).then(function(blob){
+    var nombreArchivo=(d.actNombre?('Demanda ART - '+d.actNombre):'Demanda ART')+'.docx';
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
-    a.href=url;a.download=(d.actNombre?('Demanda ART - '+d.actNombre):'Demanda ART')+'.docx';
+    a.href=url;a.download=nombreArchivo;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Word generado ✓');
+    subirEscritoADriveClienteVinculado(DART_CLIENTE_VINCULADO_ID,d.actNombre,blob,nombreArchivo);
   }).catch(function(){
     showToast('⚠ No se pudo generar el Word.');
   }).finally(function(){
@@ -4033,6 +4071,7 @@ function descargarDemandaArtDocx(){
 
 function autocompletarClienteTelegrama(c){
   if(!c)return;
+  TG_CLIENTE_VINCULADO_ID=c.id;
   var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
   setVal('tg-rem-nombre',c.nombre);
   setVal('tg-rem-dni',c.dni);
@@ -4116,12 +4155,14 @@ function descargarTelegramaDocx(){
     if(!r.ok)throw new Error('error');
     return r.blob();
   }).then(function(blob){
+    var nombreArchivo=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
-    a.href=url;a.download=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
+    a.href=url;a.download=nombreArchivo;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Formulario generado ✓');
+    subirEscritoADriveClienteVinculado(TG_CLIENTE_VINCULADO_ID,d.remNombre,blob,nombreArchivo);
   }).catch(function(){
     showToast('⚠ No se pudo generar el Word.');
   }).finally(function(){
@@ -4131,6 +4172,7 @@ function descargarTelegramaDocx(){
 
 function autocompletarClienteEscrito(c){
   if(!c)return;
+  ES_CLIENTE_VINCULADO_ID=c.id;
   var setVal=function(id,val){var el=document.getElementById(id);if(el)el.value=val||'';};
   setVal('es-cl-nombre',c.nombre);
   setVal('es-cl-dni',c.dni);
@@ -4366,13 +4408,15 @@ function descargarEscritoDocx(){
     if(!r.ok)throw new Error('error');
     return r.blob();
   }).then(function(blob){
+    var nombreArchivo=(cliente.nombre?('Denuncia - '+cliente.nombre):'Denuncia')+'.docx';
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
     a.href=url;
-    a.download=(cliente.nombre?('Denuncia - '+cliente.nombre):'Denuncia')+'.docx';
+    a.download=nombreArchivo;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Word generado ✓');
+    subirEscritoADriveClienteVinculado(ES_CLIENTE_VINCULADO_ID,cliente.nombre,blob,nombreArchivo);
   }).catch(function(){
     showToast('⚠ No se pudo generar el Word.');
   }).finally(function(){
