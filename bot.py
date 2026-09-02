@@ -175,6 +175,25 @@ def responder_whatsapp(chat_id, texto):
         print("[GREEN-API sendMessage] ERROR:", str(e))
         return False
 
+# --- DIAGNOSTICO TEMPORAL: estado de la instancia de WhatsApp ---
+@app.route('/diagnostico-whatsapp', methods=['GET'])
+def diagnostico_whatsapp():
+    instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
+    token = os.environ.get("GREEN_API_TOKEN")
+    resultado = {"instance_id_configurado": bool(instance_id), "token_configurado": bool(token)}
+    if instance_id and token:
+        try:
+            r = requests.get(
+                f"https://api.green-api.com/waInstance{instance_id}/getStateInstance/{token}",
+                timeout=15
+            )
+            resultado["estado_instancia"] = r.json()
+        except Exception as e:
+            resultado["error_estado"] = str(e)
+    resp = jsonify(resultado)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 # --- AVISO DE CLIENTE NUEVO ARCHIVADO (grupo de WhatsApp) ---
 @app.route('/notificar-nuevo-cliente', methods=['POST', 'OPTIONS'])
 def notificar_nuevo_cliente():
