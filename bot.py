@@ -1908,6 +1908,115 @@ def generar_telegrama_docx_endpoint():
     return resp
 
 
+# ─── Cédula de notificación a testigos ───
+# El cuerpo (autos, resolución) es el mismo para todos los testigos de una
+# misma causa -- solo cambian el nombre y el domicilio. El texto de la
+# resolución es una cita textual de una resolución judicial real, así que
+# nunca pasa por la IA: se transcribe tal cual la carga el usuario.
+PLANTILLA_CEDULA_TESTIGO = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'plantillas', 'modelo_cedula_testigo.docx')
+
+
+def _cedula_reemplazar_campo(parrafo, valor):
+    runs = parrafo.runs
+    if len(runs) >= 2:
+        runs[1].text = ': %s' % valor
+        for r in runs[2:]:
+            r.text = ''
+    elif runs:
+        etiqueta = runs[0].text.split(':')[0]
+        runs[0].text = '%s: %s' % (etiqueta, valor)
+
+
+def _cedula_vaciar_parrafo(parrafo):
+    for r in parrafo.runs:
+        r.text = ''
+
+
+def _cedula_reemplazar_resolucion(parrafo, autos, resolucion):
+    runs = parrafo.runs
+    if not runs:
+        return
+    runs[0].text = 'Se hace saber a Ud. que en estos autos caratulados '
+    runs[0].bold = False
+    if len(runs) > 1:
+        runs[1].text = '“%s”' % autos
+        runs[1].bold = True
+    if len(runs) > 2:
+        runs[2].text = ', se ha dictado la siguiente resolución: “%s”' % resolucion
+        runs[2].bold = False
+    for r in runs[3:]:
+        r.text = ''
+
+
+def generar_cedula_testigo_docx(datos):
+    doc = Document(PLANTILLA_CEDULA_TESTIGO)
+    tribunal = (datos.get('tribunal') or '').strip()
+    secretaria = (datos.get('secretaria') or '').strip()
+    autos = (datos.get('autos') or '').strip()
+    resolucion = (datos.get('resolucion') or '').strip()
+    testigo_nombre = (datos.get('testigoNombre') or '').strip()
+    testigo_domicilio = (datos.get('testigoDomicilio') or '').strip()
+
+    for p in doc.paragraphs:
+        texto = p.text.strip()
+        if texto.startswith('TRIBUNAL'):
+            _cedula_reemplazar_campo(p, tribunal)
+        elif texto.startswith('SECRETARIA'):
+            if secretaria:
+                _cedula_reemplazar_campo(p, secretaria)
+            else:
+                _cedula_vaciar_parrafo(p)
+        elif texto.startswith('SEÑOR/A'):
+            _cedula_reemplazar_campo(p, testigo_nombre)
+        elif texto.startswith('DOMICILIO'):
+            _cedula_reemplazar_campo(p, testigo_domicilio)
+        elif texto.startswith('Se hace saber a Ud.'):
+            _cedula_reemplazar_resolucion(p, autos, resolucion)
+
+    out = BytesIO()
+    doc.save(out)
+    return out.getvalue()
+
+
+@app.route('/generar-cedula-testigo-docx', methods=['POST', 'OPTIONS'])
+def generar_cedula_testigo_docx_endpoint():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    if not (d.get('testigoNombre') or '').strip():
+        resp = jsonify({"status": "error", "detalle": "Falta el nombre del testigo."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    if not (d.get('resolucion') or '').strip():
+        resp = jsonify({"status": "error", "detalle": "Falta el texto de la resolución."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    try:
+        contenido = generar_cedula_testigo_docx(d)
+    except Exception as e:
+        print("Error generando cedula testigo docx:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo generar el archivo Word."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    nombre = (d.get('testigoNombre') or 'testigo').strip() or 'testigo'
+    resp = send_file(
+        BytesIO(contenido),
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        as_attachment=True,
+        download_name='Cedula Testigo - %s.docx' % nombre
+    )
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+
 # ─── Telegrama de despido indirecto ───
 # Mismo formulario físico que el telegrama de "aclare situación" (se reutiliza
 # generar_telegrama_docx / construir_cajas_telegrama sin cambios), pero con un

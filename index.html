@@ -756,6 +756,7 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="telegrama_aclare">Telegrama (TCL) — Aclare situación laboral y blanqueo</option>
         <option value="telegrama_despido_indirecto">Telegrama (TCL) — Despido indirecto</option>
         <option value="demanda_art_rechazo">Demanda ART — Rechazo enfermedad profesional (trámite abreviado)</option>
+        <option value="cedula_testigos">Cédula de notificación a testigos</option>
       </select>
     </div>
     <div class="btn-row" style="margin-top:4px">
@@ -1271,6 +1272,41 @@ input.currency-input{letter-spacing:0.5px;}
         </div>
       </div>
       <textarea class="fta" id="dart-resultado" style="min-height:420px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+    </div>
+  </div>
+
+  <div id="es-form-cedula-testigos" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Cliente vinculado (opcional)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente</div>
+        <input class="fi" id="ced-cl-search" placeholder="Para guardar las cédulas en su carpeta de Drive..." oninput="filtrarClientes('ced-cl-search','ced-cl-dropdown')" onfocus="filtrarClientes('ced-cl-search','ced-cl-dropdown')" autocomplete="off">
+        <div id="ced-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+      <div class="hint" style="margin-top:-6px">Los testigos no son clientes del estudio — esto es solo para saber en qué carpeta de Drive guardar las cédulas generadas.</div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Datos de la causa</div>
+      <div class="fg"><div class="fl">Tribunal / Sala *</div><input class="fi" id="ced-tribunal" placeholder="Ej: SALA 3 CAMARA DEL TRABAJO- SEC Nº6"></div>
+      <div class="fg"><div class="fl">Secretaría (opcional)</div><input class="fi" id="ced-secretaria" placeholder="Ej: Nro. 22"></div>
+      <div class="fg"><div class="fl">Autos caratulados *</div><input class="fi" id="ced-autos" placeholder="Ej: PEREZ, JUAN C/ EMPRESA SA - ORDINARIO - DESPIDO (Expte. Nº 1234567)"></div>
+      <div class="fg">
+        <div class="fl">Texto de la resolución *</div>
+        <textarea class="fta" id="ced-resolucion" style="min-height:140px" placeholder="Pegá acá el texto de la resolución tal cual figura en el expediente — se transcribe textual, no pasa por la IA."></textarea>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Testigos</div>
+      <div class="hint" style="margin-top:-6px;margin-bottom:10px">Agregá uno por cada testigo a notificar — se descarga una cédula (.docx) por cada uno, con los mismos datos de la causa.</div>
+      <div id="ced-testigos-list"></div>
+      <button class="btn-sm" onclick="cedAgregarTestigo()">+ Agregar testigo</button>
+    </div>
+
+    <div class="card card-doc">
+      <button class="btn-primary" id="ced-btn-generar" onclick="generarCedulasTestigos()" style="width:100%;padding:12px">⬇️ Descargar cédulas (.docx)</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">Se descarga un Word por cada testigo cargado — revisá siempre antes de presentar.</div>
     </div>
   </div>
 
@@ -2791,12 +2827,13 @@ function crearCarpetasClientesExistentes(){
 }
 
 function subirArchivoADrive(file,folderId,clienteNombre,onSuccess,onError){
+  var token=gapi.client.getToken();
+  if(!token||!token.access_token){if(onError)onError(new Error('Sin token de Google Drive'));return;}
   var metadata={name:file.name,parents:[folderId]};
   var form=new FormData();
   form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
   form.append('file',file);
-  var token=gapi.client.getToken();
-  fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{method:'POST',headers:{Authorization:'Bearer '+token.access_token},body:form}).then(function(r){return r.json();}).then(function(data){if(onSuccess)onSuccess(data);}).catch(function(e){if(onError)onError(e);});
+  fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{method:'POST',headers:{Authorization:'Bearer '+token.access_token},body:form}).then(function(r){return r.json();}).then(function(data){if(data&&data.id){if(onSuccess)onSuccess(data);}else{if(onError)onError(data);}}).catch(function(e){if(onError)onError(e);});
 }
 
 function eliminarCliente(id){if(!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.'))return;db.collection('clientes').doc(id).delete().then(function(){showToast('Cliente eliminado ✓');});}
@@ -3401,7 +3438,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -3628,18 +3665,24 @@ function cambiarTipoEscrito(){
   var esTelegrama=tipo==='telegrama_aclare';
   var esDespidoIndirecto=tipo==='telegrama_despido_indirecto';
   var esDemandaArt=tipo==='demanda_art_rechazo';
-  var otro=esTelegrama||esDespidoIndirecto||esDemandaArt;
+  var esCedulaTestigos=tipo==='cedula_testigos';
+  var otro=esTelegrama||esDespidoIndirecto||esDemandaArt||esCedulaTestigos;
   document.getElementById('es-form-denuncia').style.display=otro?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
   document.getElementById('es-form-demanda-art').style.display=esDemandaArt?'block':'none';
+  document.getElementById('es-form-cedula-testigos').style.display=esCedulaTestigos?'block':'none';
   // La representacion legal interviene en los escritos que se firman (denuncia
-  // y demanda), no en los telegramas: esos cierran con el nombre del estudio.
+  // y demanda), no en los telegramas ni en las cedulas: esos cierran con el
+  // nombre del estudio.
   var rep=document.getElementById('es-representacion');
-  var usaRep=!esTelegrama&&!esDespidoIndirecto;
+  var usaRep=!esTelegrama&&!esDespidoIndirecto&&!esCedulaTestigos;
   if(rep&&rep.parentNode)rep.parentNode.style.display=usaRep?'block':'none';
   if(esDemandaArt&&document.getElementById('dart-ripte-filas').children.length===0){
     for(var i=0;i<12;i++)dartAgregarFilaRipte();
+  }
+  if(esCedulaTestigos&&document.getElementById('ced-testigos-list').children.length===0){
+    cedAgregarTestigo();
   }
 }
 
@@ -3652,7 +3695,8 @@ function toggleRegimenDespidoIndirecto(){
 // cliente cargado sigue siendo el mismo que se autocompletó (por eso se
 // valida el nombre, no solo el id), se sube solo a su carpeta de Drive.
 var DI_CLIENTE_VINCULADO_ID=null, DART_CLIENTE_VINCULADO_ID=null,
-    TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null;
+    TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null,
+    CED_CLIENTE_VINCULADO_ID=null;
 
 function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombreArchivo){
   if(!clienteId)return;
@@ -3667,17 +3711,21 @@ function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombre
       showToast('⚠ No se pudo subir a la carpeta de '+cl.nombre+' en Drive');
     });
   }
-  if(cl.driveFolderId){
-    subir(cl.driveFolderId);
-  }else{
-    showToast('Creando carpeta de Drive para '+cl.nombre+'...');
-    crearCarpetaCliente(cl.nombre,function(folderId,folderLink){
-      if(!folderId){showToast('⚠ No se pudo crear la carpeta de Drive.');return;}
+  // Siempre se pasa por crearCarpetaCliente, tenga o no carpeta ya asignada:
+  // esa función se asegura de que gapi/el token de Google estén listos antes
+  // de subir (si se llamaba subirArchivoADrive directo con un driveFolderId
+  // ya guardado, pero sin haber usado Drive antes en esta sesión del
+  // navegador, gapi.client podía no estar inicializado y la subida fallaba
+  // en silencio). Como _doCrearCarpeta busca la carpeta por nombre antes de
+  // crear una nueva, no duplica carpetas si ya existe.
+  crearCarpetaCliente(cl.nombre,function(folderId,folderLink){
+    if(!folderId){showToast('⚠ No se pudo conectar con Drive para subir el archivo de '+cl.nombre+'.');return;}
+    if(folderId!==cl.driveFolderId){
       db.collection('clientes').doc(cl.id).update({drive:folderLink,driveFolderId:folderId});
       cl.driveFolderId=folderId;cl.drive=folderLink;
-      subir(folderId);
-    });
-  }
+    }
+    subir(folderId);
+  });
 }
 
 function autocompletarClienteDespidoIndirecto(c){
@@ -3781,6 +3829,7 @@ function descargarTelegramaDespidoIndirectoDocx(){
 
 // ─── DEMANDA ART — RECHAZO ENFERMEDAD PROFESIONAL ───
 var DART_FILA_COUNTER=0;
+var CED_TESTIGO_COUNTER=0;
 
 function autocompletarClienteDemandaArt(c){
   if(!c)return;
@@ -3930,6 +3979,71 @@ function dartAgregarControl(){
     '</div>'+
     '<button onclick="document.getElementById(\'dart-control-'+idx+'\').remove();" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕ Quitar</button>';
   document.getElementById('dart-controles-list').appendChild(div);
+}
+
+function cedAgregarTestigo(){
+  var idx=CED_TESTIGO_COUNTER++;
+  var div=document.createElement('div');
+  div.id='ced-testigo-'+idx;
+  div.style.cssText='border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg3)';
+  div.innerHTML=
+    '<div class="g2">'+
+      '<div class="fg" style="margin-bottom:6px"><div class="fl">Nombre y apellido</div><input class="fi" id="ced-tnombre-'+idx+'" placeholder="Ej: GOMEZ MARIA LAURA"></div>'+
+      '<div class="fg" style="margin-bottom:6px"><div class="fl">Domicilio</div><input class="fi" id="ced-tdomicilio-'+idx+'" placeholder="Ej: Av. Colón 1234, Bº Centro, Córdoba"></div>'+
+    '</div>'+
+    '<button onclick="document.getElementById(\'ced-testigo-'+idx+'\').remove();" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕ Quitar</button>';
+  document.getElementById('ced-testigos-list').appendChild(div);
+}
+
+function generarCedulasTestigos(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var tribunal=v('ced-tribunal'), secretaria=v('ced-secretaria'), autos=v('ced-autos'), resolucion=v('ced-resolucion');
+  if(!tribunal){alert('Falta el Tribunal / Sala.');return;}
+  if(!autos){alert('Faltan los autos caratulados.');return;}
+  if(!resolucion){alert('Falta el texto de la resolución.');return;}
+
+  var testigos=[];
+  Array.prototype.forEach.call(document.getElementById('ced-testigos-list').children,function(row){
+    var idx=row.id.replace('ced-testigo-','');
+    var nombre=v('ced-tnombre-'+idx), domicilio=v('ced-tdomicilio-'+idx);
+    if(nombre)testigos.push({nombre:nombre,domicilio:domicilio});
+  });
+  if(testigos.length===0){alert('Agregá al menos un testigo con nombre.');return;}
+
+  var clienteNombreLink=v('ced-cl-search');
+  var btn=document.getElementById('ced-btn-generar');
+  var original=btn.textContent;
+  btn.disabled=true;
+
+  function procesarUno(i){
+    if(i>=testigos.length){
+      btn.disabled=false;btn.textContent=original;
+      showToast('✓ '+testigos.length+' cédula(s) generada(s)');
+      return;
+    }
+    btn.textContent='Generando '+(i+1)+' de '+testigos.length+'...';
+    var t=testigos[i];
+    fetch(BOT_URL+'/generar-cedula-testigo-docx',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tribunal:tribunal,secretaria:secretaria,autos:autos,resolucion:resolucion,testigoNombre:t.nombre,testigoDomicilio:t.domicilio})
+    }).then(function(r){
+      if(!r.ok)throw new Error('error');
+      return r.blob();
+    }).then(function(blob){
+      var nombreArchivo='Cedula Testigo - '+t.nombre+'.docx';
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;a.download=nombreArchivo;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      subirEscritoADriveClienteVinculado(CED_CLIENTE_VINCULADO_ID,clienteNombreLink,blob,nombreArchivo);
+      setTimeout(function(){procesarUno(i+1);},400);
+    }).catch(function(){
+      showToast('⚠ No se pudo generar la cédula de '+t.nombre);
+      setTimeout(function(){procesarUno(i+1);},400);
+    });
+  }
+  procesarUno(0);
 }
 
 function datosDemandaArt(){
