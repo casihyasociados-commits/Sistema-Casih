@@ -1198,6 +1198,16 @@ input.currency-input{letter-spacing:0.5px;}
       <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:14px">
         Cargá la remuneración y el RIPTE de origen de cada uno de los 12 meses previos a la PMI. El RIPTE destino es el índice del mes de la PMI, se carga una sola vez. Todo se calcula solo, en vivo — revisá el resumen antes de generar.
       </div>
+      <div class="fg" style="border:1px dashed var(--border2);border-radius:8px;padding:10px">
+        <input type="file" id="hlab-file-input" accept="application/pdf" style="display:none" onchange="cargarHistoriaLaboral(this.files[0])">
+        <button class="btn-sm" onclick="document.getElementById('hlab-file-input').click()">📎 Adjuntar Historia Laboral (PDF de ANSES)</button>
+        <span id="hlab-estado" style="font-size:11px;color:var(--text3);margin-left:8px"></span>
+        <div id="hlab-empleador-wrap" style="display:none;margin-top:10px">
+          <div class="fl">¿Qué empleador es el relevante?</div>
+          <select class="fs" id="hlab-empleador-select" onchange="completarRipteDesdeHistoriaLaboral()"></select>
+          <div class="hint" style="margin-top:4px">Requiere que ya esté cargada la fecha de PMI de arriba — toma los 12 meses anteriores a esa fecha.</div>
+        </div>
+      </div>
       <div class="fg"><div class="fl">RIPTE destino (índice del mes de la PMI)</div><input class="fi" id="dart-ripte-destino" type="number" step="0.01" placeholder="80678.57" oninput="dartRecalcular()"></div>
       <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;font-size:12px" id="dart-ripte-tabla">
@@ -3864,6 +3874,86 @@ function dartAgregarFilaRipte(){
     '<td style="padding:3px;font-size:12px;color:var(--text3)" id="dart-ftotal-'+idx+'">—</td>'+
     '<td style="padding:3px"><button onclick="document.getElementById(\'dart-fila-'+idx+'\').remove();dartRecalcular();" style="font-size:11px;padding:4px 7px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button></td>';
   document.getElementById('dart-ripte-filas').appendChild(tr);
+}
+
+// ─── Historia Laboral (ANSES) -> tabla RIPTE automática ───
+var HLAB_DATOS=null;
+function cargarHistoriaLaboral(file){
+  if(!file)return;
+  var estado=document.getElementById('hlab-estado');
+  estado.textContent='Leyendo PDF...';
+  var reader=new FileReader();
+  reader.onload=function(){
+    var b64=reader.result.split(',')[1];
+    fetch(BOT_URL+'/extraer-historia-laboral',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pdfBase64:b64})
+    }).then(function(r){return r.json();}).then(function(data){
+      if(data.status!=='ok'){estado.textContent='⚠ '+(data.detalle||'No se pudo leer el PDF.');return;}
+      HLAB_DATOS=data.empleadores;
+      var sel=document.getElementById('hlab-empleador-select');
+      sel.innerHTML='<option value="">— Seleccionar —</option>'+HLAB_DATOS.map(function(e,i){
+        return '<option value="'+i+'">'+e.nombre+' ('+e.meses[0].periodo+' a '+e.meses[e.meses.length-1].periodo+')</option>';
+      }).join('');
+      document.getElementById('hlab-empleador-wrap').style.display='block';
+      estado.textContent='✓ '+HLAB_DATOS.length+' empleador(es) encontrado(s)';
+    }).catch(function(){estado.textContent='⚠ No se pudo conectar con el servidor.';});
+  };
+  reader.readAsDataURL(file);
+}
+
+function completarRipteDesdeHistoriaLaboral(){
+  var sel=document.getElementById('hlab-empleador-select');
+  if(sel.value==='')return;
+  var emp=HLAB_DATOS[sel.value];
+  var fPmi=dartParseFecha(document.getElementById('dart-fecha-pmi').value);
+  if(!fPmi){alert('Completá primero la Fecha de la PMI (más arriba, en "PMI y certificado médico").');return;}
+
+  var claveNum=function(periodo){var p=periodo.split('/');return parseInt(p[1],10)*12+parseInt(p[0],10);};
+  var pmiClave=fPmi.getFullYear()*12+(fPmi.getMonth()+1);
+  var pmiPeriodo=('0'+(fPmi.getMonth()+1)).slice(-2)+'/'+fPmi.getFullYear();
+
+  var anteriores=emp.meses.filter(function(m){return claveNum(m.periodo)<pmiClave;});
+  anteriores.sort(function(a,b){return claveNum(a.periodo)-claveNum(b.periodo);});
+  var ultimos12=anteriores.slice(-12);
+  if(ultimos12.length===0){alert('No se encontraron meses de este empleador anteriores a la fecha de PMI.');return;}
+
+  var periodos=ultimos12.map(function(m){return m.periodo;});
+  periodos.push(pmiPeriodo);
+
+  fetch(BOT_URL+'/ripte-indice-lote',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({periodos:periodos})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.faltantes&&data.faltantes.length){
+      showToast('⚠ Falta el índice RIPTE de: '+data.faltantes.join(', ')+' — hay que agregarlo a la tabla del sistema.');
+    }
+    document.getElementById('dart-ripte-filas').innerHTML='';
+    if(data.valores[pmiPeriodo]){
+      document.getElementById('dart-ripte-destino').value=data.valores[pmiPeriodo];
+    }
+    var ordenados=ultimos12.map(function(m){return m.remuneracion;}).sort(function(a,b){return a-b;});
+    var mediana=ordenados.length%2?ordenados[(ordenados.length-1)/2]:(ordenados[ordenados.length/2-1]+ordenados[ordenados.length/2])/2;
+
+    ultimos12.forEach(function(m){
+      dartAgregarFilaRipte();
+      var filas=document.getElementById('dart-ripte-filas').children;
+      var tr=filas[filas.length-1];
+      var idxFila=tr.id.replace('dart-fila-','');
+      var elMes=document.getElementById('dart-fmes-'+idxFila);
+      elMes.value=m.periodo;
+      document.getElementById('dart-frem-'+idxFila).value=m.remuneracion;
+      var ripteOrigen=data.valores[m.periodo];
+      if(ripteOrigen)document.getElementById('dart-forigen-'+idxFila).value=ripteOrigen;
+      if(mediana>0&&m.remuneracion>mediana*2.5){
+        tr.style.background='#2B1E0A';
+        tr.title='Este mes se aleja mucho de los demás — revisalo, puede incluir una liquidación final u otro pago no habitual.';
+        elMes.value='⚠ '+elMes.value;
+      }
+    });
+    dartRecalcular();
+    showToast('✓ Tabla RIPTE completada con '+ultimos12.length+' meses de '+emp.nombre);
+  }).catch(function(){showToast('⚠ No se pudo calcular el RIPTE.');});
 }
 
 function dartParseFecha(str){

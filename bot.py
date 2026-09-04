@@ -3,6 +3,7 @@ import json
 import re
 import base64
 import zipfile
+from pypdf import PdfReader
 import pytz
 from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
@@ -26,6 +27,53 @@ MESES_ESP = {
     5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
+
+# --- TABLA RIPTE (Índice No Decreciente, uso exclusivo Riesgos del Trabajo) ---
+# Fuente: Subsecretaría de Seguridad Social (argentina.gob.ar/trabajo/seguridadsocial/ripte).
+# Se publica un valor nuevo cada mes (con ~45 dias de demora) -- hay que agregarlo
+# a mano ahi abajo cuando salga. Clave: "MM/YYYY" (mismo formato que usa la
+# Historia Laboral de ANSES), valor: indice.
+RIPTE_INDICE = {}
+
+
+def _ripte_cargar_anio(anio, valores, mes_inicio=1):
+    for i, v in enumerate(valores):
+        RIPTE_INDICE['%02d/%d' % (mes_inicio + i, anio)] = v
+
+
+_ripte_cargar_anio(1994, [100.00, 102.07, 103.79, 104.10, 104.81, 107.08], mes_inicio=7)
+_ripte_cargar_anio(1995, [107.08, 107.08, 107.08, 107.08, 107.08, 107.95, 107.95, 107.95, 107.95, 107.95, 107.95, 107.95])
+_ripte_cargar_anio(1996, [107.95] * 12)
+_ripte_cargar_anio(1997, [107.95] * 12)
+_ripte_cargar_anio(1998, [107.95] * 12)
+_ripte_cargar_anio(1999, [107.95] * 12)
+_ripte_cargar_anio(2000, [107.95] * 12)
+_ripte_cargar_anio(2001, [107.95] * 12)
+_ripte_cargar_anio(2002, [107.95] * 12)
+_ripte_cargar_anio(2003, [107.95, 107.95, 107.95, 107.95, 107.95, 107.95, 107.95, 107.95, 111.10, 115.28, 116.63, 118.96])
+_ripte_cargar_anio(2004, [121.73, 124.70, 126.01, 126.01, 126.01, 126.01, 126.01, 126.01, 126.01, 126.01, 126.01, 126.04])
+_ripte_cargar_anio(2005, [126.04, 126.04, 127.29, 132.14, 133.80, 136.77, 140.75, 146.08, 149.11, 154.64, 156.19, 156.77])
+_ripte_cargar_anio(2006, [158.67, 160.91, 164.78, 167.46, 171.72, 174.63, 177.72, 180.98, 182.48, 186.81, 187.66, 191.21])
+_ripte_cargar_anio(2007, [193.61, 197.56, 201.69, 207.50, 209.18, 210.06, 216.79, 221.92, 222.49, 230.78, 230.92, 233.46])
+_ripte_cargar_anio(2008, [234.35, 243.58, 250.38, 267.02, 272.43, 274.34, 284.15, 289.27, 295.51, 300.42, 300.42, 300.42])
+_ripte_cargar_anio(2009, [300.42, 300.42, 306.53, 312.18, 312.18, 317.80, 320.42, 323.38, 323.38, 323.38, 323.38, 344.73])
+_ripte_cargar_anio(2010, [344.73, 355.54, 369.56, 377.78, 381.84, 388.62, 398.37, 408.08, 425.11, 433.84, 439.23, 444.13])
+_ripte_cargar_anio(2011, [449.82, 459.18, 490.31, 496.42, 515.55, 522.98, 539.38, 557.23, 575.47, 584.75, 599.28, 603.55])
+_ripte_cargar_anio(2012, [611.61, 628.82, 652.87, 683.89, 704.54, 707.89, 733.06, 739.38, 751.84, 770.83, 789.52, 798.50])
+_ripte_cargar_anio(2013, [807.41, 834.43, 856.21, 872.62, 902.57, 912.82, 934.63, 943.67, 964.67, 986.04, 990.63, 999.43])
+_ripte_cargar_anio(2014, [1004.15, 1057.21, 1101.28, 1160.96, 1176.75, 1188.08, 1245.32, 1251.18, 1302.28, 1340.85, 1340.85, 1366.32])
+_ripte_cargar_anio(2015, [1371.40, 1418.58, 1471.07, 1494.77, 1549.59, 1612.17, 1661.48, 1668.64, 1712.64, 1737.68, 1774.68, 1806.09])
+_ripte_cargar_anio(2016, [1808.60, 1888.34, 1940.55, 2022.16, 2062.33, 2089.18, 2170.43, 2196.53, 2247.93, 2293.97, 2334.36, 2364.94])
+_ripte_cargar_anio(2017, [2405.87, 2455.57, 2547.29, 2589.02, 2632.39, 2682.68, 2799.18, 2823.33, 2873.15, 2953.98, 2992.14, 3006.32])
+_ripte_cargar_anio(2018, [3078.15, 3136.49, 3208.74, 3298.55, 3353.50, 3383.14, 3461.52, 3540.95, 3603.23, 3789.62, 3855.86, 3925.11])
+_ripte_cargar_anio(2019, [4042.00, 4198.76, 4444.60, 4533.03, 4676.25, 4753.19, 4948.27, 5039.93, 5199.08, 5467.59, 5554.15, 5666.48])
+_ripte_cargar_anio(2020, [6066.07, 6445.13, 6500.72, 6510.18, 6521.87, 6670.93, 6908.52, 6945.86, 7076.47, 7401.81, 7495.03, 7643.41])
+_ripte_cargar_anio(2021, [7784.10, 8263.33, 8665.19, 9201.59, 9311.61, 9660.13, 10089.96, 10326.11, 10762.48, 11148.95, 11497.72, 11726.30])
+_ripte_cargar_anio(2022, [12271.35, 12849.20, 13855.82, 14677.19, 15270.36, 16149.76, 17009.60, 17786.79, 18908.07, 19938.61, 21055.73, 22194.74])
+_ripte_cargar_anio(2023, [23041.17, 24980.16, 27419.24, 30116.61, 31984.22, 34583.73, 37148.07, 39326.69, 43045.75, 48087.89, 51102.40, 55356.61])
+_ripte_cargar_anio(2024, [63468.76, 70754.17, 80678.57, 93671.26, 100527.29, 106664.97, 113694.76, 118007.30, 122891.98, 131045.09, 134754.34, 137497.90])
+_ripte_cargar_anio(2025, [141124.78, 149777.43, 155852.91, 160321.72, 163299.84, 167811.87, 172674.89, 174917.11, 177378.55, 182089.61, 184238.99, 186718.83])
+_ripte_cargar_anio(2026, [188181.62, 198241.70, 202963.20, 210043.70])
 
 # --- INICIALIZAR FIREBASE ---
 firebase_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
@@ -2837,6 +2885,108 @@ SYSTEM_PROMPT_SINTOMAS_ART = (
     "- Nunca inventes síntomas ni datos que no estén en el texto que te pasaron.\n"
     "- Devolvé únicamente la frase, sin comentarios antes o después."
 )
+
+
+_HLAB_RE_FILA = re.compile(
+    r'^(.+?)\s+(\d{2}-\d{7,8}-\d)\s+([A-Z])\s+(?:([A-Z])\s+)?(\d{2}/\d{4})\s+'
+    r'(\d+)\s+(\d+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s*$'
+)
+
+
+def _hlab_monto(s):
+    return float(s.strip().replace('.', '').replace(',', '.'))
+
+
+def extraer_historia_laboral(pdf_bytes):
+    """Parsea un PDF de Historia Laboral de ANSES y agrupa los meses por empleador.
+
+    Devuelve {"empleadores": [{"nombre":..., "cuit":..., "meses":[{"periodo":"MM/YYYY","remuneracion":...}]}]}.
+    Se agrupa por el nombre tal cual aparece en cada fila (a veces viene truncado
+    por el ancho de columna del PDF) -- alcanza para elegir el empleador y no hace
+    falta el nombre completo sin truncar para el cálculo.
+    """
+    reader = PdfReader(BytesIO(pdf_bytes))
+    texto = '\n'.join((p.extract_text() or '') for p in reader.pages)
+
+    empleadores = {}
+    orden = []
+    for linea in texto.split('\n'):
+        linea = linea.strip()
+        if not linea:
+            continue
+        m = _HLAB_RE_FILA.match(linea)
+        if not m:
+            continue
+        nombre, cuit, _p, _tr, periodo, _dias, _horas, rem_total, _ss, _esp, _sac = m.groups()
+        nombre = nombre.strip()
+        if nombre not in empleadores:
+            empleadores[nombre] = {'nombre': nombre, 'cuit': cuit, 'meses': []}
+            orden.append(nombre)
+        empleadores[nombre]['meses'].append({
+            'periodo': periodo,
+            'remuneracion': round(_hlab_monto(rem_total), 2),
+        })
+
+    return {"empleadores": [empleadores[n] for n in orden]}
+
+
+@app.route('/extraer-historia-laboral', methods=['POST', 'OPTIONS'])
+def extraer_historia_laboral_endpoint():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    pdf_b64 = (d.get('pdfBase64') or '').strip()
+    if not pdf_b64:
+        resp = jsonify({"status": "error", "detalle": "Falta el archivo PDF."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    try:
+        resultado = extraer_historia_laboral(base64.b64decode(pdf_b64))
+    except Exception as e:
+        print("Error extrayendo historia laboral:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo leer el PDF. ¿Es una Historia Laboral de ANSES?"})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    if not resultado['empleadores']:
+        resp = jsonify({"status": "error", "detalle": "No se encontraron períodos con remuneración en el PDF."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    resp = jsonify({"status": "ok", "empleadores": resultado['empleadores']})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+
+@app.route('/ripte-indice-lote', methods=['POST', 'OPTIONS'])
+def ripte_indice_lote():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    periodos = d.get('periodos') or []
+    valores = {}
+    faltantes = []
+    for p in periodos:
+        p = (p or '').strip()
+        if p in RIPTE_INDICE:
+            valores[p] = RIPTE_INDICE[p]
+        else:
+            faltantes.append(p)
+
+    resp = jsonify({"valores": valores, "faltantes": faltantes})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 
 @app.route('/generar-demanda-art', methods=['POST', 'OPTIONS'])
