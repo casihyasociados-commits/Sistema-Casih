@@ -3902,6 +3902,43 @@ function cargarHistoriaLaboral(file){
   reader.readAsDataURL(file);
 }
 
+function _hlabClavePeriodo(periodo){
+  var p=periodo.split('/');
+  return parseInt(p[1],10)*12+parseInt(p[0],10);
+}
+
+function _hlabMediana(valores){
+  var o=valores.slice().sort(function(a,b){return a-b;});
+  return o.length%2?o[(o.length-1)/2]:(o[o.length/2-1]+o[o.length/2])/2;
+}
+
+// Arma los `cantidad` meses mas recientes anteriores a la PMI, pero si alguno
+// se aleja demasiado de la mediana del grupo (tipico de un mes con
+// liquidacion final mezclada, no un sueldo normal y habitual), lo saca y trae
+// en su lugar el siguiente mes disponible mas viejo -- asi siempre se llega a
+// `cantidad` meses "limpios" sin necesitar que alguien lo arregle a mano.
+function seleccionarMesesLimpios(anteriores,cantidad){
+  var pool=anteriores.slice(); // ascendente por fecha
+  var elegidos=pool.slice(-cantidad);
+  var restantes=pool.slice(0,pool.length-cantidad); // mas viejos, ascendente
+  var excluidos=[];
+  var intentos=cantidad;
+  while(intentos-->0){
+    var mediana=_hlabMediana(elegidos.map(function(m){return m.remuneracion;}));
+    var idxOutlier=-1;
+    for(var i=0;i<elegidos.length;i++){
+      if(mediana>0&&elegidos[i].remuneracion>mediana*2.5){idxOutlier=i;break;}
+    }
+    if(idxOutlier===-1)break;
+    if(restantes.length===0)break;
+    excluidos.push(elegidos[idxOutlier]);
+    elegidos.splice(idxOutlier,1);
+    elegidos.unshift(restantes.pop());
+  }
+  elegidos.sort(function(a,b){return _hlabClavePeriodo(a.periodo)-_hlabClavePeriodo(b.periodo);});
+  return {meses:elegidos,excluidos:excluidos};
+}
+
 function completarRipteDesdeHistoriaLaboral(){
   var sel=document.getElementById('hlab-empleador-select');
   if(sel.value==='')return;
@@ -3909,16 +3946,17 @@ function completarRipteDesdeHistoriaLaboral(){
   var fPmi=dartParseFecha(document.getElementById('dart-fecha-pmi').value);
   if(!fPmi){alert('Completá primero la Fecha de la PMI (más arriba, en "PMI y certificado médico").');return;}
 
-  var claveNum=function(periodo){var p=periodo.split('/');return parseInt(p[1],10)*12+parseInt(p[0],10);};
   var pmiClave=fPmi.getFullYear()*12+(fPmi.getMonth()+1);
   var pmiPeriodo=('0'+(fPmi.getMonth()+1)).slice(-2)+'/'+fPmi.getFullYear();
 
-  var anteriores=emp.meses.filter(function(m){return claveNum(m.periodo)<pmiClave;});
-  anteriores.sort(function(a,b){return claveNum(a.periodo)-claveNum(b.periodo);});
-  var ultimos12=anteriores.slice(-12);
-  if(ultimos12.length===0){alert('No se encontraron meses de este empleador anteriores a la fecha de PMI.');return;}
+  var anteriores=emp.meses.filter(function(m){return _hlabClavePeriodo(m.periodo)<pmiClave;});
+  anteriores.sort(function(a,b){return _hlabClavePeriodo(a.periodo)-_hlabClavePeriodo(b.periodo);});
+  if(anteriores.length===0){alert('No se encontraron meses de este empleador anteriores a la fecha de PMI.');return;}
 
-  var periodos=ultimos12.map(function(m){return m.periodo;});
+  var seleccion=seleccionarMesesLimpios(anteriores,12);
+  var meses=seleccion.meses;
+
+  var periodos=meses.map(function(m){return m.periodo;});
   periodos.push(pmiPeriodo);
 
   fetch(BOT_URL+'/ripte-indice-lote',{
@@ -3932,10 +3970,9 @@ function completarRipteDesdeHistoriaLaboral(){
     if(data.valores[pmiPeriodo]){
       document.getElementById('dart-ripte-destino').value=data.valores[pmiPeriodo];
     }
-    var ordenados=ultimos12.map(function(m){return m.remuneracion;}).sort(function(a,b){return a-b;});
-    var mediana=ordenados.length%2?ordenados[(ordenados.length-1)/2]:(ordenados[ordenados.length/2-1]+ordenados[ordenados.length/2])/2;
+    var medianaFinal=_hlabMediana(meses.map(function(m){return m.remuneracion;}));
 
-    ultimos12.forEach(function(m){
+    meses.forEach(function(m){
       dartAgregarFilaRipte();
       var filas=document.getElementById('dart-ripte-filas').children;
       var tr=filas[filas.length-1];
@@ -3945,14 +3982,18 @@ function completarRipteDesdeHistoriaLaboral(){
       document.getElementById('dart-frem-'+idxFila).value=m.remuneracion;
       var ripteOrigen=data.valores[m.periodo];
       if(ripteOrigen)document.getElementById('dart-forigen-'+idxFila).value=ripteOrigen;
-      if(mediana>0&&m.remuneracion>mediana*2.5){
+      if(medianaFinal>0&&m.remuneracion>medianaFinal*2.5){
         tr.style.background='#2B1E0A';
         tr.title='Este mes se aleja mucho de los demás — revisalo, puede incluir una liquidación final u otro pago no habitual.';
         elMes.value='⚠ '+elMes.value;
       }
     });
     dartRecalcular();
-    showToast('✓ Tabla RIPTE completada con '+ultimos12.length+' meses de '+emp.nombre);
+    var msg='✓ Tabla RIPTE completada con '+meses.length+' meses de '+emp.nombre;
+    if(seleccion.excluidos.length){
+      msg+=' — se excluyó '+seleccion.excluidos.map(function(m){return m.periodo;}).join(', ')+' por ser atípico y se usó el mes anterior en su lugar.';
+    }
+    showToast(msg);
   }).catch(function(){showToast('⚠ No se pudo calcular el RIPTE.');});
 }
 
