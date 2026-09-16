@@ -2278,6 +2278,177 @@ def generar_telegrama_despido_indirecto():
     return resp, 200
 
 
+# ─── Telegrama — Denuncia de accidente de trabajo ───
+# Mismo formulario fisico que los demas telegramas (se reutiliza
+# generar_telegrama_docx/construir_cajas_telegrama), pero con un cuerpo que
+# denuncia un accidente de trabajo, intima a informar cobertura de ART, y
+# emplaza a registrar la relacion laboral si no esta registrada.
+
+TG_ACCIDENTE_REGISTRO = (
+    'Asimismo, al no tener constancia alguna de que nuestra relación laboral se '
+    'encuentre registrada ante los organismos pertinentes, lo EMPLAZO para que en '
+    'los términos de y plazos de Ley %s, proceda a registrarla en forma, a cuyo fin '
+    'aporto los siguientes datos: Nombre y Apellido: %s. DNI: %s. Fecha de ingreso: '
+    '%s. Categoría: %s.%s Domicilio real: %s; Jornada de Trabajo: %s.%s'
+)
+
+TG_ACCIDENTE_LIQUIDACION_CONSTRUCCION = (
+    'Lo INTIMO a que en el plazo de dos días hábiles me abone Liquidación Final, '
+    'debiendo incluir en ella las diferencias de haberes devengadas a mi favor, todo '
+    'bajo apercibimiento del Art. 19 Ley 22.250. Asimismo, lo intimo a que en el '
+    'plazo de tres días hábiles me abone Fondo de Cese Laboral en forma suficiente, '
+    'bajo apercibimiento del Art. 18 Ley 22.250.'
+)
+
+TG_ACCIDENTE_RESPONSABILIDAD_PROPIETARIO = (
+    'Asimismo, LO INTIMO que denuncie y aporte datos personales del propietario del '
+    'inmueble donde ocurrió el accidente según datos detallados ut-supra a los fines '
+    'de la responsabilidad solidaria en el accidente peticionado, bajo apercibimiento '
+    'de librar oficio judicial a tales efectos.'
+)
+
+TG_ACCIDENTE_RESERVA_INCONSTITUCIONALIDAD = (
+    'SE DEJA PLANTEADO DESDE LA PRESENTE INTIMACION QUE ESTA PARTE HACE RESERVA DE LA '
+    'INAPLICABILIDAD DE LA LEY 27.742 Y DEL DNU 70/2023 EN LAS PARTES REFERENTES AL '
+    'TRABAJO POR SER INCONSTITUCIONALIDAD AFECTANDO EL DERECHO DE PROPIEDAD DEL ACTOR '
+    'TUTELADO POR EL ART. 17 DE NUESTRA CN Y NO PUEDE APLICARSE RETROACTIVAMENTE A '
+    'RELACIONES PREEXISTENTES ART. 7 CCCN. HAGO RESERVAS DE AMPLIAR ARGUMENTOS.'
+)
+
+CIERRE_TELEGRAMA_ACCIDENTE = (
+    'Todo bajo apercibimiento de iniciar las acciones judiciales que por derecho me '
+    'corresponden%s. A los fines del presente, constituyo domicilio legal en el '
+    'estudio Jurídico Casih & Asoc., sito en Arturo M. Bas Nº 389 1º Piso Oficina '
+    '“A”, Ciudad de Córdoba (3516327201). Quedan Ud%s debidamente notificad%s y '
+    'constituid%s en mora.'
+)
+
+
+def armar_cuerpo_accidente(d, relato_redactado):
+    partes = []
+
+    centro_medico = (d.get('centroMedico') or '').strip()
+    evasivas = ('siempre me dio respuestas con evasivas a mis reclamos' if d.get('huboEvasivas')
+                else 'nunca me dio respuestas a mis reclamos')
+    apercibimiento_art = (d.get('apercibimientoArt') or '').strip()
+    frase_art = (
+        ' y se proceda en caso afirmativo a hacer la denuncia correspondiente, bajo '
+        'apercibimiento de %s.' % apercibimiento_art
+    ) if apercibimiento_art else '.'
+
+    apertura = (
+        'DENUNCIO ACCIDENTE DE TRABAJO: Atento a que es de su conocimiento que %s, '
+        'debiendo atenderme por mi cuenta y costeando los gastos de mi recuperación '
+        'en %s, por no contar con afiliación a Aseguradora de Riesgos del Trabajo u '
+        'Obra Social que me diera cobertura, o no tener constancia de si tenía '
+        'cobertura o no, porque %s, LO INTIMO para que en un plazo de 24 hs me '
+        'informe fehacientemente si hay cobertura de ART%s'
+        % ((relato_redactado or '').strip().rstrip('.'), centro_medico, evasivas, frase_art)
+    )
+    partes.append(apertura)
+
+    regimen = (d.get('regimen') or 'lct').strip().lower()
+
+    if d.get('noRegistrado'):
+        estado_nac = ''
+        estado_civil = (d.get('remEstadoCivil') or '').strip()
+        nacionalidad = (d.get('remNacionalidad') or '').strip()
+        if estado_civil or nacionalidad:
+            estado_nac = ' Estado civil: %s; Nacionalidad: %s;' % (estado_civil or '-', nacionalidad or '-')
+        fin_relacion = ''
+        fecha_egreso = (d.get('fechaEgreso') or '').strip()
+        if fecha_egreso:
+            fin_relacion = ' Fin de la relación laboral: %s.' % fecha_egreso
+        categoria_txt = (d.get('categoria') or '').strip()
+        if regimen == 'construccion' and categoria_txt:
+            categoria_txt += ' (CCT 76/75)'
+        ley_registro = (d.get('leyRegistro') or '').strip() or '24.013'
+        partes.append(TG_ACCIDENTE_REGISTRO % (
+            ley_registro, d.get('remNombre', ''), d.get('remDni', ''),
+            d.get('fechaIngreso', ''), categoria_txt, estado_nac,
+            d.get('remDomicilioReal', ''), d.get('jornada', ''), fin_relacion
+        ))
+
+    if regimen == 'construccion' and d.get('reclamarLiquidacionFinal'):
+        partes.append(TG_ACCIDENTE_LIQUIDACION_CONSTRUCCION)
+    if regimen == 'construccion' and d.get('reclamarPropietario'):
+        partes.append(TG_ACCIDENTE_RESPONSABILIDAD_PROPIETARIO)
+    if d.get('reservaInconstitucionalidad'):
+        partes.append(TG_ACCIDENTE_RESERVA_INCONSTITUCIONALIDAD)
+
+    fem_rem = (d.get('remGenero') or '').strip().lower() == 'femenino'
+    sufijo = 'a' if fem_rem else 'o'
+    danios = ', con más daños y perjuicios' if d.get('reclamarDanios') else ''
+    ud_txt = 's' if d.get('destPlural') else ''
+    partes.append(CIERRE_TELEGRAMA_ACCIDENTE % (danios, ud_txt, sufijo, sufijo))
+
+    return ' '.join(p.strip() for p in partes if p and p.strip())
+
+
+SYSTEM_PROMPT_TG_RELATO_ACCIDENTE = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir la descripción informal de un accidente de trabajo "
+    "(fecha, hora, lugar, cómo ocurrió, qué lesión produjo) y tenés que convertirla "
+    "en una frase corrida, en primera persona, que continúa SIN CORTE la oración: "
+    "'Atento a que es de su conocimiento que [TU TEXTO]'.\n\n"
+    "Ejemplo de salida (para 'me caí de un andamio el 15/7 a las 16:45 mientras "
+    "desencofraba y me quebré la muñeca derecha'): 'el día 15/07/2025 a las 16:45 hs "
+    "aprox. sufrí un accidente en ocasión del trabajo, al caer del andamio cuando "
+    "estaba desencofrando, lo que me produjo fractura de la epífisis inferior del "
+    "radio, muñeca derecha'\n\n"
+    "Reglas:\n"
+    "- Arrancá en minúscula y sin punto final: tu frase se inserta en medio de una "
+    "oración más larga.\n"
+    "- Incluí siempre fecha, hora aproximada si la dan, lugar/circunstancia del "
+    "accidente, y la lesión sufrida -- son los datos legalmente relevantes.\n"
+    "- Nunca inventes fecha, hora, lugar ni lesión que no estén en el texto que te "
+    "pasaron -- si falta un dato, simplemente no lo menciones.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+
+@app.route('/generar-telegrama-accidente', methods=['POST', 'OPTIONS'])
+def generar_telegrama_accidente():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    if not (d.get('destNombre') or '').strip():
+        return error('Falta el nombre o razón social del destinatario.')
+    if not (d.get('remNombre') or '').strip():
+        return error('Falta el nombre del remitente (el cliente).')
+    if not (d.get('relato') or '').strip():
+        return error('Contá qué pasó en el accidente.')
+    if not (d.get('centroMedico') or '').strip():
+        return error('Falta el centro médico donde se atendió.')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        relato_redactado = redactar_con_ia(client, SYSTEM_PROMPT_TG_RELATO_ACCIDENTE, d['relato'])
+    except Exception as e:
+        print("Error redactando telegrama de accidente con IA:", str(e))
+        return error('No se pudo generar el telegrama. Intentá de nuevo en un momento.', 500)
+
+    texto = armar_cuerpo_accidente(d, relato_redactado)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+
 # ─── Demanda ART — Rechazo de enfermedad profesional (trámite abreviado) ───
 # El escenario que cubre este tipo de escrito es siempre el mismo: la
 # Comisión Médica rechazó la contingencia y por eso corresponde el trámite

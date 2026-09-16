@@ -755,6 +755,7 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="denuncia_trabajo">Denuncia laboral — Ministerio de Trabajo</option>
         <option value="telegrama_aclare">Telegrama (TCL) — Aclare situación laboral y blanqueo</option>
         <option value="telegrama_despido_indirecto">Telegrama (TCL) — Despido indirecto</option>
+        <option value="telegrama_accidente">Telegrama (TCL) — Accidente de trabajo</option>
         <option value="demanda_art_rechazo">Demanda ART — Rechazo enfermedad profesional (trámite abreviado)</option>
         <option value="cedula_testigos">Cédula de notificación a testigos</option>
       </select>
@@ -1081,6 +1082,118 @@ input.currency-input{letter-spacing:0.5px;}
         </div>
       </div>
       <textarea class="fta" id="di-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
+    </div>
+  </div>
+
+  <div id="es-form-accidente" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Destinatario (empleador)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente (opcional)</div>
+        <input class="fi" id="ac-cl-search" placeholder="Completa los datos del remitente desde la base..." oninput="filtrarClientes('ac-cl-search','ac-cl-dropdown')" onfocus="filtrarClientes('ac-cl-search','ac-cl-dropdown')" autocomplete="off">
+        <div id="ac-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Nombre o razón social *</div><input class="fi" id="ac-dest-nombre" placeholder="Ej: CONSTRUCTORA DEL SUR S.A."></div>
+        <div class="fg"><div class="fl">CUIL / CUIT</div><input class="fi" id="ac-dest-cuil" placeholder="30-71072289-3"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Ramo o actividad principal</div><input class="fi" id="ac-dest-ramo" placeholder="Ej: Construcción"></div>
+        <div class="fg"><div class="fl">Género (para "notificado/a")</div><select class="fs" id="ac-dest-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio laboral</div><input class="fi" id="ac-dest-domicilio" placeholder="Ej: Av. Vélez Sarsfield 5505"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="ac-dest-cp" placeholder="5000"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="ac-dest-localidad" value="CÓRDOBA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="ac-dest-provincia" value="CÓRDOBA"></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Encabezado del texto (opcional — completar si es titular de un comercio con nombre de fantasía)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Se lo intima como titular de…</div><input class="fi" id="ac-dest-descripcion" placeholder="Ej: LA CONSTRUCTORA"></div>
+        <div class="fg"><div class="fl">Nombre de fantasía</div><input class="fi" id="ac-dest-fantasia" placeholder="Ej: DEL SUR"></div>
+      </div>
+      <div class="fg"><div class="fl">Extender el telegrama a otra persona (opcional)</div><input class="fi" id="ac-extension" placeholder="Ej: SE HACE EXTENSIVO EL PRESENTE AL SR. ..."></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-top:10px"><input type="checkbox" id="ac-dest-plural"> Notificar en plural ("Quedan Uds. notificados" en vez de "Queda Ud. notificado")</label>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Remitente (el cliente)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Apellido y nombre *</div><input class="fi" id="ac-rem-nombre" placeholder="Ej: LEYTES RICARDO DAVID"></div>
+        <div class="fg"><div class="fl">DNI</div><input class="fi" id="ac-rem-dni" placeholder="18.859.335"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Estado civil</div><input class="fi" id="ac-rem-estado-civil" placeholder="soltero"></div>
+        <div class="fg"><div class="fl">Nacionalidad</div><input class="fi" id="ac-rem-nacionalidad" value="argentino"></div>
+      </div>
+      <div class="fg"><div class="fl">Género (para "notificado/a")</div><select class="fs" id="ac-rem-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-top:6px">
+        En el formulario, el remitente constituye domicilio en el estudio. Estos datos vienen cargados y normalmente no se tocan.
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio en el formulario</div><input class="fi" id="ac-rem-domicilio" value="Arturo M. Bas Nº 389 1º Piso Of. A"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="ac-rem-cp" value="5000"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="ac-rem-localidad" value="CÓRDOBA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="ac-rem-provincia" value="CÓRDOBA"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">El accidente</div>
+      <div class="fg">
+        <div class="fl">Relato del accidente *</div>
+        <textarea class="fta" id="ac-relato" style="min-height:110px" placeholder="Contá en tus palabras qué pasó: fecha, hora aproximada, lugar/circunstancia, y la lesión sufrida. La IA lo redacta en estilo formal — no hace falta escribirlo ya en formato legal."></textarea>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Centro médico donde se atendió *</div><input class="fi" id="ac-centro-medico" placeholder="Ej: Hospital de Urgencias"></div>
+        <div class="fg"><div class="fl">¿Hubo respuestas evasivas ante los reclamos?</div><select class="fs" id="ac-evasivas"><option value="si">Sí, siempre dio evasivas</option><option value="no">No, nunca respondió</option></select></div>
+      </div>
+      <div class="fg"><div class="fl">Apercibimiento por falta de respuesta sobre cobertura ART (opcional)</div><input class="fi" id="ac-apercibimiento-art" placeholder='Ej: "ley" o "hacerlo responsable de la secuela, incapacidad laboral permanente que resulte de dicho accidente"'></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Régimen y datos de registración</div>
+      <div class="fg"><div class="fl">Régimen</div><select class="fs" id="ac-regimen"><option value="lct">LCT (régimen general)</option><option value="construccion">Construcción (Ley 22.250 / CCT 76/75)</option></select></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Categoría *</div><input class="fi" id="ac-categoria" placeholder="Ej: Oficial"></div>
+        <div class="fg"><div class="fl">Fecha de ingreso *</div><input class="fi" id="ac-fecha-ingreso" placeholder="Ej: 21/03/2025"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio real del cliente *</div><input class="fi" id="ac-rem-domicilio-real" placeholder="Ej: Nasif Estefano N.º 6133"></div>
+        <div class="fg"><div class="fl">Jornada de trabajo *</div><input class="fi" id="ac-jornada" placeholder="Ej: lunes a viernes de 08.00 a 16 hs"></div>
+      </div>
+      <div class="fg"><div class="fl">Fecha de fin de la relación laboral (opcional — solo si ya terminó)</div><input class="fi" id="ac-fecha-egreso" placeholder="Ej: 12/12/2025"></div>
+      <div class="fg"><div class="fl">Ley de registración a citar</div><input class="fi" id="ac-ley-registro" value="24.013"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Reclamos adicionales</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="ac-chk-no-registrado" checked> No está registrado (emplazar a registrar la relación laboral)</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="ac-chk-liquidacion"> Reclamar Liquidación Final y Fondo de Cese Laboral (solo régimen construcción, relación ya terminada)</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="ac-chk-propietario"> Intimar a que denuncie al propietario del inmueble (responsabilidad solidaria — obras de construcción)</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="ac-chk-inconstitucionalidad"> Reserva de inconstitucionalidad Ley 27.742 / DNU 70/2023</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="ac-chk-danios"> Agregar "con más daños y perjuicios" al apercibimiento final</label>
+    </div>
+
+    <div class="card card-doc">
+      <button class="btn-primary" id="ac-btn-generar" onclick="generarTelegramaAccidente()" style="width:100%;padding:12px">✨ Generar telegrama con IA</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">La IA solo redacta el relato del accidente. El resto se arma con los datos cargados — revisá siempre antes de despachar.</div>
+    </div>
+
+    <div class="card card-doc" id="ac-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Texto del telegrama</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTelegramaAccidente()">📋 Copiar texto</button>
+          <button class="btn-sm" id="ac-btn-docx" onclick="descargarTelegramaAccidenteDocx()">⬇️ Descargar formulario (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="ac-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
       <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
     </div>
   </div>
@@ -3448,7 +3561,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -3476,11 +3589,21 @@ var ESCRITO_CONFIG={
     contador:null,nombre:'TCL — Despido indirecto',campoTitulo:'di-rem-nombre',
     despues:function(){toggleRegimenDespidoIndirecto();}
   },
+  telegrama_accidente:{
+    cont:'es-form-accidente',dinamicos:[],resultado:'ac-resultado-card',
+    contador:null,nombre:'TCL — Accidente de trabajo',campoTitulo:'ac-rem-nombre',
+    despues:function(){}
+  },
   demanda_art_rechazo:{
     cont:'es-form-demanda-art',dinamicos:['dart-ripte-filas','dart-testigos-list','dart-controles-list'],
     resultado:'dart-resultado-card',contador:'DART_FILA_COUNTER',nombre:'Demanda ART',
     campoTitulo:'dart-act-nombre',extras:['es-representacion'],
     despues:function(){dartRecalcular();}
+  },
+  cedula_testigos:{
+    cont:'es-form-cedula-testigos',dinamicos:['ced-testigos-list'],resultado:null,
+    contador:'CED_TESTIGO_COUNTER',nombre:'Cédula a testigos',campoTitulo:'ced-autos',
+    despues:function(){}
   }
 };
 
@@ -3674,19 +3797,21 @@ function cambiarTipoEscrito(){
   var tipo=document.getElementById('es-tipo').value;
   var esTelegrama=tipo==='telegrama_aclare';
   var esDespidoIndirecto=tipo==='telegrama_despido_indirecto';
+  var esAccidente=tipo==='telegrama_accidente';
   var esDemandaArt=tipo==='demanda_art_rechazo';
   var esCedulaTestigos=tipo==='cedula_testigos';
-  var otro=esTelegrama||esDespidoIndirecto||esDemandaArt||esCedulaTestigos;
+  var otro=esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos;
   document.getElementById('es-form-denuncia').style.display=otro?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
+  document.getElementById('es-form-accidente').style.display=esAccidente?'block':'none';
   document.getElementById('es-form-demanda-art').style.display=esDemandaArt?'block':'none';
   document.getElementById('es-form-cedula-testigos').style.display=esCedulaTestigos?'block':'none';
   // La representacion legal interviene en los escritos que se firman (denuncia
   // y demanda), no en los telegramas ni en las cedulas: esos cierran con el
   // nombre del estudio.
   var rep=document.getElementById('es-representacion');
-  var usaRep=!esTelegrama&&!esDespidoIndirecto&&!esCedulaTestigos;
+  var usaRep=!esTelegrama&&!esDespidoIndirecto&&!esAccidente&&!esCedulaTestigos;
   if(rep&&rep.parentNode)rep.parentNode.style.display=usaRep?'block':'none';
   if(esDemandaArt&&document.getElementById('dart-ripte-filas').children.length===0){
     for(var i=0;i<12;i++)dartAgregarFilaRipte();
@@ -3706,7 +3831,7 @@ function toggleRegimenDespidoIndirecto(){
 // valida el nombre, no solo el id), se sube solo a su carpeta de Drive.
 var DI_CLIENTE_VINCULADO_ID=null, DART_CLIENTE_VINCULADO_ID=null,
     TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null,
-    CED_CLIENTE_VINCULADO_ID=null;
+    CED_CLIENTE_VINCULADO_ID=null, AC_CLIENTE_VINCULADO_ID=null;
 
 function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombreArchivo){
   if(!clienteId)return;
@@ -3830,6 +3955,120 @@ function descargarTelegramaDespidoIndirectoDocx(){
     URL.revokeObjectURL(url);
     showToast('Formulario generado ✓');
     subirEscritoADriveClienteVinculado(DI_CLIENTE_VINCULADO_ID,d.remNombre,blob,nombreArchivo);
+  }).catch(function(){
+    showToast('⚠ No se pudo generar el Word.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent=original;
+  });
+}
+
+// ─── TELEGRAMA — DENUNCIA DE ACCIDENTE DE TRABAJO ───
+function autocompletarClienteAccidente(c){
+  if(!c)return;
+  AC_CLIENTE_VINCULADO_ID=c.id;
+  var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  setVal('ac-rem-nombre',c.nombre);
+  setVal('ac-rem-dni',c.dni);
+  setVal('ac-rem-estado-civil',c.estadoCivil);
+  if(c.nacionalidad)setVal('ac-rem-nacionalidad',c.nacionalidad);
+  setVal('ac-dest-nombre',c.empleador);
+  setVal('ac-categoria',c.categoria);
+  setVal('ac-fecha-ingreso',c.fechaIngreso);
+  setVal('ac-jornada',c.jornada);
+  setVal('ac-rem-domicilio-real',c.domicilio);
+  showToast('Datos del cliente completados ✓');
+}
+
+function datosAccidente(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var c=function(id){var el=document.getElementById(id);return el?el.checked:false;};
+  return {
+    destNombre:v('ac-dest-nombre'),destCuil:v('ac-dest-cuil'),destRamo:v('ac-dest-ramo'),
+    destGenero:v('ac-dest-genero'),
+    destDomicilio:v('ac-dest-domicilio'),destCp:v('ac-dest-cp'),
+    destLocalidad:v('ac-dest-localidad'),destProvincia:v('ac-dest-provincia'),
+    destDescripcion:v('ac-dest-descripcion'),destFantasia:v('ac-dest-fantasia'),
+    extension:v('ac-extension'),destPlural:c('ac-dest-plural'),
+    remNombre:v('ac-rem-nombre'),remDni:v('ac-rem-dni'),remGenero:v('ac-rem-genero'),
+    remEstadoCivil:v('ac-rem-estado-civil'),remNacionalidad:v('ac-rem-nacionalidad'),
+    remDomicilio:v('ac-rem-domicilio'),remCp:v('ac-rem-cp'),
+    remLocalidad:v('ac-rem-localidad'),remProvincia:v('ac-rem-provincia'),
+    remDomicilioReal:v('ac-rem-domicilio-real'),
+    relato:v('ac-relato'),centroMedico:v('ac-centro-medico'),
+    huboEvasivas:document.getElementById('ac-evasivas').value==='si',
+    apercibimientoArt:v('ac-apercibimiento-art'),
+    regimen:v('ac-regimen'),categoria:v('ac-categoria'),fechaIngreso:v('ac-fecha-ingreso'),
+    jornada:v('ac-jornada'),fechaEgreso:v('ac-fecha-egreso'),leyRegistro:v('ac-ley-registro'),
+    noRegistrado:c('ac-chk-no-registrado'),
+    reclamarLiquidacionFinal:c('ac-chk-liquidacion'),
+    reclamarPropietario:c('ac-chk-propietario'),
+    reservaInconstitucionalidad:c('ac-chk-inconstitucionalidad'),
+    reclamarDanios:c('ac-chk-danios')
+  };
+}
+
+function generarTelegramaAccidente(){
+  var d=datosAccidente();
+  if(!d.destNombre){alert('Falta el nombre o razón social del destinatario.');return;}
+  if(!d.remNombre){alert('Falta el nombre del remitente (el cliente).');return;}
+  if(!d.relato){alert('Contá qué pasó en el accidente.');return;}
+  if(!d.centroMedico){alert('Falta el centro médico donde se atendió.');return;}
+  if(d.noRegistrado&&(!d.categoria||!d.fechaIngreso||!d.remDomicilioReal||!d.jornada)){
+    alert('Para emplazar a registrar la relación, completá categoría, fecha de ingreso, domicilio real y jornada.');
+    return;
+  }
+
+  var btn=document.getElementById('ac-btn-generar');
+  btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
+  document.getElementById('ac-resultado-card').style.display='none';
+
+  fetch(BOT_URL+'/generar-telegrama-accidente',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('ac-resultado').value=data.texto;
+      document.getElementById('ac-resultado-card').style.display='block';
+      document.getElementById('ac-resultado-card').scrollIntoView({behavior:'smooth'});
+    }else{
+      alert('No se pudo generar el telegrama: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar telegrama con IA';
+  });
+}
+
+function copiarTelegramaAccidente(){
+  var ta=document.getElementById('ac-resultado');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
+}
+
+function descargarTelegramaAccidenteDocx(){
+  var texto=document.getElementById('ac-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var d=datosAccidente();
+  d.cuerpo=texto;
+
+  var btn=document.getElementById('ac-btn-docx');
+  var original=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+
+  fetch(BOT_URL+'/generar-telegrama-docx',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)
+  }).then(function(r){
+    if(!r.ok)throw new Error('error');
+    return r.blob();
+  }).then(function(blob){
+    var nombreArchivo=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=nombreArchivo;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Formulario generado ✓');
+    subirEscritoADriveClienteVinculado(AC_CLIENTE_VINCULADO_ID,d.remNombre,blob,nombreArchivo);
   }).catch(function(){
     showToast('⚠ No se pudo generar el Word.');
   }).finally(function(){
