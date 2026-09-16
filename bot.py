@@ -2328,8 +2328,13 @@ def armar_cuerpo_accidente(d, relato_redactado):
     partes = []
 
     centro_medico = (d.get('centroMedico') or '').strip()
-    evasivas = ('siempre me dio respuestas con evasivas a mis reclamos' if d.get('huboEvasivas')
-                else 'nunca me dio respuestas a mis reclamos')
+    evasivas_estado = (d.get('evasivasEstado') or 'no').strip().lower()
+    if evasivas_estado == 'si':
+        frase_evasivas = ', porque siempre me dio respuestas con evasivas a mis reclamos'
+    elif evasivas_estado == 'omitir':
+        frase_evasivas = ''
+    else:
+        frase_evasivas = ', porque nunca me dio respuestas a mis reclamos'
     apercibimiento_art = (d.get('apercibimientoArt') or '').strip()
     frase_art = (
         ' y se proceda en caso afirmativo a hacer la denuncia correspondiente, bajo '
@@ -2341,9 +2346,9 @@ def armar_cuerpo_accidente(d, relato_redactado):
         'debiendo atenderme por mi cuenta y costeando los gastos de mi recuperación '
         'en %s, por no contar con afiliación a Aseguradora de Riesgos del Trabajo u '
         'Obra Social que me diera cobertura, o no tener constancia de si tenía '
-        'cobertura o no, porque %s, LO INTIMO para que en un plazo de 24 hs me '
+        'cobertura o no%s, LO INTIMO para que en un plazo de 24 hs me '
         'informe fehacientemente si hay cobertura de ART%s'
-        % ((relato_redactado or '').strip().rstrip('.'), centro_medico, evasivas, frase_art)
+        % ((relato_redactado or '').strip().rstrip('.'), centro_medico, frase_evasivas, frase_art)
     )
     partes.append(apertura)
 

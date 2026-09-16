@@ -1151,7 +1151,7 @@ input.currency-input{letter-spacing:0.5px;}
       </div>
       <div class="g2">
         <div class="fg"><div class="fl">Centro médico donde se atendió *</div><input class="fi" id="ac-centro-medico" placeholder="Ej: Hospital de Urgencias"></div>
-        <div class="fg"><div class="fl">¿Hubo respuestas evasivas ante los reclamos?</div><select class="fs" id="ac-evasivas"><option value="si">Sí, siempre dio evasivas</option><option value="no">No, nunca respondió</option></select></div>
+        <div class="fg"><div class="fl">¿Hubo respuestas evasivas ante los reclamos?</div><select class="fs" id="ac-evasivas"><option value="si">Sí, siempre dio evasivas</option><option value="no">No, nunca respondió</option><option value="omitir">No aplica (primera comunicación) — omitir esta frase</option></select></div>
       </div>
       <div class="fg"><div class="fl">Apercibimiento por falta de respuesta sobre cobertura ART (opcional)</div><input class="fi" id="ac-apercibimiento-art" placeholder='Ej: "ley" o "hacerlo responsable de la secuela, incapacidad laboral permanente que resulte de dicho accidente"'></div>
     </div>
@@ -3995,7 +3995,7 @@ function datosAccidente(){
     remLocalidad:v('ac-rem-localidad'),remProvincia:v('ac-rem-provincia'),
     remDomicilioReal:v('ac-rem-domicilio-real'),
     relato:v('ac-relato'),centroMedico:v('ac-centro-medico'),
-    huboEvasivas:document.getElementById('ac-evasivas').value==='si',
+    evasivasEstado:document.getElementById('ac-evasivas').value,
     apercibimientoArt:v('ac-apercibimiento-art'),
     regimen:v('ac-regimen'),categoria:v('ac-categoria'),fechaIngreso:v('ac-fecha-ingreso'),
     jornada:v('ac-jornada'),fechaEgreso:v('ac-fecha-egreso'),leyRegistro:v('ac-ley-registro'),
