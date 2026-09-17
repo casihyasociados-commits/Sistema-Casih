@@ -761,6 +761,7 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="acompana_cedulas">Acompaña cédulas de testigos diligenciadas</option>
         <option value="manifiesta_cbu">Manifiesta y acompaña CBU</option>
         <option value="pliego_confesional">Pliego de posiciones (confesional)</option>
+        <option value="alegato">Alegato (parte actora)</option>
       </select>
     </div>
     <div class="btn-row" style="margin-top:4px">
@@ -1534,6 +1535,70 @@ input.currency-input{letter-spacing:0.5px;}
         </div>
       </div>
       <textarea class="fta" id="pc-resultado" style="min-height:260px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+    </div>
+  </div>
+
+  <div id="es-form-alegato" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Cliente vinculado (opcional)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente</div>
+        <input class="fi" id="al-cl-search" placeholder="Para guardar el escrito en su carpeta de Drive..." oninput="filtrarClientes('al-cl-search','al-cl-dropdown')" onfocus="filtrarClientes('al-cl-search','al-cl-dropdown')" autocomplete="off">
+        <div id="al-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Datos de la causa</div>
+      <div class="fg"><div class="fl">Autos caratulados *</div><input class="fi" id="al-caratula" placeholder="Ej: PEREZ, JUAN C/ EMPRESA SA - ORDINARIO - DESPIDO - Expte. Nº 1234567"></div>
+      <div class="fg"><div class="fl">Qué se demandó (rubros) *</div><textarea class="fta" id="al-rubros" style="min-height:70px" placeholder="Ej: indemnización art. 245 LCT, preaviso, integración mes de despido, indemnización art. 2 Ley 25.323"></textarea></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Categoría del actor (opcional)</div><input class="fi" id="al-categoria" placeholder="Ej: Vendedor"></div>
+        <div class="fg"><div class="fl">CCT (opcional)</div><input class="fi" id="al-cct" placeholder="Ej: 130/75"></div>
+      </div>
+      <div class="fg"><div class="fl">A quién se condena y en qué carácter (para la conclusión)</div><input class="fi" id="al-demandado-caracter" placeholder="Ej: EMPRESA S.A. en calidad de empleador directo"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Documentos del expediente *</div>
+      <div class="hint" style="margin-top:-6px;margin-bottom:10px">Adjuntá la demanda, contestación, actas de audiencia de vista de causa, actas de reconocimiento/exhibición, respuestas de informativas y pericias. La IA lee estos documentos para redactar la traba de litis, la meritación de la prueba y los rubros reclamados — revisá siempre el resultado contra el expediente antes de presentar.</div>
+      <input class="fi" id="al-adjuntos-input" type="file" multiple accept=".pdf,.doc,.docx,image/*">
+      <div id="al-adjuntos-status" class="hint" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Bloques opcionales</div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="al-tarjetas-control"> Incluir párrafo de tarjetas de control horario (Ley 22.250/CCT 76/75 — STANLEY/BERTORELLO)</label></div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="al-inconstitucionalidad"> Incluir planteo de inaplicabilidad/inconstitucionalidad Ley 27.742/27.802</label></div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="al-intereses-art55"> Citar actualización de intereses (Art. 55 Ley 27.802) en el petitorio</label></div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="al-otro-si-arca"> Agregar "Otro sí digo" con la condición ante ARCA (regulación de honorarios)</label></div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="al-solidaridad" onchange="document.getElementById('al-solidaridad-fields').style.display=this.checked?'block':'none'"> Hay planteo de solidaridad / responsabilidad de terceros</label></div>
+      <div id="al-solidaridad-fields" style="display:none">
+        <div class="fg"><div class="fl">Detalle (quién, por qué)</div><textarea class="fta" id="al-solidaridad-detalle" style="min-height:70px" placeholder="Ej: el socio gerente X actuó siempre como empleador, retenía aportes sin depositarlos, hubo vaciamiento de la empresa..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Jurisprudencia a citar</div>
+      <div class="hint" style="margin-top:-6px;margin-bottom:10px">Se agrega textual, tal cual la cargues — no pasa por la IA.</div>
+      <div id="al-jurisprudencia-list"></div>
+      <button class="btn-sm" onclick="alAgregarJurisprudencia()">+ Agregar cita</button>
+    </div>
+
+    <div class="card card-doc">
+      <button class="btn-primary" id="al-btn-generar" onclick="generarAlegato()" style="width:100%;padding:12px">✨ Generar con IA</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">La IA solo redacta la traba de litis, la meritación de la prueba y los rubros reclamados a partir de los documentos adjuntos. El resto se arma con los datos cargados — revisá siempre antes de presentar.</div>
+    </div>
+
+    <div class="card card-doc" id="al-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Borrador generado</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTextarea('al-resultado')">📋 Copiar texto</button>
+          <button class="btn-sm" id="al-btn-docx" onclick="descargarPresentacionDocx('al')">⬇️ Descargar Word (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="al-resultado" style="min-height:420px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
     </div>
   </div>
 
@@ -3665,7 +3730,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='aced-cl-search'){var acedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});ACED_CLIENTE_VINCULADO_ID=acedCl?acedCl.id:null;}if(inputId==='mcbu-cl-search'){var mcbuCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});MCBU_CLIENTE_VINCULADO_ID=mcbuCl?mcbuCl.id:null;}if(inputId==='pc-cl-search'){var pcCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});PC_CLIENTE_VINCULADO_ID=pcCl?pcCl.id:null;}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='aced-cl-search'){var acedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});ACED_CLIENTE_VINCULADO_ID=acedCl?acedCl.id:null;}if(inputId==='mcbu-cl-search'){var mcbuCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});MCBU_CLIENTE_VINCULADO_ID=mcbuCl?mcbuCl.id:null;}if(inputId==='pc-cl-search'){var pcCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});PC_CLIENTE_VINCULADO_ID=pcCl?pcCl.id:null;}if(inputId==='al-cl-search'){var alCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});AL_CLIENTE_VINCULADO_ID=alCl?alCl.id:null;}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -3722,6 +3787,11 @@ var ESCRITO_CONFIG={
   pliego_confesional:{
     cont:'es-form-pliego-confesional',dinamicos:['pc-posiciones-list'],resultado:'pc-resultado-card',
     contador:'PC_POSICION_COUNTER',nombre:'Pliego confesional',campoTitulo:'pc-caratula',
+    extras:['es-representacion'],despues:function(){}
+  },
+  alegato:{
+    cont:'es-form-alegato',dinamicos:['al-jurisprudencia-list'],resultado:'al-resultado-card',
+    contador:'AL_JURIS_COUNTER',nombre:'Alegato',campoTitulo:'al-caratula',
     extras:['es-representacion'],despues:function(){}
   }
 };
@@ -3852,6 +3922,7 @@ function retomarBorradorEscrito(id){
     if(cfg.contador==='DART_FILA_COUNTER')DART_FILA_COUNTER=maxIdx+1;
     if(cfg.contador==='CED_TESTIGO_COUNTER')CED_TESTIGO_COUNTER=maxIdx+1;
     if(cfg.contador==='PC_POSICION_COUNTER')PC_POSICION_COUNTER=maxIdx+1;
+    if(cfg.contador==='AL_JURIS_COUNTER')AL_JURIS_COUNTER=maxIdx+1;
   }
 
   // 2) Ahora si los valores
@@ -3924,7 +3995,8 @@ function cambiarTipoEscrito(){
   var esAcompanaCedulas=tipo==='acompana_cedulas';
   var esManifiestaCbu=tipo==='manifiesta_cbu';
   var esPliegoConfesional=tipo==='pliego_confesional';
-  var otro=esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos||esAcompanaCedulas||esManifiestaCbu||esPliegoConfesional;
+  var esAlegato=tipo==='alegato';
+  var otro=esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos||esAcompanaCedulas||esManifiestaCbu||esPliegoConfesional||esAlegato;
   document.getElementById('es-form-denuncia').style.display=otro?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
@@ -3934,6 +4006,7 @@ function cambiarTipoEscrito(){
   document.getElementById('es-form-acompana-cedulas').style.display=esAcompanaCedulas?'block':'none';
   document.getElementById('es-form-manifiesta-cbu').style.display=esManifiestaCbu?'block':'none';
   document.getElementById('es-form-pliego-confesional').style.display=esPliegoConfesional?'block':'none';
+  document.getElementById('es-form-alegato').style.display=esAlegato?'block':'none';
   // La representacion legal interviene en los escritos que se firman (denuncia
   // y demanda), no en los telegramas ni en las cedulas: esos cierran con el
   // nombre del estudio.
@@ -3949,6 +4022,9 @@ function cambiarTipoEscrito(){
   if(esPliegoConfesional&&document.getElementById('pc-posiciones-list').children.length===0){
     pcAgregarPosicion();
   }
+  if(esAlegato&&document.getElementById('al-jurisprudencia-list').children.length===0){
+    alAgregarJurisprudencia();
+  }
 }
 
 function toggleRegimenDespidoIndirecto(){
@@ -3962,7 +4038,8 @@ function toggleRegimenDespidoIndirecto(){
 var DI_CLIENTE_VINCULADO_ID=null, DART_CLIENTE_VINCULADO_ID=null,
     TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null,
     CED_CLIENTE_VINCULADO_ID=null, AC_CLIENTE_VINCULADO_ID=null,
-    ACED_CLIENTE_VINCULADO_ID=null, MCBU_CLIENTE_VINCULADO_ID=null, PC_CLIENTE_VINCULADO_ID=null;
+    ACED_CLIENTE_VINCULADO_ID=null, MCBU_CLIENTE_VINCULADO_ID=null, PC_CLIENTE_VINCULADO_ID=null,
+    AL_CLIENTE_VINCULADO_ID=null;
 
 function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombreArchivo){
   if(!clienteId)return;
@@ -4657,13 +4734,98 @@ function generarPliegoConfesional(){
 var PRESENTACION_CLIENTE_VINCULADO={
   aced:function(){return ACED_CLIENTE_VINCULADO_ID;},
   mcbu:function(){return MCBU_CLIENTE_VINCULADO_ID;},
-  pc:function(){return PC_CLIENTE_VINCULADO_ID;}
+  pc:function(){return PC_CLIENTE_VINCULADO_ID;},
+  al:function(){return AL_CLIENTE_VINCULADO_ID;}
 };
 var PRESENTACION_NOMBRE_ARCHIVO={
   aced:'Acompaña cédulas testigos',
   mcbu:'Manifiesta CBU',
-  pc:'Pliego confesional'
+  pc:'Pliego confesional',
+  al:'Alegato'
 };
+
+var AL_JURIS_COUNTER=0;
+function alAgregarJurisprudencia(){
+  var idx=AL_JURIS_COUNTER++;
+  var div=document.createElement('div');
+  div.id='al-juris-'+idx;
+  div.style.cssText='border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg3)';
+  div.innerHTML=
+    '<div class="fg" style="margin-bottom:6px"><div class="fl">Cita</div><input class="fi" id="al-juris-txt-'+idx+'" placeholder="Ej: “STANLEY, JORGE RUBÉN c/ CAMINOS DE LAS SIERRAS S.A.” – TSJ Córdoba – 29/06/2006"></div>'+
+    '<button onclick="document.getElementById(\'al-juris-'+idx+'\').remove();" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕ Quitar</button>';
+  document.getElementById('al-jurisprudencia-list').appendChild(div);
+}
+
+function alLeerArchivosAdjuntos(){
+  var input=document.getElementById('al-adjuntos-input');
+  var files=Array.prototype.slice.call(input.files||[]);
+  if(files.length===0)return Promise.resolve([]);
+  return Promise.all(files.map(function(file){
+    return new Promise(function(resolve){
+      var reader=new FileReader();
+      reader.onload=function(){
+        resolve({mimeType:file.type||'application/octet-stream',data:reader.result.split(',')[1],nombre:file.name});
+      };
+      reader.onerror=function(){resolve(null);};
+      reader.readAsDataURL(file);
+    });
+  })).then(function(res){return res.filter(function(x){return x;});});
+}
+
+function generarAlegato(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var caratula=v('al-caratula'), rubros=v('al-rubros');
+  if(!caratula){alert('Falta la carátula del expediente.');return;}
+  if(!rubros){alert('Falta qué se demandó (rubros).');return;}
+
+  var jurisprudencia=[];
+  Array.prototype.forEach.call(document.getElementById('al-jurisprudencia-list').children,function(row){
+    var idx=row.id.replace('al-juris-','');
+    var txt=v('al-juris-txt-'+idx);
+    if(txt)jurisprudencia.push(txt);
+  });
+
+  var btn=document.getElementById('al-btn-generar');
+  var status=document.getElementById('al-adjuntos-status');
+  btn.disabled=true;btn.textContent='Leyendo documentos...';
+  status.textContent='';
+
+  alLeerArchivosAdjuntos().then(function(adjuntos){
+    if(adjuntos.length===0){
+      alert('Adjuntá al menos un documento del expediente (demanda, contestación, actas, etc.).');
+      btn.disabled=false;btn.textContent='✨ Generar con IA';
+      return;
+    }
+    btn.textContent='Generando... (puede tardar 30-60 segundos)';
+    document.getElementById('al-resultado-card').style.display='none';
+    fetch(BOT_URL+'/generar-alegato',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        caratula:caratula,rubrosDemandados:rubros,categoria:v('al-categoria'),cct:v('al-cct'),
+        demandadoCaracter:v('al-demandado-caracter'),representacion:v('es-representacion'),
+        tarjetasControl:document.getElementById('al-tarjetas-control').checked,
+        inconstitucionalidad27742:document.getElementById('al-inconstitucionalidad').checked,
+        citarInteresesArt55:document.getElementById('al-intereses-art55').checked,
+        otroSiArca:document.getElementById('al-otro-si-arca').checked,
+        solidaridadDetalle:document.getElementById('al-solidaridad').checked?v('al-solidaridad-detalle'):'',
+        jurisprudencia:jurisprudencia,adjuntos:adjuntos
+      })
+    }).then(function(r){return r.json();}).then(function(data){
+      if(data.status==='ok'){
+        document.getElementById('al-resultado').value=data.texto;
+        document.getElementById('al-resultado-card').style.display='block';
+        document.getElementById('al-resultado-card').scrollIntoView({behavior:'smooth'});
+        showToast('Borrador generado ✓ — revisalo contra el expediente antes de usarlo');
+      }else{
+        alert('No se pudo generar el alegato: '+(data.detalle||'error desconocido'));
+      }
+    }).catch(function(){
+      alert('No se pudo conectar con el servidor. Puede que esté "despertando" (tarda hasta 1 minuto la primera vez) — probá de nuevo en unos segundos.');
+    }).finally(function(){
+      btn.disabled=false;btn.textContent='✨ Generar con IA';
+    });
+  });
+}
 
 function descargarPresentacionDocx(prefijo){
   var texto=document.getElementById(prefijo+'-resultado').value;

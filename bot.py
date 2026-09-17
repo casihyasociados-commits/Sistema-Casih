@@ -3674,6 +3674,287 @@ def generar_pliego_confesional():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp, 200
 
+# ---------------------------------------------------------------------------
+# Alegatos: el esqueleto (encabezado, reserva de caso federal, petitum, otro
+# si digo, bloques de jurisprudencia/tarjetas de control/inconstitucionalidad)
+# es siempre igual y se arma con datos duros, sin pasar por la IA. Solo la
+# parte que depende de leer el expediente real (traba de litis, meritación de
+# la prueba, rubros reclamados, solidaridad) se redacta con IA a partir de los
+# documentos adjuntos (demanda, contestación, actas, informativas, pericias).
+# ---------------------------------------------------------------------------
+
+ALEGATO_RESERVA_CASO_FEDERAL = (
+    'RESERVA DE CASO FEDERAL: Para el supuesto hipotético de rechazarse la demanda, '
+    'aún en forma parcial, y por el principio de la eventualidad procesal, dejo desde '
+    'ya planteada la reserva del Caso Federal para ocurrir por vía del Recurso '
+    'Extraordinario que prevé el Art. 14 de la Ley Nacional N° 48 por ante la '
+    'Excelentísima Corte Suprema de Justicia de la Nación, por violación de derechos y '
+    'garantías de raigambre constitucional, tales como las que establecen que el '
+    'trabajo en sus diversas formas gozará de la protección de las leyes, las que '
+    'asegurarán al trabajador: condiciones dignas y equitativas de labor, jornada '
+    'limitada; descanso y vacaciones pagados; retribución justa; salario mínimo vital '
+    'móvil; igualdad ante la ley y debido proceso.'
+)
+
+ALEGATO_TARJETAS_CONTROL = (
+    'Es de destacar que la demandada no exhibió el instrumento idóneo para conocer el '
+    'horario de entrada y salida del personal, a lo que debemos sumar la obligación '
+    'convencional que marca el CCT 76/75 en su Art. 15, que pese ser de público y '
+    'notorio conocimiento, para mayor claridad se transcribe literalmente: “Los '
+    'empleadores proveerán, obligatoriamente a los obreros, de tarjetas quincenales o '
+    'mensuales para el control de horas ordinarias y extraordinarias. Debiéndose '
+    'colocar tarjetero en un lugar visible, para que el obrero pueda colocar su '
+    'tarjeta al iniciar las tareas y retirarla a la finalización de la misma.”, '
+    'debemos concluir que la demandada está en mejores condiciones de acreditar '
+    'asistencia y el horario de trabajo de su personal, lo que amerita un '
+    'desplazamiento del onus probandi respecto a la jornada de trabajo y pese a ello '
+    'no exhibió las tarjetas de horarios, no cabiendo dudas que el actor trabajó la '
+    'cantidad de horas que dice en la demanda. Queda claro que la demandada incumplió '
+    'obligaciones convencionales (Art. 15 CCT 76/75) haciéndose aplicable el Art. 39 '
+    'Ley 7987 respecto a la inversión de carga de la prueba. Resultaría plenamente '
+    'aplicable lo resuelto por nuestro Máximo Tribunal Provincial en autos “STANLEY, '
+    'JORGE RUBÉN c/ CAMINOS DE LAS SIERRAS S.A. - DIFERENCIA DE HABERES - RECURSO DE '
+    'CASACIÓN” Sentencia Nº 58 del 29-06-2006, al resolver que la relación laboral '
+    'regida por la Ley 22.250 y el CCT Nº 76/75 impone al empleador la obligación de '
+    'proveer tarjetas de control de horas, y que su omisión invierte la carga '
+    'probatoria volviendo aplicable el art. 39 CPT, criterio que también dejó '
+    'sentado nuestro Tribunal Superior en "BERTORELLO HÉCTOR SANTIAGO C/ CAMINOS DE '
+    'LAS SIERRAS S.A. DEMANDA - REC. DE CASACION" - TSJ DE CORDOBA - SALA LABORAL - '
+    '01/08/2006. Concluyendo: no exhibió las tarjetas que estaban a su cargo por '
+    'mandato del CCT 76/75 lo cual invierte la carga probatoria y pese a ello, '
+    'tampoco logró desacreditar la jornada denunciada en demanda, por tal motivo '
+    'deberá hacerse lugar a todas y cada una de las horas reclamadas con el recargo '
+    'de las que sean extraordinarias, mas adicional por presentismo.'
+)
+
+ALEGATO_INCONSTITUCIONALIDAD_27742 = (
+    'PLANTEA LA NO APLICACIÓN A LOS PRESENTES DE LAS LEYES 27.742 Y 27.802. '
+    'Subsidiariamente su DECLARACIÓN DE INCONSTITUCIONALIDAD, en los artículos y '
+    'rubros que correspondan. Sin perjuicio de que la extinción del vínculo en los '
+    'presentes acaeció con anterioridad a la entrada en vigencia de la Ley 27.742 '
+    '(09/07/2024) y Ley 27.802 (06/03/2026), para el hipotético caso de que V.S. '
+    'considere la aplicación de las mismas a los presentes se solicita la '
+    'inaplicabilidad en autos de las pretendidas derogaciones impuestas por el DNU '
+    '70/23 y los arts. 99 y 100 de la Ley 27.742. Consecuentemente haga lugar a las '
+    'indemnizaciones agravadas previstas por la ley 25.323.\n\n'
+    'La protección de los derechos laborales adquiridos constituye un principio '
+    'estructural del Derecho del Trabajo, con sustento en la normativa constitucional '
+    'y supranacional (art. 14 bis y art. 75 inc. 22 de la Constitución Nacional). '
+    'Estos derechos, una vez incorporados al patrimonio jurídico del trabajador, no '
+    'pueden ser legítimamente suprimidos ni restringidos por normas posteriores que '
+    'pretendan su regresividad. Cualquier intento legislativo de reducirlos vulnera '
+    'el principio de progresividad y no regresividad de los derechos sociales, '
+    'consagrado en instrumentos internacionales como el Pacto Internacional de '
+    'Derechos Económicos, Sociales y Culturales (art. 2.1 y 2.2) y la Convención '
+    'Americana sobre Derechos Humanos (art. 26), los cuales tienen jerarquía '
+    'constitucional, debiendo respetarse el principio de irrenunciabilidad '
+    'consagrado en el artículo 12 de la LCT, que impide toda disposición que '
+    'suprima o reduzca derechos reconocidos al trabajador.'
+)
+
+SYSTEM_PROMPT_ALEGATO = (
+    "Redactás la parte central de un alegato laboral (parte actora) para el estudio "
+    "Casih & Asociados, fuero laboral de Córdoba Capital. Te van a pasar los "
+    "documentos reales del expediente (demanda, contestación, actas de audiencia de "
+    "vista de causa, actas de reconocimiento y exhibición, respuestas de "
+    "informativas, pericias) y algunos datos de la causa. Tu tarea es leer esos "
+    "documentos y redactar, siguiendo exactamente esta estructura de títulos, en "
+    "este orden:\n\n"
+    "1.1.-) CONTESTACIÓN DE LA DEMANDA – TRABA DE LA LITIS: qué pasó procesalmente "
+    "(comparecencia o no de la demandada, contestación, excepciones opuestas, si "
+    "hubo negativa genérica).\n"
+    "2.-) PRUEBA: qué prueba ofreció cada parte (confesional, testimonial, "
+    "documental, reconocimiento, exhibición, informativa, pericial, presuncional -- "
+    "solo las que realmente surjan de los documentos).\n"
+    "2.1.-) MERITUACIÓN DE LA PRUEBA: análisis de la documental, informativas, "
+    "reconocimiento/exhibición, confesional y testimonial -- qué acredita cada una "
+    "respecto de los hechos y rubros reclamados.\n"
+    "RUBROS RECLAMADOS: un subtítulo por cada rubro reclamado, con 1 a 3 oraciones "
+    "explicando por qué corresponde según lo acreditado en autos.\n\n"
+    "Si te dan datos sobre un planteo de solidaridad/responsabilidad de terceros, "
+    "agregá al final una sección 'SOLIDARIDAD:' explicando por qué corresponde "
+    "responsabilizar solidariamente a esa persona, basándote en los hechos que te "
+    "hayan dado.\n\n"
+    "Reglas estrictas:\n"
+    "- Nunca inventes fechas, montos, números de expediente, nombres o hechos que no "
+    "surjan de los documentos o datos que te dieron. Si algo no está claro en los "
+    "documentos, escribí la sección igual pero sin inventar el dato faltante -- "
+    "dejalo formulado de forma genérica.\n"
+    "- Registro formal de escrito judicial, en la misma línea que usa el estudio: "
+    "frases como 'Los Telegramas Ley dirigidos a los demandados han sido lo "
+    "suficientemente claros a los fines de emplazar e intimar los rubros que hoy se "
+    "reclaman' cuando aplique, sin forzarla si no corresponde al caso.\n"
+    "- No incluyas el encabezado del escrito, ni el punto '1.-) DEMANDA', ni el "
+    "petitorio, ni la reserva de caso federal, ni la jurisprudencia -- eso se arma "
+    "aparte.\n"
+    "- PRUEBA y RUBROS RECLAMADOS van solo con el título en mayúsculas, sin numerar.\n"
+    "- Devolvé solo el texto de esas secciones, sin comentarios tuyos antes o después."
+)
+
+def construir_bloques_adjuntos_alegato(adjuntos):
+    bloques = []
+    for a in (adjuntos or []):
+        mime = (a.get('mimeType') or '').strip()
+        data_b64 = (a.get('data') or '').strip()
+        nombre = (a.get('nombre') or 'documento').strip()
+        if not mime or not data_b64:
+            continue
+        if mime == 'application/pdf':
+            bloques.append({"type": "text", "text": "Documento adjunto: %s" % nombre})
+            bloques.append({"type": "document", "source": {"type": "base64", "media_type": mime, "data": data_b64}})
+        elif mime.startswith('image/'):
+            bloques.append({"type": "text", "text": "Documento adjunto: %s" % nombre})
+            bloques.append({"type": "image", "source": {"type": "base64", "media_type": mime, "data": data_b64}})
+        elif mime == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            try:
+                doc = Document(BytesIO(base64.b64decode(data_b64)))
+                partes_doc = [p.text for p in doc.paragraphs if p.text.strip()]
+                for tabla in doc.tables:
+                    for fila in tabla.rows:
+                        partes_doc.append(' | '.join(c.text.strip() for c in fila.cells))
+                texto_docx = '\n'.join(partes_doc).strip() or '(el documento parece estar vacío)'
+            except Exception as e:
+                print("Error leyendo Word adjunto de alegato:", str(e))
+                texto_docx = '(no se pudo leer este archivo)'
+            bloques.append({"type": "text", "text": "Documento adjunto (%s):\n\n%s" % (nombre, texto_docx)})
+    return bloques
+
+def armar_alegato_texto(d, cuerpo_ia):
+    representacion = (d.get('representacion') or 'ciardiello').strip()
+    abogado = FIRMAS_ABOGADOS.get(representacion, FIRMAS_ABOGADOS['ciardiello'])[0]
+    caratula = (d.get('caratula') or '').strip()
+    rubros = (d.get('rubrosDemandados') or '').strip()
+    categoria = (d.get('categoria') or '').strip()
+    cct = (d.get('cct') or '').strip()
+    demandado_caracter = (d.get('demandadoCaracter') or '').strip()
+
+    partes = []
+    partes.append('FORMULA ALEGATOS PARTE ACTORA\n\nExcma. Cámara del Trabajo')
+    partes.append(
+        'Ab. %s, por la participación acordada en autos: “%s”, ratificando domicilio '
+        'constituido en calle Arturo M. Bas Nº 389 1º Piso Of. “A” de la Ciudad de '
+        'Córdoba, ante V.E. respetuosamente comparezco y digo:\n\n'
+        'Que vengo en tiempo y forma propios a ofrecer los alegatos que hacen a sus '
+        'derechos, en los siguientes términos:' % (abogado[0], caratula)
+    )
+
+    demanda = '1.-) DEMANDA: se demandó el pago de %s.' % rubros
+    if categoria:
+        demanda += ' Todos los rubros de acuerdo con su real categoría de %s%s.' % (
+            categoria, (' (%s)' % cct) if cct else ''
+        )
+    partes.append(demanda)
+
+    if cuerpo_ia:
+        partes.append(cuerpo_ia.strip())
+
+    if d.get('tarjetasControl'):
+        partes.append(ALEGATO_TARJETAS_CONTROL)
+
+    jurisprudencia = [j.strip() for j in (d.get('jurisprudencia') or []) if (j or '').strip()]
+    if jurisprudencia:
+        partes.append('ANTECEDENTES JURISPRUDENCIALES:\n\n' + '\n'.join('- %s' % j for j in jurisprudencia))
+
+    conclusion = (
+        'CONCLUSION Atento a la prueba producida en autos por medio de la cual se '
+        'acreditaron y probaron los rubros reclamados en planilla, solicitamos se '
+        'haga lugar a la presente demanda con intereses y costas'
+    )
+    if demandado_caracter:
+        conclusion += ', mandando a pagar a %s' % demandado_caracter
+    conclusion += '.'
+    partes.append(conclusion)
+
+    if d.get('inconstitucionalidad27742'):
+        partes.append(ALEGATO_INCONSTITUCIONALIDAD_27742)
+
+    partes.append(ALEGATO_RESERVA_CASO_FEDERAL)
+
+    petitum = (
+        'PETITUM: Por lo mencionado a V.E. pido: Tenga presente los alegatos '
+        'formulados. Haga lugar a la demanda en todas sus partes, con especial '
+        'imposición de intereses y costas'
+    )
+    if d.get('citarInteresesArt55'):
+        petitum += ' (Intereses regulados Artículo 55 Ley 27.802)'
+    petitum += '. SERÁ JUSTICIA.-'
+    partes.append(petitum)
+
+    if d.get('otroSiArca'):
+        condicion = 'Responsable Inscripto' if representacion == 'casih' else 'Monotributista'
+        partes.append(
+            'OTRO SI DIGO: Por derecho propio y a los fines de la regulación de mis '
+            'honorarios profesionales, manifiesto mi condición frente al ARCA de %s. '
+            'Acompaño comprobante. CONSTE' % condicion
+        )
+
+    return '\n\n'.join(p for p in partes if p)
+
+@app.route('/generar-alegato', methods=['POST', 'OPTIONS'])
+def generar_alegato():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+    caratula = (d.get('caratula') or '').strip()
+    rubros = (d.get('rubrosDemandados') or '').strip()
+    adjuntos = d.get('adjuntos') or []
+
+    if not caratula:
+        resp = jsonify({"status": "error", "detalle": "Falta la carátula del expediente."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    if not rubros:
+        resp = jsonify({"status": "error", "detalle": "Falta qué se demandó (rubros)."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    if not adjuntos:
+        resp = jsonify({"status": "error", "detalle": "Adjuntá al menos un documento del expediente (demanda, contestación, actas, etc.)."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        resp = jsonify({"status": "error", "detalle": "Falta configurar ANTHROPIC_API_KEY en el servidor."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    bloques = construir_bloques_adjuntos_alegato(adjuntos)
+    if not bloques:
+        resp = jsonify({"status": "error", "detalle": "No se pudo leer ninguno de los documentos adjuntos."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    instrucciones = 'Carátula: %s\nRubros demandados: %s\n' % (caratula, rubros)
+    solidaridad_detalle = (d.get('solidaridadDetalle') or '').strip()
+    if solidaridad_detalle:
+        instrucciones += 'Hay planteo de solidaridad/responsabilidad de terceros. Detalle aportado por el abogado: %s\n' % solidaridad_detalle
+    bloques.append({"type": "text", "text": instrucciones})
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=3000,
+            system=SYSTEM_PROMPT_ALEGATO,
+            messages=[{"role": "user", "content": bloques}]
+        )
+        cuerpo_ia = "".join([b.text for b in response.content if b.type == "text"]).strip()
+    except Exception as e:
+        print("Error generando alegato:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo generar el alegato con la IA. Probá de nuevo."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    texto = armar_alegato_texto(d, cuerpo_ia)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
 @app.route('/generar-presentacion-docx', methods=['POST', 'OPTIONS'])
 def generar_presentacion_docx():
     if request.method == 'OPTIONS':
