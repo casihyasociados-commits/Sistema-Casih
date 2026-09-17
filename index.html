@@ -758,6 +758,9 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="telegrama_accidente">Telegrama (TCL) — Accidente de trabajo</option>
         <option value="demanda_art_rechazo">Demanda ART — Rechazo enfermedad profesional (trámite abreviado)</option>
         <option value="cedula_testigos">Cédula de notificación a testigos</option>
+        <option value="acompana_cedulas">Acompaña cédulas de testigos diligenciadas</option>
+        <option value="manifiesta_cbu">Manifiesta y acompaña CBU</option>
+        <option value="pliego_confesional">Pliego de posiciones (confesional)</option>
       </select>
     </div>
     <div class="btn-row" style="margin-top:4px">
@@ -1430,6 +1433,107 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="card card-doc">
       <button class="btn-primary" id="ced-btn-generar" onclick="generarCedulasTestigos()" style="width:100%;padding:12px">⬇️ Descargar cédulas (.docx)</button>
       <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">Se descarga un Word por cada testigo cargado — revisá siempre antes de presentar.</div>
+    </div>
+  </div>
+
+  <div id="es-form-acompana-cedulas" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Cliente vinculado (opcional)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente</div>
+        <input class="fi" id="aced-cl-search" placeholder="Para guardar el escrito en su carpeta de Drive..." oninput="filtrarClientes('aced-cl-search','aced-cl-dropdown')" onfocus="filtrarClientes('aced-cl-search','aced-cl-dropdown')" autocomplete="off">
+        <div id="aced-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+    </div>
+    <div class="card card-doc">
+      <div class="card-title">Datos de la causa</div>
+      <div class="fg"><div class="fl">Autos caratulados *</div><input class="fi" id="aced-caratula" placeholder="Ej: MANSILLA, LEANDRO EMANUEL C/ MASTCOP S.A. Y OTRO - ORDINARIO - DESPIDO - (EXPTE. NRO. 10375260)"></div>
+    </div>
+    <div class="card card-doc">
+      <button class="btn-primary" id="aced-btn-generar" onclick="generarAcompanaCedulas()" style="width:100%;padding:12px">✨ Generar</button>
+    </div>
+    <div class="card card-doc" id="aced-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Borrador generado</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTextarea('aced-resultado')">📋 Copiar texto</button>
+          <button class="btn-sm" id="aced-btn-docx" onclick="descargarPresentacionDocx('aced')">⬇️ Descargar Word (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="aced-resultado" style="min-height:260px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+    </div>
+  </div>
+
+  <div id="es-form-manifiesta-cbu" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Cliente vinculado (opcional)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente</div>
+        <input class="fi" id="mcbu-cl-search" placeholder="Para guardar el escrito en su carpeta de Drive..." oninput="filtrarClientes('mcbu-cl-search','mcbu-cl-dropdown')" onfocus="filtrarClientes('mcbu-cl-search','mcbu-cl-dropdown')" autocomplete="off">
+        <div id="mcbu-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+    </div>
+    <div class="card card-doc">
+      <div class="card-title">Datos de la causa</div>
+      <div class="fg"><div class="fl">Cámara / Juzgado *</div><input class="fi" id="mcbu-camara" placeholder="Ej: SALA 8 CAMARA DEL TRABAJO -SEC.16"></div>
+      <div class="fg"><div class="fl">Autos caratulados *</div><input class="fi" id="mcbu-caratula" placeholder="Ej: DOMINGUEZ, SEVERO RICARDO C/ EXPERTA ART S.A - ORDINARIO – INCAPACIDAD - Expte. N° 11366166"></div>
+    </div>
+    <div class="card card-doc">
+      <div class="card-title">Qué se acompaña</div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="mcbu-incluir-cbu-actor" onchange="document.getElementById('mcbu-actor-fields').style.display=this.checked?'block':'none'"> CBU/CUIL del actor</label></div>
+      <div id="mcbu-actor-fields" style="display:none">
+        <div class="fg"><div class="fl">Nombre del actor</div><input class="fi" id="mcbu-actor-nombre" placeholder="Nombre completo del actor"></div>
+        <div class="fg"><div class="fl">CBU denunciado</div><input class="fi" id="mcbu-actor-cbu" placeholder="Ej: 0110147430014799205651"></div>
+      </div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="mcbu-incluir-honorarios"> CBU/CUIT y facturas de honorarios de los letrados</label></div>
+    </div>
+    <div class="card card-doc">
+      <button class="btn-primary" id="mcbu-btn-generar" onclick="generarManifiestaCbu()" style="width:100%;padding:12px">✨ Generar</button>
+    </div>
+    <div class="card card-doc" id="mcbu-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Borrador generado</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTextarea('mcbu-resultado')">📋 Copiar texto</button>
+          <button class="btn-sm" id="mcbu-btn-docx" onclick="descargarPresentacionDocx('mcbu')">⬇️ Descargar Word (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="mcbu-resultado" style="min-height:260px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+    </div>
+  </div>
+
+  <div id="es-form-pliego-confesional" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Cliente vinculado (opcional)</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente</div>
+        <input class="fi" id="pc-cl-search" placeholder="Para guardar el escrito en su carpeta de Drive..." oninput="filtrarClientes('pc-cl-search','pc-cl-dropdown')" onfocus="filtrarClientes('pc-cl-search','pc-cl-dropdown')" autocomplete="off">
+        <div id="pc-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+    </div>
+    <div class="card card-doc">
+      <div class="card-title">Datos de la causa</div>
+      <div class="fg"><div class="fl">A quién va dirigido *</div><input class="fi" id="pc-quien-responde" placeholder="Ej: el representante legal de FABREZE CONSTRUCCIONES S.R.L."></div>
+      <div class="fg"><div class="fl">Autos caratulados *</div><input class="fi" id="pc-caratula" placeholder="Ej: REGARETA, JULIO EDUARDO C/ FABREZE CONSTRUCCIONES SRL - ORDINARIO - ESTATUTOS ESPECIALES - Expte. Nº 8812217"></div>
+    </div>
+    <div class="card card-doc">
+      <div class="card-title">Posiciones</div>
+      <div class="hint" style="margin-top:-6px;margin-bottom:10px">Cada una se arma como "Para que jure como es cierto, que [lo que escribas acá]" — no hace falta repetir esa frase.</div>
+      <div id="pc-posiciones-list"></div>
+      <button class="btn-sm" onclick="pcAgregarPosicion()">+ Agregar posición</button>
+    </div>
+    <div class="card card-doc">
+      <button class="btn-primary" id="pc-btn-generar" onclick="generarPliegoConfesional()" style="width:100%;padding:12px">✨ Generar</button>
+    </div>
+    <div class="card card-doc" id="pc-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Borrador generado</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTextarea('pc-resultado')">📋 Copiar texto</button>
+          <button class="btn-sm" id="pc-btn-docx" onclick="descargarPresentacionDocx('pc')">⬇️ Descargar Word (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="pc-resultado" style="min-height:260px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
     </div>
   </div>
 
@@ -3561,7 +3665,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='aced-cl-search'){var acedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});ACED_CLIENTE_VINCULADO_ID=acedCl?acedCl.id:null;}if(inputId==='mcbu-cl-search'){var mcbuCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});MCBU_CLIENTE_VINCULADO_ID=mcbuCl?mcbuCl.id:null;}if(inputId==='pc-cl-search'){var pcCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});PC_CLIENTE_VINCULADO_ID=pcCl?pcCl.id:null;}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -3604,6 +3708,21 @@ var ESCRITO_CONFIG={
     cont:'es-form-cedula-testigos',dinamicos:['ced-testigos-list'],resultado:null,
     contador:'CED_TESTIGO_COUNTER',nombre:'Cédula a testigos',campoTitulo:'ced-autos',
     despues:function(){}
+  },
+  acompana_cedulas:{
+    cont:'es-form-acompana-cedulas',dinamicos:[],resultado:'aced-resultado-card',
+    contador:null,nombre:'Acompaña cédulas testigos',campoTitulo:'aced-caratula',
+    extras:['es-representacion'],despues:function(){}
+  },
+  manifiesta_cbu:{
+    cont:'es-form-manifiesta-cbu',dinamicos:[],resultado:'mcbu-resultado-card',
+    contador:null,nombre:'Manifiesta CBU',campoTitulo:'mcbu-caratula',
+    extras:['es-representacion'],despues:function(){}
+  },
+  pliego_confesional:{
+    cont:'es-form-pliego-confesional',dinamicos:['pc-posiciones-list'],resultado:'pc-resultado-card',
+    contador:'PC_POSICION_COUNTER',nombre:'Pliego confesional',campoTitulo:'pc-caratula',
+    extras:['es-representacion'],despues:function(){}
   }
 };
 
@@ -3731,6 +3850,8 @@ function retomarBorradorEscrito(id){
   if(cfg.contador&&maxIdx>=0){
     if(cfg.contador==='ES_CORR_COUNTER')ES_CORR_COUNTER=maxIdx+1;
     if(cfg.contador==='DART_FILA_COUNTER')DART_FILA_COUNTER=maxIdx+1;
+    if(cfg.contador==='CED_TESTIGO_COUNTER')CED_TESTIGO_COUNTER=maxIdx+1;
+    if(cfg.contador==='PC_POSICION_COUNTER')PC_POSICION_COUNTER=maxIdx+1;
   }
 
   // 2) Ahora si los valores
@@ -3800,13 +3921,19 @@ function cambiarTipoEscrito(){
   var esAccidente=tipo==='telegrama_accidente';
   var esDemandaArt=tipo==='demanda_art_rechazo';
   var esCedulaTestigos=tipo==='cedula_testigos';
-  var otro=esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos;
+  var esAcompanaCedulas=tipo==='acompana_cedulas';
+  var esManifiestaCbu=tipo==='manifiesta_cbu';
+  var esPliegoConfesional=tipo==='pliego_confesional';
+  var otro=esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos||esAcompanaCedulas||esManifiestaCbu||esPliegoConfesional;
   document.getElementById('es-form-denuncia').style.display=otro?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
   document.getElementById('es-form-accidente').style.display=esAccidente?'block':'none';
   document.getElementById('es-form-demanda-art').style.display=esDemandaArt?'block':'none';
   document.getElementById('es-form-cedula-testigos').style.display=esCedulaTestigos?'block':'none';
+  document.getElementById('es-form-acompana-cedulas').style.display=esAcompanaCedulas?'block':'none';
+  document.getElementById('es-form-manifiesta-cbu').style.display=esManifiestaCbu?'block':'none';
+  document.getElementById('es-form-pliego-confesional').style.display=esPliegoConfesional?'block':'none';
   // La representacion legal interviene en los escritos que se firman (denuncia
   // y demanda), no en los telegramas ni en las cedulas: esos cierran con el
   // nombre del estudio.
@@ -3818,6 +3945,9 @@ function cambiarTipoEscrito(){
   }
   if(esCedulaTestigos&&document.getElementById('ced-testigos-list').children.length===0){
     cedAgregarTestigo();
+  }
+  if(esPliegoConfesional&&document.getElementById('pc-posiciones-list').children.length===0){
+    pcAgregarPosicion();
   }
 }
 
@@ -3831,7 +3961,8 @@ function toggleRegimenDespidoIndirecto(){
 // valida el nombre, no solo el id), se sube solo a su carpeta de Drive.
 var DI_CLIENTE_VINCULADO_ID=null, DART_CLIENTE_VINCULADO_ID=null,
     TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null,
-    CED_CLIENTE_VINCULADO_ID=null, AC_CLIENTE_VINCULADO_ID=null;
+    CED_CLIENTE_VINCULADO_ID=null, AC_CLIENTE_VINCULADO_ID=null,
+    ACED_CLIENTE_VINCULADO_ID=null, MCBU_CLIENTE_VINCULADO_ID=null, PC_CLIENTE_VINCULADO_ID=null;
 
 function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombreArchivo){
   if(!clienteId)return;
@@ -4414,6 +4545,156 @@ function generarCedulasTestigos(){
     });
   }
   procesarUno(0);
+}
+
+function copiarTextarea(id){
+  var ta=document.getElementById(id);
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(function(){showToast('Copiado al portapapeles ✓');}).catch(function(){document.execCommand('copy');showToast('Copiado ✓');});
+}
+
+var PC_POSICION_COUNTER=0;
+function pcAgregarPosicion(){
+  var idx=PC_POSICION_COUNTER++;
+  var div=document.createElement('div');
+  div.id='pc-posicion-'+idx;
+  div.style.cssText='border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg3)';
+  div.innerHTML=
+    '<div class="fg" style="margin-bottom:6px"><div class="fl">Para que jure como es cierto, que...</div><input class="fi" id="pc-posicion-txt-'+idx+'" placeholder="Ej: el actor comenzó a prestar servicios el día 01 de agosto de 2017"></div>'+
+    '<button onclick="document.getElementById(\'pc-posicion-'+idx+'\').remove();" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕ Quitar</button>';
+  document.getElementById('pc-posiciones-list').appendChild(div);
+}
+
+function generarAcompanaCedulas(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var caratula=v('aced-caratula');
+  if(!caratula){alert('Falta la carátula del expediente.');return;}
+  var btn=document.getElementById('aced-btn-generar');
+  btn.disabled=true;btn.textContent='Generando...';
+  fetch(BOT_URL+'/generar-acompana-cedulas',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({caratula:caratula,representacion:v('es-representacion')})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('aced-resultado').value=data.texto;
+      document.getElementById('aced-resultado-card').style.display='block';
+      document.getElementById('aced-resultado-card').scrollIntoView({behavior:'smooth'});
+      showToast('Borrador generado ✓ — revisalo antes de usarlo');
+    }else{
+      alert('No se pudo generar: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor. Probá de nuevo en unos segundos.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar';
+  });
+}
+
+function generarManifiestaCbu(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var camara=v('mcbu-camara'), caratula=v('mcbu-caratula');
+  var incluirCbuActor=document.getElementById('mcbu-incluir-cbu-actor').checked;
+  var incluirHonorarios=document.getElementById('mcbu-incluir-honorarios').checked;
+  if(!camara||!caratula){alert('Falta la cámara/juzgado o la carátula del expediente.');return;}
+  if(!incluirCbuActor&&!incluirHonorarios){alert('Elegí al menos qué vas a acompañar.');return;}
+  var btn=document.getElementById('mcbu-btn-generar');
+  btn.disabled=true;btn.textContent='Generando...';
+  fetch(BOT_URL+'/generar-manifiesta-cbu',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      camara:camara,caratula:caratula,representacion:v('es-representacion'),
+      incluirCbuActor:incluirCbuActor,actorNombre:v('mcbu-actor-nombre'),actorCbu:v('mcbu-actor-cbu'),
+      incluirHonorarios:incluirHonorarios
+    })
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('mcbu-resultado').value=data.texto;
+      document.getElementById('mcbu-resultado-card').style.display='block';
+      document.getElementById('mcbu-resultado-card').scrollIntoView({behavior:'smooth'});
+      showToast('Borrador generado ✓ — revisalo antes de usarlo');
+    }else{
+      alert('No se pudo generar: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor. Probá de nuevo en unos segundos.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar';
+  });
+}
+
+function generarPliegoConfesional(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var quienResponde=v('pc-quien-responde'), caratula=v('pc-caratula');
+  if(!quienResponde||!caratula){alert('Falta a quién va dirigido o la carátula del expediente.');return;}
+  var posiciones=[];
+  Array.prototype.forEach.call(document.getElementById('pc-posiciones-list').children,function(row){
+    var idx=row.id.replace('pc-posicion-','');
+    var txt=v('pc-posicion-txt-'+idx);
+    if(txt)posiciones.push(txt);
+  });
+  if(posiciones.length===0){alert('Agregá al menos una posición.');return;}
+  var btn=document.getElementById('pc-btn-generar');
+  btn.disabled=true;btn.textContent='Generando...';
+  fetch(BOT_URL+'/generar-pliego-confesional',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({quienResponde:quienResponde,caratula:caratula,representacion:v('es-representacion'),posiciones:posiciones})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('pc-resultado').value=data.texto;
+      document.getElementById('pc-resultado-card').style.display='block';
+      document.getElementById('pc-resultado-card').scrollIntoView({behavior:'smooth'});
+      showToast('Borrador generado ✓ — revisalo antes de usarlo');
+    }else{
+      alert('No se pudo generar: '+(data.detalle||'error desconocido'));
+    }
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor. Probá de nuevo en unos segundos.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ Generar';
+  });
+}
+
+var PRESENTACION_CLIENTE_VINCULADO={
+  aced:function(){return ACED_CLIENTE_VINCULADO_ID;},
+  mcbu:function(){return MCBU_CLIENTE_VINCULADO_ID;},
+  pc:function(){return PC_CLIENTE_VINCULADO_ID;}
+};
+var PRESENTACION_NOMBRE_ARCHIVO={
+  aced:'Acompaña cédulas testigos',
+  mcbu:'Manifiesta CBU',
+  pc:'Pliego confesional'
+};
+
+function descargarPresentacionDocx(prefijo){
+  var texto=document.getElementById(prefijo+'-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var representacion=document.getElementById('es-representacion').value;
+  var clienteNombreLink=document.getElementById(prefijo+'-cl-search').value.trim();
+
+  var btn=document.getElementById(prefijo+'-btn-docx');
+  var textoOriginal=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+
+  fetch(BOT_URL+'/generar-presentacion-docx',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({texto:texto,representacion:representacion})
+  }).then(function(r){
+    if(!r.ok)throw new Error('error');
+    return r.blob();
+  }).then(function(blob){
+    var nombreArchivo=PRESENTACION_NOMBRE_ARCHIVO[prefijo]+(clienteNombreLink?(' - '+clienteNombreLink):'')+'.docx';
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=nombreArchivo;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Word generado ✓');
+    subirEscritoADriveClienteVinculado(PRESENTACION_CLIENTE_VINCULADO[prefijo](),clienteNombreLink,blob,nombreArchivo);
+  }).catch(function(){
+    showToast('⚠ No se pudo generar el Word.');
+  }).finally(function(){
+    btn.disabled=false;btn.textContent=textoOriginal;
+  });
 }
 
 function datosDemandaArt(){

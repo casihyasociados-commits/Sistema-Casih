@@ -3476,6 +3476,239 @@ def extraer_telegrama():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp, 200
 
+# ---------------------------------------------------------------------------
+# Presentaciones simples (sin IA): acompaña cédulas testigos, manifiesta CBU,
+# pliego de posiciones confesional. Mismo patrón de firma que construir_docx_denuncia,
+# pero sin renglón de firma del cliente (las firma solo el/los abogados).
+# ---------------------------------------------------------------------------
+
+def _nombres_abogados_intro(representacion):
+    abogados = FIRMAS_ABOGADOS.get(representacion, FIRMAS_ABOGADOS['ciardiello'])
+    return ' y '.join(a[0] for a in abogados)
+
+def construir_docx_presentacion(texto, representacion):
+    doc = Document()
+
+    section = doc.sections[0]
+    section.left_margin = Cm(3)
+    section.right_margin = Cm(2.5)
+    section.top_margin = Cm(2.5)
+    section.bottom_margin = Cm(2.5)
+
+    estilo = doc.styles['Normal']
+    estilo.font.name = 'Times New Roman'
+    estilo.font.size = Pt(12)
+    estilo.paragraph_format.line_spacing = 1.15
+    estilo.paragraph_format.space_after = Pt(0)
+
+    bloques = [b.strip('\n') for b in texto.split('\n\n') if b.strip()]
+
+    for i, bloque in enumerate(bloques):
+        primera_linea = bloque.split('\n')[0].strip()
+        if i == 0 and primera_linea == primera_linea.upper() and len(primera_linea) < 60:
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for j, linea in enumerate(bloque.split('\n')):
+                if j > 0:
+                    p.add_run().add_break()
+                p.add_run(linea).bold = True
+            continue
+
+        if bloque.strip().upper().startswith('SERÁ JUSTICIA'):
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.add_run(bloque.strip()).bold = True
+            continue
+
+        p = doc.add_paragraph(bloque)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p.paragraph_format.first_line_indent = Cm(1.25)
+
+    doc.add_paragraph()
+    doc.add_paragraph()
+
+    abogados = FIRMAS_ABOGADOS.get(representacion, FIRMAS_ABOGADOS['ciardiello'])
+    tabla = doc.add_table(rows=1, cols=len(abogados))
+    celdas = tabla.rows[0].cells
+    for i, (nombre_ab, titulo_ab, mp_ab) in enumerate(abogados):
+        _agregar_firma(celdas[i], nombre_ab, titulo_ab, mp_ab)
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+def armar_texto_acompana_cedulas(d):
+    caratula = (d.get('caratula') or '').strip()
+    nombres_ab = _nombres_abogados_intro(d.get('representacion'))
+    return (
+        'AGREGA\n\n'
+        'Sr. Juez:\n\n'
+        'Ab. %s, por la participación y en el carácter conferido en estos autos '
+        'caratulados, \u201c%s\u201d, con domicilio procesal en calle Arturo M. Bas '
+        'N\u00ba 389 Piso 1 Of. \u201cA\u201d de la Ciudad de C\u00f3rdoba, ante V.S. '
+        'comparezco y digo:\n\n'
+        'Se acompa\u00f1an al presente las c\u00e9dulas de notificaci\u00f3n debidamente '
+        'diligenciadas correspondientes a los testigos ofrecidos por esta parte.\n\n'
+        'PETITUM: Por lo mencionado a V.S. pido:\n'
+        '- Tenga por acompa\u00f1adas las c\u00e9dulas de notificaci\u00f3n diligenciadas.\n'
+        '- Tenga presente lo manifestado.\n\n'
+        'Proveer de conformidad,\n\n'
+        'SER\u00c1 JUSTICIA.'
+        % (nombres_ab, caratula)
+    )
+
+def armar_texto_manifiesta_cbu(d):
+    camara = (d.get('camara') or '').strip()
+    caratula = (d.get('caratula') or '').strip()
+    nombres_ab = _nombres_abogados_intro(d.get('representacion'))
+
+    partes = [
+        'MANIFIESTO - ACOMPA\u00d1O\n\n%s:\n\nAb. %s, por la participaci\u00f3n que '
+        'acordada en car\u00e1cter de letrado apoderado de la parte actora en estos '
+        'autos caratulados: \u201c%s\u201d, con domicilio procesal en calle Arturo M. '
+        'Bas. N\u00ba 389 1\u00ba Oficina \u201cA\u201d de la Ciudad de C\u00f3rdoba, '
+        'ante V.E. comparece y dice:' % (camara, nombres_ab, caratula)
+    ]
+
+    romanos = ['I', 'II', 'III', 'IV']
+    idx = 0
+    if d.get('incluirCbuActor'):
+        partes.append(
+            '%s) Que vengo a acompa\u00f1ar constancia de CBU y CUIL del actor %s, '
+            'correspondientes a la cuenta denunciada bajo juramento N\u00ba%s, a los '
+            'fines de la transferencia del capital convenido en el acuerdo '
+            'transaccional arribado en las presentes actuaciones.'
+            % (romanos[idx], (d.get('actorNombre') or '').strip(), (d.get('actorCbu') or '').strip())
+        )
+        idx += 1
+    if d.get('incluirHonorarios'):
+        partes.append(
+            '%s) Asimismo, vengo a acompa\u00f1ar constancias de CBU, CUIT y facturas '
+            'de honorarios profesionales de los Dres. %s, a los fines de la '
+            'percepci\u00f3n de los honorarios profesionales acordados en autos.'
+            % (romanos[idx], nombres_ab)
+        )
+        idx += 1
+
+    partes.append(
+        'Por lo expuesto a V.E. solicito:\nA) Provea de conformidad a lo solicitado.\n\n'
+        'SER\u00c1 JUSTICIA.'
+    )
+    return '\n\n'.join(partes)
+
+def armar_texto_pliego_confesional(d):
+    quien = (d.get('quienResponde') or '').strip()
+    caratula = (d.get('caratula') or '').strip()
+    posiciones = [(p or '').strip() for p in (d.get('posiciones') or []) if (p or '').strip()]
+
+    intro = (
+        'Pliego de posiciones a tenor del cual deber\u00e1 responder %s en los autos '
+        'caratulados: \u201c%s\u201d.' % (quien, caratula)
+    )
+    items = [
+        '%d) Para que jure como es cierto, que %s' % (i + 1, p if p.endswith('.') else p + '.')
+        for i, p in enumerate(posiciones)
+    ]
+    return intro + '\n\n' + '\n\n'.join(items)
+
+@app.route('/generar-acompana-cedulas', methods=['POST', 'OPTIONS'])
+def generar_acompana_cedulas():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+    d = request.get_json(silent=True) or {}
+    if not (d.get('caratula') or '').strip():
+        resp = jsonify({"status": "error", "detalle": "Falta la car\u00e1tula del expediente."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    texto = armar_texto_acompana_cedulas(d)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+@app.route('/generar-manifiesta-cbu', methods=['POST', 'OPTIONS'])
+def generar_manifiesta_cbu():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+    d = request.get_json(silent=True) or {}
+    if not (d.get('caratula') or '').strip() or not (d.get('camara') or '').strip():
+        resp = jsonify({"status": "error", "detalle": "Falta la c\u00e1mara/juzgado o la car\u00e1tula del expediente."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    if not d.get('incluirCbuActor') and not d.get('incluirHonorarios'):
+        resp = jsonify({"status": "error", "detalle": "Eleg\u00ed al menos qu\u00e9 vas a acompa\u00f1ar (CBU del actor y/o de honorarios)."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    texto = armar_texto_manifiesta_cbu(d)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+@app.route('/generar-pliego-confesional', methods=['POST', 'OPTIONS'])
+def generar_pliego_confesional():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+    d = request.get_json(silent=True) or {}
+    if not (d.get('caratula') or '').strip() or not (d.get('quienResponde') or '').strip():
+        resp = jsonify({"status": "error", "detalle": "Falta la car\u00e1tula o a qui\u00e9n va dirigido el pliego."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    if not [p for p in (d.get('posiciones') or []) if (p or '').strip()]:
+        resp = jsonify({"status": "error", "detalle": "Agreg\u00e1 al menos una posici\u00f3n."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+    texto = armar_texto_pliego_confesional(d)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+@app.route('/generar-presentacion-docx', methods=['POST', 'OPTIONS'])
+def generar_presentacion_docx():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    body = request.get_json(silent=True) or {}
+    texto = (body.get('texto') or '').strip()
+    representacion = body.get('representacion') or ''
+
+    if not texto:
+        resp = jsonify({"status": "error", "detalle": "Falta el texto de la presentaci\u00f3n."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    try:
+        buffer = construir_docx_presentacion(texto, representacion)
+    except Exception as e:
+        print("Error generando docx de presentación:", str(e))
+        resp = jsonify({"status": "error", "detalle": "No se pudo generar el archivo Word."})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    resp = send_file(
+        buffer,
+        as_attachment=True,
+        download_name='presentacion.docx',
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 @app.route('/', methods=['GET'])
 def health():
     return "Servidor del Bot activo y funcionando correctamente.", 200
