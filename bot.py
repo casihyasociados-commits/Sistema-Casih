@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import time
 import base64
 import zipfile
 from pypdf import PdfReader
@@ -812,11 +813,29 @@ def consultar_correo_ca(prefijo, numero):
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'X-Requested-With': 'XMLHttpRequest',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-        'Referer': 'https://www.correoargentino.com.ar/formularios/ondnc'
+        'Referer': 'https://www.correoargentino.com.ar/formularios/ondnc',
+        'Origin': 'https://www.correoargentino.com.ar',
+        'Accept': 'text/html, */*; q=0.01',
+        'Accept-Language': 'es-AR,es;q=0.9'
     }
     payload = {'action': 'ondnc', 'id': numero, 'producto': prefijo, 'pais': 'AR'}
-    resp = requests.post(CA_URL, data=payload, headers=headers, timeout=30)
-    resp.raise_for_status()
+
+    # El Correo devuelve 503 de forma intermitente (posible limitación a la IP
+    # del servidor, no del sitio en si) -- reintentamos antes de darnos por
+    # vencidos con esta pieza.
+    ultimo_error = None
+    for intento in range(3):
+        if intento > 0:
+            time.sleep(2 * intento)
+        try:
+            resp = requests.post(CA_URL, data=payload, headers=headers, timeout=30)
+            resp.raise_for_status()
+            break
+        except Exception as e:
+            ultimo_error = e
+    else:
+        raise ultimo_error
+
     html = resp.content.decode('utf-8-sig', errors='replace')
 
     if 'No se encontraron resultados' in html:
@@ -957,6 +976,8 @@ def revisar_correos():
         # Solo las piezas con codigo cargado y todavia no finalizadas
         if not data.get('caPrefijo') or not data.get('caNumero') or data.get('caFinalizado'):
             continue
+        if consultados > 0:
+            time.sleep(1.5)  # espaciar las consultas para no parecer scraping en rafaga
         consultados += 1
         resultado = procesar_pieza_correo(doc, data, grupo)
         contadores[resultado] = contadores.get(resultado, 0) + 1
