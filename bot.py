@@ -822,13 +822,14 @@ def consultar_correo_ca(prefijo, numero):
 
     # El Correo devuelve 503 de forma intermitente (posible limitación a la IP
     # del servidor, no del sitio en si) -- reintentamos antes de darnos por
-    # vencidos con esta pieza.
+    # vencidos con esta pieza. Los tiempos son cortos porque Render corta la
+    # respuesta a los 30s en total para todas las piezas juntas.
     ultimo_error = None
-    for intento in range(3):
+    for intento in range(2):
         if intento > 0:
-            time.sleep(2 * intento)
+            time.sleep(1.5)
         try:
-            resp = requests.post(CA_URL, data=payload, headers=headers, timeout=30)
+            resp = requests.post(CA_URL, data=payload, headers=headers, timeout=10)
             resp.raise_for_status()
             break
         except Exception as e:
@@ -977,7 +978,7 @@ def revisar_correos():
         if not data.get('caPrefijo') or not data.get('caNumero') or data.get('caFinalizado'):
             continue
         if consultados > 0:
-            time.sleep(1.5)  # espaciar las consultas para no parecer scraping en rafaga
+            time.sleep(0.5)  # espaciar las consultas para no parecer scraping en rafaga
         consultados += 1
         resultado = procesar_pieza_correo(doc, data, grupo)
         contadores[resultado] = contadores.get(resultado, 0) + 1
