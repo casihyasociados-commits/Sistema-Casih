@@ -1,0 +1,26 @@
+name: Revisar Seguimiento de Correo Argentino
+on:
+  workflow_dispatch: # Se puede disparar manualmente
+  schedule:
+    - cron: '0 12 * * *' # 09:00 hora de Argentina (UTC-3)
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v3
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+      - name: Ejecutar chequeo de correo
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          GREEN_API_INSTANCE_ID: ${{ secrets.GREEN_API_INSTANCE_ID }}
+          GREEN_API_TOKEN: ${{ secrets.GREEN_API_TOKEN }}
+          GREEN_API_GROUP_ID: ${{ secrets.GREEN_API_GROUP_ID }}
+        run: |
+          python revisar_correos_standalone.py
