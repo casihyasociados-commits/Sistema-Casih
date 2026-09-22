@@ -820,22 +820,12 @@ def consultar_correo_ca(prefijo, numero):
     }
     payload = {'action': 'ondnc', 'id': numero, 'producto': prefijo, 'pais': 'AR'}
 
-    # El Correo devuelve 503 de forma intermitente (posible limitación a la IP
-    # del servidor, no del sitio en si) -- reintentamos antes de darnos por
-    # vencidos con esta pieza. Los tiempos son cortos porque Render corta la
-    # respuesta a los 30s en total para todas las piezas juntas.
-    ultimo_error = None
-    for intento in range(2):
-        if intento > 0:
-            time.sleep(1.5)
-        try:
-            resp = requests.post(CA_URL, data=payload, headers=headers, timeout=10)
-            resp.raise_for_status()
-            break
-        except Exception as e:
-            ultimo_error = e
-    else:
-        raise ultimo_error
+    # A veces el Correo directamente cuelga la conexion en vez de devolver un
+    # error rapido -- un timeout corto evita que una sola pieza se coma todo
+    # el presupuesto de 30s que tiene Render para la respuesta completa (con
+    # varias piezas en la misma corrida, no hay margen para reintentar).
+    resp = requests.post(CA_URL, data=payload, headers=headers, timeout=8)
+    resp.raise_for_status()
 
     html = resp.content.decode('utf-8-sig', errors='replace')
 
