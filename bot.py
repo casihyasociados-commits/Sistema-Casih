@@ -310,6 +310,7 @@ def nuevo_cliente_remoto():
         'fechaIngreso': (d.get('fechaIngreso') or '').strip(),
         'fechaEgreso': (d.get('fechaEgreso') or '').strip(),
         'jornada': (d.get('jornada') or '').strip(),
+        'tareas': (d.get('tareas') or '').strip(),
         'tipo': 'posible',
         'origenFormulario': True,
         'expte': '', 'etapa': 'Cita', 'fecha': hoy,
@@ -380,129 +381,6 @@ def revisar_seguimientos_tareas():
     except Exception as e:
         print("Error revisando seguimientos de tareas:", str(e))
     resp = jsonify({"avisadas": avisadas})
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
-
-# --- DOCTOR IA (chat de consultas del estudio) ---
-SYSTEM_PROMPT_DOCTOR_IA = (
-    "Sos 'Dr IA', el asistente interno del estudio jurídico Casih & Asociados, "
-    "especializado en derecho laboral. El estudio ejerce en Córdoba Capital, Argentina "
-    "-- además de la LCT y la legislación nacional, tené siempre presente la normativa "
-    "y los criterios procesales propios de la provincia de Córdoba y su fuero laboral "
-    "cuando la consulta lo requiera (procedimiento, aranceles, competencia, criterios "
-    "de los tribunales locales). Te consulta el personal del estudio (abogados y "
-    "secretaría), no clientes externos.\n\n"
-    "Rigor y fuentes:\n"
-    "- Fundamentá tus respuestas en fuentes formales y vigentes: citá la norma y el "
-    "artículo concreto (ej. 'art. 245 LCT', 'art. X del CPT de Córdoba') en vez de "
-    "afirmaciones sueltas sin respaldo.\n"
-    "- No afirmes nada de lo que no estés razonablemente seguro. Si dudás si una norma "
-    "sigue vigente, si hubo una reforma reciente, o si el criterio varía según el "
-    "juzgado/fuero, decilo explícitamente -- nunca inventes un artículo, un fallo, una "
-    "cifra o una fecha para completar la respuesta.\n"
-    "- Tu conocimiento tiene una fecha de corte. Si la consulta puede depender de una "
-    "reforma legal o un fallo muy reciente, aclará que conviene verificarlo porque "
-    "podrías no tener esa actualización.\n\n"
-    "Estilo según el tipo de consulta:\n"
-    "- Si te piden REDACTAR un escrito (telegrama, denuncia, demanda, etc.), usá el "
-    "registro formal y las formalidades propias de ese tipo de documento.\n"
-    "- Si te consultan una DUDA o quieren entender un tema, respondé de forma clara y "
-    "explicativa, en lenguaje llano, y ejemplificá con un caso concreto cuando ayude a "
-    "que se entienda mejor.\n"
-    "- En temas con más de un criterio posible o zonas grises, decilo -- no elijas una "
-    "sola postura como si fuera la única, salvo que la ley sea clara al respecto.\n\n"
-    "- No tenés acceso a los datos de clientes ni expedientes del sistema. Si te "
-    "preguntan algo puntual de un caso concreto (fechas, montos, números de expediente), "
-    "aclará que no tenés esa información y que hay que revisarla en el sistema, salvo "
-    "que te la hayan adjuntado directamente como imagen, PDF o Word en el mensaje -- en "
-    "ese caso analizala.\n"
-    "- Recordá siempre, aunque sea brevemente, que esto es una orientación de apoyo y "
-    "no reemplaza la revisión final de un abogado antes de presentar algo o de asesorar "
-    "a un cliente con eso."
-)
-
-@app.route('/doctor-ia', methods=['POST', 'OPTIONS'])
-def doctor_ia():
-    if request.method == 'OPTIONS':
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        return resp, 200
-
-    d = request.get_json(silent=True) or {}
-    pregunta = (d.get('mensaje') or '').strip()
-    adjunto = d.get('adjunto') or {}
-    mime = (adjunto.get('mimeType') or '').strip()
-    data_b64 = (adjunto.get('data') or '').strip()
-    if not pregunta and not (mime and data_b64):
-        resp = jsonify({"error": "Falta el mensaje."})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        return resp, 400
-
-    mensajes = []
-    for h in (d.get('historial') or [])[-60:]:
-        role = h.get('role')
-        texto = (h.get('texto') or '').strip()
-        if role in ('user', 'assistant') and texto:
-            mensajes.append({"role": role, "content": texto})
-
-    if mime and data_b64:
-        bloque_archivo = None
-        texto_docx = None
-        if mime == 'application/pdf':
-            bloque_archivo = {"type": "document", "source": {"type": "base64", "media_type": mime, "data": data_b64}}
-        elif mime.startswith('image/'):
-            bloque_archivo = {"type": "image", "source": {"type": "base64", "media_type": mime, "data": data_b64}}
-        elif mime == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-            try:
-                doc = Document(BytesIO(base64.b64decode(data_b64)))
-                partes = [p.text for p in doc.paragraphs if p.text.strip()]
-                for tabla in doc.tables:
-                    for fila in tabla.rows:
-                        partes.append(' | '.join(c.text.strip() for c in fila.cells))
-                texto_docx = '\n'.join(partes).strip() or '(el documento parece estar vacío)'
-            except Exception as e:
-                print("Error leyendo Word adjunto:", str(e))
-                texto_docx = None
-
-        if bloque_archivo:
-            contenido = [bloque_archivo]
-            if pregunta:
-                contenido.append({"type": "text", "text": pregunta})
-            mensajes.append({"role": "user", "content": contenido})
-        elif texto_docx is not None:
-            texto_final = "Contenido del archivo Word adjunto:\n\n%s" % texto_docx
-            if pregunta:
-                texto_final += "\n\n---\n\n%s" % pregunta
-            mensajes.append({"role": "user", "content": texto_final})
-        else:
-            mensajes.append({"role": "user", "content": pregunta or "No se pudo leer el archivo adjunto."})
-    else:
-        mensajes.append({"role": "user", "content": pregunta})
-
-    api_key = os.environ.get('ANTHROPIC_API_KEY')
-    if not api_key:
-        resp = jsonify({"error": "Falta configurar ANTHROPIC_API_KEY en el servidor."})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        return resp, 500
-
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model="claude-sonnet-5",
-            max_tokens=2200,
-            system=SYSTEM_PROMPT_DOCTOR_IA,
-            messages=mensajes
-        )
-        respuesta = "".join([b.text for b in response.content if b.type == "text"]).strip()
-    except Exception as e:
-        print("Error en Dr IA:", str(e))
-        resp = jsonify({"error": "No se pudo obtener respuesta. Probá de nuevo."})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        return resp, 500
-
-    resp = jsonify({"respuesta": respuesta})
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 

@@ -87,12 +87,13 @@
     <div class="hint" style="margin-bottom:14px">Completá esto si tu consulta tiene que ver con tu empleo — si no, podés dejarlo en blanco.</div>
     <div class="fg"><div class="fl">Empresa donde trabajás / trabajabas</div><input class="fi" id="empleador" placeholder="Nombre de la empresa"></div>
     <div class="g2">
-      <div class="fg"><div class="fl">¿Qué tareas hacés?</div><input class="fi" id="categoria" placeholder="Ej: vendedor, administrativo, oficial..."></div>
+      <div class="fg"><div class="fl">Puesto / categoría</div><input class="fi" id="categoria" placeholder="Ej: vendedor, administrativo, oficial..."></div>
       <div class="fg"><div class="fl">Antigüedad</div><input class="fi" id="antiguedad" placeholder="Ej: 3 años y 2 meses"></div>
     </div>
     <div class="fg"><div class="fl">Fecha en la que entraste a trabajar</div><input class="fi" id="fechaIngreso" placeholder="Ej: 03/2010"></div>
     <div class="fg"><div class="checkfg"><input type="checkbox" id="seguisTrabajando" checked><label for="seguisTrabajando">¿Seguís trabajando ahí?</label></div></div>
     <div class="fg"><div class="fl">Días y horario que trabajás / trabajabas</div><input class="fi" id="jornada" placeholder="Ej: Lunes a Viernes, 7 a 17 hs"></div>
+    <div class="fg"><div class="fl">¿Qué tareas hacías en tu trabajo?</div><textarea class="fta" id="tareas" placeholder="Ej: atención al público, cobro en caja, reposición de mercadería..."></textarea></div>
   </div>
 
   <input class="fi hp" id="sitioWeb" tabindex="-1" autocomplete="off">
@@ -130,7 +131,7 @@ function enviarFormulario(){
     estadoCivil:v('estadoCivil'),nacionalidad:v('nacionalidad'),situacionLaboral:v('situacionLaboral'),
     fechaNac:v('fechaNac'),tel:tel,email:v('email'),domicilio:v('domicilio'),ciudad:v('ciudad'),
     empleador:v('empleador'),categoria:v('categoria'),antiguedad:v('antiguedad'),
-    fechaIngreso:v('fechaIngreso'),fechaEgreso:seguisTrabajando?'':'Ya no trabaja ahí (fecha a confirmar)',jornada:v('jornada'),
+    fechaIngreso:v('fechaIngreso'),fechaEgreso:seguisTrabajando?'':'Ya no trabaja ahí (fecha a confirmar)',jornada:v('jornada'),tareas:v('tareas'),
     sitioWeb:v('sitioWeb')
   };
 
