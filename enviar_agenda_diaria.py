@@ -1,5 +1,7 @@
 import os
+import sys
 import json
+import time
 import requests
 from datetime import datetime
 import pytz
@@ -32,11 +34,22 @@ def obtener_eventos_hoy():
     
     return events_result.get('items', []), ahora.strftime("%d/%m/%Y")
 
+def get_render(path):
+    ultimo=None
+    for intento in range(3):
+        try:
+            r = requests.get("https://sistema-casih.onrender.com" + path, timeout=60)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            ultimo = e
+            print("Intento %d fallido en %s: %s" % (intento + 1, path, str(e)))
+            time.sleep(5)
+    raise ultimo
+
 def obtener_recordatorios_hoy():
     try:
-        r = requests.get("https://sistema-casih.onrender.com/recordatorios-del-dia", timeout=15)
-        r.raise_for_status()
-        return r.json()
+        return get_render("/recordatorios-del-dia")
     except Exception as e:
         print("No se pudieron obtener los recordatorios del día:", str(e))
         return []
@@ -46,9 +59,7 @@ def obtener_recordatorios_hoy():
 # sistema (ahí se borran y dejan de aparecer acá).
 def obtener_tareas_pendientes():
     try:
-        r = requests.get("https://sistema-casih.onrender.com/tareas-pendientes", timeout=15)
-        r.raise_for_status()
-        return r.json()
+        return get_render("/tareas-pendientes")
     except Exception as e:
         print("No se pudieron obtener las tareas pendientes:", str(e))
         return []
@@ -74,18 +85,29 @@ def enviar_whatsapp(mensaje):
     }
     
     headers = {'Content-Type': 'application/json'}
-    response = requests.post(url, json=payload, headers=headers)
+    response = requests.post(url, json=payload, headers=headers, timeout=30)
+    print("Green API respondió:", response.status_code, response.text[:300])
+    response.raise_for_status()
     return response.json()
 
 if __name__ == "__main__":
     try:
-        eventos, fecha_str = obtener_eventos_hoy()
+        calendario_ok = True
+        try:
+            eventos, fecha_str = obtener_eventos_hoy()
+        except Exception as e:
+            print("No se pudo leer el calendario:", str(e))
+            calendario_ok = False
+            eventos = []
+            fecha_str = datetime.now(pytz.timezone('America/Argentina/Buenos_Aires')).strftime("%d/%m/%Y")
         recordatorios = obtener_recordatorios_hoy()
         tareas = obtener_tareas_pendientes()
 
         texto_mensaje = f"📅 *AGENDA DEL DÍA - {fecha_str}*\n\n"
 
-        if not eventos:
+        if not calendario_ok:
+            texto_mensaje += "⚠️ No se pudo leer el calendario hoy, revisá la agenda a mano.\n"
+        elif not eventos:
             texto_mensaje += "🎉 ¡No hay eventos ni reuniones agendadas para hoy!\n"
         else:
             for evento in eventos:
@@ -118,3 +140,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print("Error al ejecutar el script:", str(e))
+        sys.exit(1)
