@@ -97,9 +97,13 @@ def diagnosticar_envio(res):
     token = os.environ.get("GREEN_API_TOKEN")
     group_id = os.environ.get("GREEN_API_GROUP_ID") or ""
     base = f"https://api.green-api.com/waInstance{instance_id}"
+    instancia_ok = True
     try:
         estado = requests.get(f"{base}/getStateInstance/{token}", timeout=20)
         print("Estado de la instancia:", estado.status_code, estado.text[:200])
+        if '"authorized"' not in estado.text:
+            print("⚠️ La instancia de Green API NO está autorizada: hay que volver a vincular el WhatsApp escaneando el QR en console.green-api.com")
+            instancia_ok = False
     except Exception as e:
         print("No se pudo consultar el estado de la instancia:", str(e))
     try:
@@ -109,6 +113,7 @@ def diagnosticar_envio(res):
     except Exception as e:
         print("No se pudo consultar el estado del mensaje:", str(e))
     print("Destino termina en:", group_id[-12:] if group_id else "(vacío)")
+    return instancia_ok
 
 if __name__ == "__main__":
     try:
@@ -155,7 +160,9 @@ if __name__ == "__main__":
 
         res = enviar_whatsapp(texto_mensaje)
         print("Mensaje enviado con éxito:", res)
-        diagnosticar_envio(res)
+        if not diagnosticar_envio(res):
+            revisar_seguimientos_tareas()
+            sys.exit(1)
 
         revisar_seguimientos_tareas()
 
