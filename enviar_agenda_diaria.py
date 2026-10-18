@@ -90,6 +90,26 @@ def enviar_whatsapp(mensaje):
     response.raise_for_status()
     return response.json()
 
+def diagnosticar_envio(res):
+    # Green API acepta el mensaje (200 + idMessage) aunque despues no se entregue:
+    # consultamos el estado de la instancia y el estado del mensaje para saber por que.
+    instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
+    token = os.environ.get("GREEN_API_TOKEN")
+    group_id = os.environ.get("GREEN_API_GROUP_ID") or ""
+    base = f"https://api.green-api.com/waInstance{instance_id}"
+    try:
+        estado = requests.get(f"{base}/getStateInstance/{token}", timeout=20)
+        print("Estado de la instancia:", estado.status_code, estado.text[:200])
+    except Exception as e:
+        print("No se pudo consultar el estado de la instancia:", str(e))
+    try:
+        time.sleep(6)
+        msg = requests.post(f"{base}/getMessage/{token}", json={"chatId": group_id, "idMessage": (res or {}).get("idMessage")}, timeout=20)
+        print("Estado del mensaje:", msg.status_code, msg.text[:400])
+    except Exception as e:
+        print("No se pudo consultar el estado del mensaje:", str(e))
+    print("Destino termina en:", group_id[-12:] if group_id else "(vacío)")
+
 if __name__ == "__main__":
     try:
         calendario_ok = True
@@ -135,6 +155,7 @@ if __name__ == "__main__":
 
         res = enviar_whatsapp(texto_mensaje)
         print("Mensaje enviado con éxito:", res)
+        diagnosticar_envio(res)
 
         revisar_seguimientos_tareas()
 
