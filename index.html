@@ -281,6 +281,30 @@ tr:hover td{background:var(--bg3);}
 .client-card.descartado{border-left-color:var(--red);opacity:0.7;}
 .cc-name{font-size:var(--fs-md);font-weight:600;color:var(--text);margin-bottom:3px;}
 .cc-motivo{font-size:var(--fs-xs);color:var(--text3);margin-bottom:var(--sp-3);}
+.chk-box{margin-top:var(--sp-3);padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);cursor:pointer;}
+.chk-box:hover{border-color:var(--border2);}
+.chk-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin:6px 0;}
+.chk-bar>span{display:block;height:100%;background:var(--green);}
+.chk-prox{font-size:var(--fs-xs);color:var(--text2);}
+.chk-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
+.chk-row:last-child{border-bottom:none;}
+.chk-row.hecho .chk-txt{text-decoration:line-through;color:var(--text3);}
+.chk-meta{font-size:11px;color:var(--text3);}
+.chk-dots{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0;}
+.chk-dot{width:14px;height:14px;border-radius:50%;background:var(--border2);box-sizing:border-box;}
+.chk-dot.ok{background:var(--green);}
+.chk-dot.cur{background:transparent;border:2px solid var(--blue);}
+.seg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;align-items:start;}
+.seg-col-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.seg-count{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:1px 8px;font-size:11px;}
+.seg-card{background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px;cursor:pointer;}
+.seg-card:hover{border-color:var(--border2);}
+.seg-card.warn{border-left-color:var(--orange);}
+.seg-card.late{border-left-color:var(--red);}
+.seg-name{font-size:14px;font-weight:600;color:var(--text);}
+.seg-days{font-size:11px;color:var(--text3);}
+.seg-card.warn .seg-days{color:var(--orange);}
+.seg-card.late .seg-days{color:var(--red);font-weight:600;}
 .cc-meta{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-3);}
 .cc-notes{font-size:var(--fs-sm);color:var(--text2);background:var(--bg3);border-radius:var(--radius-sm);padding:var(--sp-2) var(--sp-3);line-height:1.5;margin-bottom:var(--sp-3);}
 .cc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-2);}
@@ -476,6 +500,10 @@ input.currency-input{letter-spacing:0.5px;}
       <button class="btn-primary" onclick="abrirModalNuevoCliente()" style="font-size:13px;padding:7px 16px">+ Nuevo cliente</button>
     </div>
     <div id="dash-nuevos-clientes-list"><div class="hint">Sin clientes nuevos para revisar ✓</div></div>
+  </div>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--blue)">
+    <div style="margin-bottom:14px"><span class="card-head-title">📋 Seguimiento de clientes — pasos pendientes</span></div>
+    <div id="dash-seguimiento-list"><div class="hint">Ningún cliente con pasos pendientes ✓</div></div>
   </div>
   <div class="home-nav">
     <button class="home-nav-btn" onclick="goTo('clientes')"><span class="home-nav-ico">👥</span><span class="home-nav-lbl">Clientes</span><span class="home-nav-desc">Información de clientes del estudio<br>Seguimiento de correos de TCL</span></button>
@@ -1653,10 +1681,18 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="modal-bg" id="m-avanzar-cliente" onclick="if(event.target===this)closeModal('m-avanzar-cliente')">
   <div class="modal"><h3 id="m-avanzar-titulo">Avanzar con el cliente</h3>
     <div class="fg"><div class="fl">Origen</div><select class="fs" id="av-origen"><option value="">— Sin especificar —</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
+    <div class="fg"><div class="fl">Pasos de seguimiento</div><select class="fs" id="av-checklist"><option value="">— Sin pasos por ahora —</option><option value="negro">Trabajo en negro</option><option value="despido">Despido</option><option value="enfermedad">Enfermedad profesional</option></select></div>
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Servicios a ofrecer</div>
     <div id="av-servicios-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
     <div class="fg"><div class="fl">Documentación a pedir / datos útiles</div><textarea class="fta" id="av-nota" placeholder="Ej: traer telegramas, recibos de sueldo, alta temprana..."></textarea></div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-avanzar-cliente')">Cancelar</button><button class="btn-primary" onclick="guardarAvanzarCliente()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-checklist" onclick="if(event.target===this)closeModal('m-checklist')">
+  <div class="modal"><h3 id="chk-titulo">Seguimiento</h3>
+    <div id="chk-body"></div>
+    <div class="modal-footer" id="chk-footer"><button class="btn-sm" onclick="closeModal('m-checklist')">Cerrar</button></div>
   </div>
 </div>
 
@@ -2174,7 +2210,7 @@ function initClientes(){
     query.onSnapshot(function(snap){
       CLIENTES_CACHE=[];
       snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_CACHE.push(x);});
-      updCStats();renderClientes();updateClienteSelects();renderDashNuevosClientes();
+      updCStats();renderClientes();updateClienteSelects();renderDashNuevosClientes();renderDashSeguimiento();refrescarChecklistAbierto();
     },function(err){
       if(ordered&&err.code==='failed-precondition')startListener(false);
     });
@@ -2361,10 +2397,154 @@ function renderClientes(){
       '<div class="cc-head"><div class="avatar '+avCls+'">'+ini(c.nombre)+'</div><div><div class="cc-name">'+c.nombre+'</div><div class="cc-motivo">'+servLbl(c)+(c.dni?' · DNI: '+c.dni:'')+'</div></div></div>'+
       '<div class="cc-meta"><span class="badge '+(eCls[c.etapa]||'b-gray')+'">'+(eLbl[c.etapa]||c.etapa||'')+'</span><span class="cc-tel">'+(c.tel||'')+'</span></div>'+
       (c.notas?'<div class="cc-notes">'+c.notas+'</div>':'')+
+      chkCardHtml(c)+
       '<div class="cc-footer" style="margin-top:var(--sp-3)"><span class="cc-expte">'+(c.expte?'Expte. '+c.expte:'Sin expediente')+'</span>'+
       '<div class="cc-actions">'+driveBtn+'<button class="btn-wa" onclick="enviarFichaWhatsApp(\''+c.id+'\')">📤 Enviar ficha por WhatsApp</button><button class="btn-sm" onclick="editCliente(\''+c.id+'\')">✏️ Editar información</button><button class="btn-sm" onclick="agregarClienteArtDesdeListado(\''+c.id+'\')">🩺 Agregar a Seguimiento ART</button>'+finBtn+'<button class="btn-danger" onclick="eliminarCliente(\''+c.id+'\')">Eliminar</button></div></div>'+
     '</div>';
   }).join('');
+}
+
+// ─── SEGUIMIENTO POR PASOS (checklist según el tipo de caso) ───
+var CHECKLIST_PLANTILLAS={
+  negro:{nombre:'Trabajo en negro',pasos:[
+    'TCL de aclare de situación laboral',
+    'Seguimiento del TCL de aclare',
+    'TCL de despido indirecto (si no hay respuesta)',
+    'Seguimiento del TCL de despido indirecto',
+    'Denuncia al Ministerio de Trabajo',
+    'Denuncia en tribunales (si no hay oferta del empleador)'
+  ]},
+  despido:{nombre:'Despido',pasos:[
+    'TCL de despido indirecto',
+    'Seguimiento del TCL de despido indirecto',
+    'Denuncia al Ministerio de Trabajo',
+    'Denuncia en tribunales (si no hay oferta del empleador)'
+  ]},
+  enfermedad:{nombre:'Enfermedad profesional',pasos:[
+    'Cita médica',
+    'El cliente se realiza los estudios',
+    'Visita al médico para el certificado'
+  ]}
+};
+var CHK_ID=null;
+function chkEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function checklistDesdePlantilla(tipo){var pl=CHECKLIST_PLANTILLAS[tipo];return pl?pl.pasos.map(function(t){return {t:t,h:false,f:'',p:''};}):[];}
+function chkProgreso(c){var l=c.checklist||[];var h=l.filter(function(x){return x.h;}).length;return {hechos:h,total:l.length,pend:l.length-h};}
+function chkProximo(c){return (c.checklist||[]).find(function(x){return !x.h;});}
+function chkDiasSinAvance(c){if(!c.checklistActualizado)return null;var d=new Date(c.checklistActualizado+'T00:00:00');return Math.max(0,Math.round((today-d)/864e5));}
+function chkTipoNombre(c){return (CHECKLIST_PLANTILLAS[c.checklistTipo]||{}).nombre||'Seguimiento';}
+
+function chkDotsHtml(c){
+  var primero=true;
+  return '<div class="chk-dots">'+(c.checklist||[]).map(function(x){
+    var cls='chk-dot';
+    if(x.h)cls+=' ok';else if(primero){cls+=' cur';primero=false;}
+    return '<span class="'+cls+'" title="'+chkEsc(x.t)+'"></span>';
+  }).join('')+'</div>';
+}
+
+function chkCardHtml(c){
+  if(c.tipo==='finalizado')return '';
+  if(!c.checklist||!c.checklist.length){
+    return '<div style="margin-top:var(--sp-3)"><button class="btn-sm" onclick="abrirChecklist(\''+c.id+'\')">📋 Armar pasos de seguimiento</button></div>';
+  }
+  var pr=chkProgreso(c),prox=chkProximo(c);
+  return '<div class="chk-box" onclick="abrirChecklist(\''+c.id+'\')">'+
+    '<div class="chk-prox"><b>📋 '+chkEsc(chkTipoNombre(c))+'</b> · '+pr.hechos+'/'+pr.total+' pasos</div>'+
+    chkDotsHtml(c)+
+    '<div class="chk-prox">'+(prox?'Próximo: <b>'+chkEsc(prox.t)+'</b>':'✅ Todos los pasos completos')+'</div>'+
+  '</div>';
+}
+
+function renderDashSeguimiento(){
+  var cont=document.getElementById('dash-seguimiento-list');
+  if(!cont)return;
+  var list=CLIENTES_CACHE.filter(function(c){return esClienteActivo(c)&&c.checklist&&c.checklist.length&&chkProgreso(c).pend>0;});
+  if(list.length===0){cont.innerHTML='<div class="hint">Ningún cliente con pasos pendientes ✓</div>';return;}
+  list.sort(function(a,b){var da=chkDiasSinAvance(a),dbb=chkDiasSinAvance(b);return (dbb==null?0:dbb)-(da==null?0:da);});
+  var tipos=Object.keys(CHECKLIST_PLANTILLAS);
+  var cols=tipos.map(function(k){
+    var items=list.filter(function(c){return c.checklistTipo===k;});
+    return {nombre:CHECKLIST_PLANTILLAS[k].nombre,items:items};
+  });
+  var otros=list.filter(function(c){return tipos.indexOf(c.checklistTipo)===-1;});
+  if(otros.length)cols.push({nombre:'Otros',items:otros});
+  cont.innerHTML='<div class="seg-grid">'+cols.map(function(col){
+    return '<div><div class="seg-col-h"><span>'+col.nombre+'</span><span class="seg-count">'+col.items.length+'</span></div>'+
+      (col.items.length?col.items.map(function(c){
+        var pr=chkProgreso(c),prox=chkProximo(c),dias=chkDiasSinAvance(c);
+        var cls=dias!=null&&dias>14?' late':dias!=null&&dias>7?' warn':'';
+        var hace=dias==null?'':(dias===0?'Avanzó hoy':'Sin avances hace '+dias+' día'+(dias===1?'':'s'));
+        return '<div class="seg-card'+cls+'" onclick="abrirChecklist(\''+c.id+'\')">'+
+          '<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span class="seg-name">'+chkEsc(c.nombre)+'</span><span class="seg-days">'+hace+'</span></div>'+
+          chkDotsHtml(c)+
+          '<div class="chk-prox">'+pr.hechos+'/'+pr.total+' · Próximo: <b>'+chkEsc(prox.t)+'</b></div>'+
+        '</div>';
+      }).join(''):'<div class="hint">Sin clientes</div>')+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+function abrirChecklist(id){CHK_ID=id;renderChecklistModal();openModal('m-checklist');}
+function refrescarChecklistAbierto(){
+  var m=document.getElementById('m-checklist');
+  if(CHK_ID&&m&&m.className.indexOf('open')>-1)renderChecklistModal();
+}
+function renderChecklistModal(){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===CHK_ID;});
+  var body=document.getElementById('chk-body'),foot=document.getElementById('chk-footer');
+  if(!c||!body)return;
+  document.getElementById('chk-titulo').textContent='Seguimiento — '+c.nombre;
+  if(!c.checklist||!c.checklist.length){
+    body.innerHTML='<div class="hint" style="margin-bottom:10px">Elegí el tipo de caso y se arma la lista de pasos:</div>'+
+      Object.keys(CHECKLIST_PLANTILLAS).map(function(k){
+        return '<button class="btn-sm" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:10px 12px" onclick="iniciarChecklist(\''+k+'\')"><b>'+CHECKLIST_PLANTILLAS[k].nombre+'</b><br><span style="color:var(--text3);font-size:11px">'+CHECKLIST_PLANTILLAS[k].pasos.length+' pasos</span></button>';
+      }).join('');
+    foot.innerHTML='<button class="btn-sm" onclick="closeModal(\'m-checklist\')">Cerrar</button>';
+    return;
+  }
+  var pr=chkProgreso(c);
+  body.innerHTML='<div class="chk-prox" style="margin-bottom:6px"><b>'+chkEsc(chkTipoNombre(c))+'</b> · '+pr.hechos+'/'+pr.total+' pasos</div>'+
+    '<div class="chk-bar"><span style="width:'+Math.round(pr.hechos*100/pr.total)+'%"></span></div>'+
+    c.checklist.map(function(x,i){
+      var meta=x.h&&x.f?'<div class="chk-meta">Hecho el '+x.f.split('-').reverse().join('/')+(x.p?' por '+chkEsc(x.p):'')+'</div>':'';
+      return '<div class="chk-row'+(x.h?' hecho':'')+'"><input type="checkbox" '+(x.h?'checked':'')+' onchange="toggleChecklistPaso('+i+')" style="margin-top:3px"><div style="flex:1"><div class="chk-txt">'+chkEsc(x.t)+'</div>'+meta+'</div><button onclick="quitarChecklistPaso('+i+')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px" title="Quitar paso">✕</button></div>';
+    }).join('')+
+    '<div style="display:flex;gap:8px;margin-top:12px"><input class="fi" id="chk-nuevo" placeholder="Agregar un paso..." onkeydown="if(event.key===\'Enter\')agregarChecklistPaso()"><button class="btn-sm" onclick="agregarChecklistPaso()">+ Agregar</button></div>';
+  foot.innerHTML='<button class="btn-danger" onclick="reiniciarChecklist()">Reiniciar pasos</button><button class="btn-sm" onclick="closeModal(\'m-checklist\')">Cerrar</button>';
+}
+function guardarChecklistCliente(lista,tipo){
+  var upd={checklist:lista,checklistActualizado:fmt(today)};
+  if(tipo)upd.checklistTipo=tipo;
+  return db.collection('clientes').doc(CHK_ID).update(upd);
+}
+function chkLista(){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===CHK_ID;});
+  return c?JSON.parse(JSON.stringify(c.checklist||[])):[];
+}
+function iniciarChecklist(tipo){guardarChecklistCliente(checklistDesdePlantilla(tipo),tipo).then(function(){showToast('Pasos armados ✓');});}
+function toggleChecklistPaso(i){
+  var l=chkLista();if(!l[i])return;
+  l[i].h=!l[i].h;
+  l[i].f=l[i].h?fmt(today):'';
+  l[i].p=l[i].h?((currentUserData&&currentUserData.nombre)||''):'';
+  guardarChecklistCliente(l);
+}
+function agregarChecklistPaso(){
+  var inp=document.getElementById('chk-nuevo');var t=inp?inp.value.trim():'';
+  if(!t)return;
+  var l=chkLista();l.push({t:t,h:false,f:'',p:''});
+  guardarChecklistCliente(l);
+}
+function quitarChecklistPaso(i){
+  var l=chkLista();if(!l[i])return;
+  if(!confirm('¿Quitar el paso "'+l[i].t+'"?'))return;
+  l.splice(i,1);
+  guardarChecklistCliente(l);
+}
+function reiniciarChecklist(){
+  if(!confirm('¿Borrar todos los pasos y empezar de nuevo?'))return;
+  guardarChecklistCliente([]);
 }
 
 // ─── DASHBOARD: CLIENTES NUEVOS POR REVISAR ───
@@ -2426,6 +2606,7 @@ function abrirAvanzarCliente(id){
   }).join('');
   document.getElementById('av-nota').value=c.notaAtencion||'';
   var origenSel=document.getElementById('av-origen');if(origenSel)origenSel.value=c.origen||'';
+  var chkSel=document.getElementById('av-checklist');if(chkSel){chkSel.value=c.checklistTipo||'';chkSel.disabled=!!(c.checklist&&c.checklist.length);}
   openModal('m-avanzar-cliente');
 }
 
@@ -2435,7 +2616,11 @@ function guardarAvanzarCliente(){
   if(servicios.length===0){alert('Elegí al menos un servicio.');return;}
   var nota=document.getElementById('av-nota').value.trim();
   var origen=document.getElementById('av-origen')?document.getElementById('av-origen').value:'';
-  db.collection('clientes').doc(AVANZAR_CLIENTE_ID).update({servicios:servicios,notaAtencion:nota,origen:origen,tipo:origen||'estudio'}).then(function(){
+  var upd={servicios:servicios,notaAtencion:nota,origen:origen,tipo:origen||'estudio'};
+  var cAv=CLIENTES_CACHE.find(function(x){return x.id===AVANZAR_CLIENTE_ID;});
+  var tipoChk=document.getElementById('av-checklist')?document.getElementById('av-checklist').value:'';
+  if(tipoChk&&cAv&&!(cAv.checklist&&cAv.checklist.length)){upd.checklistTipo=tipoChk;upd.checklist=checklistDesdePlantilla(tipoChk);upd.checklistActualizado=fmt(today);}
+  db.collection('clientes').doc(AVANZAR_CLIENTE_ID).update(upd).then(function(){
     closeModal('m-avanzar-cliente');showToast('Servicios guardados ✓');AVANZAR_CLIENTE_ID=null;
   });
 }
@@ -2966,7 +3151,9 @@ function vincularCarpeta(clienteId,nombreCliente){
 
 // BUG FIX: finalizarCliente ahora recibe correctamente nombre e id
 function finalizarCliente(id,nombre){
-  if(!confirm('¿Archivar a '+nombre+' como finalizado?'))return;
+  var cFin=CLIENTES_CACHE.find(function(x){return x.id===id;});
+  var pendFin=cFin&&cFin.checklist?chkProgreso(cFin).pend:0;
+  if(!confirm('¿Archivar a '+nombre+' como finalizado?'+(pendFin?'\n\n⚠️ Todavía tiene '+pendFin+' paso(s) de seguimiento sin completar.':'')))return;
   db.collection('clientes').doc(id).update({tipo:'finalizado',fechaFinalizado:fmt(today)}).then(function(){showToast('Cliente archivado ✓');});
 }
 
