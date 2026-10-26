@@ -1670,7 +1670,7 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="modal-bg" id="m-avanzar-cliente" onclick="if(event.target===this)closeModal('m-avanzar-cliente')">
   <div class="modal"><h3 id="m-avanzar-titulo">Avanzar con el cliente</h3>
     <div class="fg"><div class="fl">Origen</div><select class="fs" id="av-origen"><option value="">— Sin especificar —</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
-    <div class="fg"><div class="fl">Pasos de seguimiento</div><select class="fs" id="av-checklist"><option value="">— Sin pasos por ahora —</option><option value="negro">Trabajo en negro</option><option value="despido">Despido</option><option value="enfermedad">Enfermedad profesional</option></select></div>
+    <div class="fg"><div class="fl">Pasos de seguimiento</div><select class="fs" id="av-checklist"><option value="">— Sin pasos por ahora —</option><option value="negro">Trabajo en negro</option><option value="despido">Despido</option><option value="accidente">Accidente de trabajo</option><option value="enfermedad">Enfermedad profesional</option></select></div>
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Servicios a ofrecer</div>
     <div id="av-servicios-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
     <div class="fg"><div class="fl">Documentación a pedir / datos útiles</div><textarea class="fta" id="av-nota" placeholder="Ej: traer telegramas, recibos de sueldo, alta temprana..."></textarea></div>
@@ -2196,7 +2196,7 @@ function initClientes(){
     query.onSnapshot(function(snap){
       CLIENTES_CACHE=[];
       snap.forEach(function(d){var x=d.data();x.id=d.id;CLIENTES_CACHE.push(x);});
-      updCStats();renderClientes();updateClienteSelects();renderDashNuevosClientes();renderDashSeguimiento();refrescarChecklistAbierto();migrarSeguimientoArt();
+      updCStats();renderClientes();updateClienteSelects();renderDashNuevosClientes();renderDashSeguimiento();refrescarChecklistAbierto();
     },function(err){
       if(ordered&&err.code==='failed-precondition')startListener(false);
     });
@@ -2406,6 +2406,10 @@ var CHECKLIST_PLANTILLAS={
     'Denuncia al Ministerio de Trabajo',
     'Denuncia en tribunales (si no hay oferta del empleador)'
   ]},
+  accidente:{nombre:'Accidente de trabajo',pasos:[
+    'TCL de denuncia de accidente de trabajo',
+    'Seguimiento del TCL de accidente'
+  ]},
   enfermedad:{nombre:'Enfermedad profesional',pasos:[
     'Cita médica',
     'El cliente se realiza los estudios',
@@ -2465,12 +2469,12 @@ function renderDashSeguimiento(){
   list.sort(function(a,b){var da=chkDiasSinAvance(a),dbb=chkDiasSinAvance(b);return (dbb==null?0:dbb)-(da==null?0:da);});
   var tipos=Object.keys(CHECKLIST_PLANTILLAS);
   var cols=tipos.map(function(k){
-    return {nombre:CHECKLIST_PLANTILLAS[k].nombre,items:list.filter(function(c){return c.checklistTipo===k;})};
+    return {clave:k,nombre:CHECKLIST_PLANTILLAS[k].nombre,items:list.filter(function(c){return c.checklistTipo===k;})};
   });
   var otros=list.filter(function(c){return tipos.indexOf(c.checklistTipo)===-1;});
   if(otros.length)cols.push({nombre:'Otros',items:otros});
   cont.innerHTML='<div class="seg-grid">'+cols.map(function(col){
-    return '<div><div class="seg-col-h"><span>'+col.nombre+'</span><span class="seg-count">'+col.items.length+'</span></div>'+
+    return '<div><div class="seg-col-h"><span>'+col.nombre+'</span><span style="display:flex;align-items:center;gap:8px">'+(col.clave&&col.items.length?'<button onclick="vaciarSeguimientoColumna(\''+col.clave+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;text-decoration:underline">Vaciar</button>':'')+'<span class="seg-count">'+col.items.length+'</span></span></div>'+
       (col.items.length?col.items.map(function(c){
         var dias=chkDiasSinAvance(c);
         var cls=dias!=null&&dias>14?' late':dias!=null&&dias>7?' warn':'';
@@ -2523,7 +2527,7 @@ function renderChecklistModal(){
       return '<div class="chk-row'+(x.h?' hecho':'')+'"><input type="checkbox" '+(x.h?'checked':'')+' onchange="toggleChecklistPaso('+i+')" style="margin-top:3px"><div style="flex:1"><div class="chk-txt">'+chkEsc(x.t)+'</div>'+fecha+'</div><button onclick="quitarChecklistPaso('+i+')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px" title="Quitar paso">✕</button></div>';
     }).join('')+
     '<div style="display:flex;gap:8px;margin-top:12px"><input class="fi" id="chk-nuevo" placeholder="Agregar un paso..." onkeydown="if(event.key===\'Enter\')agregarChecklistPaso()"><button class="btn-sm" onclick="agregarChecklistPaso()">+ Agregar</button></div>';
-  foot.innerHTML='<button class="btn-danger" onclick="reiniciarChecklist()">Reiniciar pasos</button><button class="btn-sm" onclick="closeModal(\'m-checklist\')">Cerrar</button>';
+  foot.innerHTML='<button class="btn-danger" onclick="quitarDelSeguimiento()">Quitar del seguimiento</button><button class="btn-sm" onclick="reiniciarChecklist()">Reiniciar pasos</button><button class="btn-sm" onclick="closeModal(\'m-checklist\')">Cerrar</button>';
 }
 function guardarChecklistCliente(lista,tipo){
   var upd={checklist:lista};
@@ -2559,6 +2563,24 @@ function quitarChecklistPaso(i){
   l.splice(i,1);
   guardarChecklistCliente(l);
 }
+var CHK_VACIO={checklist:[],checklistTipo:'',checklistActualizado:''};
+function quitarDelSeguimiento(){
+  var c=CLIENTES_CACHE.find(function(x){return x.id===CHK_ID;});
+  if(!c)return;
+  if(!confirm('¿Quitar a '+c.nombre+' del seguimiento?\n\nNo se borra de Clientes, solo sale del tablero y se pierde su lista de pasos.'))return;
+  db.collection('clientes').doc(CHK_ID).update(CHK_VACIO).then(function(){
+    closeModal('m-checklist');showToast(c.nombre+' quitado del seguimiento');
+  });
+}
+function vaciarSeguimientoColumna(tipo){
+  var lista=CLIENTES_CACHE.filter(function(c){return c.checklistTipo===tipo&&c.checklist&&c.checklist.length;});
+  if(!lista.length)return;
+  var nombre=(CHECKLIST_PLANTILLAS[tipo]||{}).nombre||tipo;
+  if(!confirm('¿Quitar del seguimiento a los '+lista.length+' clientes de "'+nombre+'"?\n\nNo se borran de Clientes, solo salen del tablero y se pierden sus listas de pasos.'))return;
+  Promise.all(lista.map(function(c){return db.collection('clientes').doc(c.id).update(CHK_VACIO);})).then(function(){
+    showToast(lista.length+' clientes quitados de '+nombre);
+  });
+}
 function reiniciarChecklist(){
   if(!confirm('¿Borrar todos los pasos y empezar de nuevo?'))return;
   guardarChecklistCliente([]);
@@ -2569,7 +2591,8 @@ var CHK_AG_CLIENTE=null;
 function chkSugerirTipo(c){
   var t=((c.servicios||[]).join(' ')+' '+(c.motivo||'')).toLowerCase();
   if(t.indexOf('despido')>-1)return 'despido';
-  if(t.indexOf('art')>-1||t.indexOf('enfermedad')>-1||t.indexOf('accidente')>-1)return 'enfermedad';
+  if(t.indexOf('accidente')>-1)return 'accidente';
+  if(t.indexOf('art')>-1||t.indexOf('enfermedad')>-1)return 'enfermedad';
   return '';
 }
 function abrirAgregarChecklist(){
