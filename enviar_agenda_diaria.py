@@ -64,6 +64,13 @@ def obtener_tareas_pendientes():
         print("No se pudieron obtener las tareas pendientes:", str(e))
         return []
 
+def obtener_pasos_seguimiento_hoy():
+    try:
+        return get_render("/seguimiento-pasos-del-dia")
+    except Exception as e:
+        print("No se pudieron obtener los pasos de seguimiento:", str(e))
+        return []
+
 def revisar_seguimientos_tareas():
     try:
         r = requests.get("https://sistema-casih.onrender.com/revisar-seguimientos-tareas", timeout=15)
@@ -127,6 +134,7 @@ if __name__ == "__main__":
             fecha_str = datetime.now(pytz.timezone('America/Argentina/Buenos_Aires')).strftime("%d/%m/%Y")
         recordatorios = obtener_recordatorios_hoy()
         tareas = obtener_tareas_pendientes()
+        pasos = obtener_pasos_seguimiento_hoy()
 
         texto_mensaje = f"📅 *AGENDA DEL DÍA - {fecha_str}*\n\n"
 
@@ -152,6 +160,13 @@ if __name__ == "__main__":
                     texto_mensaje += f"🕐 *{r['hora']} hs* - {r['texto']}\n"
                 else:
                     texto_mensaje += f"• {r['texto']}\n"
+
+        if pasos:
+            texto_mensaje += "\n📋 *PASOS DE SEGUIMIENTO*\n\n"
+            for p in pasos:
+                fecha_corta = "/".join(reversed(p['fecha'].split('-')[1:]))
+                estado = "vencido, previsto el %s" % fecha_corta if p.get('vencido') else "para hoy"
+                texto_mensaje += f"• {p['cliente']} — {p['paso']} ({estado})\n"
 
         if tareas:
             texto_mensaje += "\n✅ *TAREAS PENDIENTES*\n\n"

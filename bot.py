@@ -385,6 +385,37 @@ def revisar_seguimientos_tareas():
     return resp
 
 # --- RECORDATORIOS DE HOY (para sumar a la agenda diaria) ---
+# --- PASOS DE SEGUIMIENTO QUE VENCEN HOY (para sumar a la agenda diaria) ---
+# El sistema guarda en cada cliente la fecha prevista mas cercana de sus pasos
+# pendientes (chkProxFecha), asi que alcanza con una consulta por rango en vez
+# de leer todos los clientes.
+@app.route('/seguimiento-pasos-del-dia', methods=['GET'])
+def seguimiento_pasos_del_dia():
+    tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    hoy = datetime.now(tz).strftime('%Y-%m-%d')
+    items = []
+    try:
+        docs = db.collection('clientes').where('chkProxFecha', '>', '').where('chkProxFecha', '<=', hoy).stream()
+        for doc in docs:
+            c = doc.to_dict()
+            if c.get('tipo') in ('finalizado', 'consumidor'):
+                continue
+            for paso in (c.get('checklist') or []):
+                fp = paso.get('fp') or ''
+                if not paso.get('h') and fp and fp <= hoy:
+                    items.append({
+                        'cliente': (c.get('nombre') or '').strip(),
+                        'paso': (paso.get('t') or '').strip(),
+                        'fecha': fp,
+                        'vencido': fp < hoy
+                    })
+    except Exception as e:
+        print("Error leyendo pasos de seguimiento:", str(e))
+    items.sort(key=lambda x: x['fecha'])
+    resp = jsonify(items)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 @app.route('/recordatorios-del-dia', methods=['GET'])
 def recordatorios_del_dia():
     tz = pytz.timezone('America/Argentina/Buenos_Aires')
