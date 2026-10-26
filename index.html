@@ -284,6 +284,10 @@ tr:hover td{background:var(--bg3);}
 .chk-ag-row:last-child{border-bottom:none;}
 .chk-ag-row:hover{background:var(--bg3);}
 .chk-ag-row.sel{background:var(--blue-bg);border-left-color:var(--blue);}
+.seg-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.seg-tab{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-family:inherit;cursor:pointer;}
+.seg-tab:hover{border-color:var(--text3);}
+.seg-tab.activa{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);font-weight:600;}
 .chk-info{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);}
 .chk-info b{color:var(--text3);font-weight:500;}
 .chk-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;}
@@ -1682,6 +1686,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="modal"><h3>Agregar cliente al seguimiento</h3>
     <div class="fg">
       <div class="fl">Elegí el cliente *</div>
+      <div class="seg-tabs" id="chk-ag-origen" style="margin-bottom:8px"></div>
       <input class="fi" id="chk-ag-search" placeholder="Filtrar por nombre..." oninput="chkAgRender()" autocomplete="off">
       <div id="chk-ag-lista" style="max-height:260px;overflow-y:auto;margin-top:8px;border:1px solid var(--border);border-radius:8px"></div>
     </div>
@@ -2461,11 +2466,20 @@ function chkCardHtml(c){
   '</div>';
 }
 
+var SEG_VISTA='estudio';
+function cambiarVistaSeguimiento(v){SEG_VISTA=v;renderDashSeguimiento();}
 function renderDashSeguimiento(){
   var cont=document.getElementById('dash-seguimiento-list');
   if(!cont)return;
-  var list=CLIENTES_CACHE.filter(function(c){return esClienteActivo(c)&&c.checklist&&c.checklist.length;});
-  if(list.length===0){cont.innerHTML='<div class="hint">Ningún cliente en seguimiento todavía. Usá "+ Agregar cliente existente".</div>';return;}
+  var todos=CLIENTES_CACHE.filter(function(c){return esClienteActivo(c)&&c.checklist&&c.checklist.length;});
+  if(todos.length===0){cont.innerHTML='<div class="hint">Ningún cliente en seguimiento todavía. Usá "+ Agregar cliente existente".</div>';return;}
+  var nEstudio=todos.filter(function(c){return tipoCliente(c)!=='publicidad';}).length;
+  var nWeb=todos.length-nEstudio;
+  var tabs='<div class="seg-tabs">'+
+    '<button class="seg-tab'+(SEG_VISTA==='estudio'?' activa':'')+'" onclick="cambiarVistaSeguimiento(\'estudio\')">Clientes del estudio ('+nEstudio+')</button>'+
+    '<button class="seg-tab'+(SEG_VISTA==='publicidad'?' activa':'')+'" onclick="cambiarVistaSeguimiento(\'publicidad\')">Clientes web / publicidad ('+nWeb+')</button>'+
+  '</div>';
+  var list=todos.filter(function(c){return (tipoCliente(c)==='publicidad')===(SEG_VISTA==='publicidad');});
   list.sort(function(a,b){var da=chkDiasSinAvance(a),dbb=chkDiasSinAvance(b);return (dbb==null?0:dbb)-(da==null?0:da);});
   var tipos=Object.keys(CHECKLIST_PLANTILLAS);
   var cols=tipos.map(function(k){
@@ -2473,7 +2487,7 @@ function renderDashSeguimiento(){
   });
   var otros=list.filter(function(c){return tipos.indexOf(c.checklistTipo)===-1;});
   if(otros.length)cols.push({nombre:'Otros',items:otros});
-  cont.innerHTML='<div class="seg-grid">'+cols.map(function(col){
+  cont.innerHTML=tabs+'<div class="seg-grid">'+cols.map(function(col){
     return '<div><div class="seg-col-h"><span>'+col.nombre+'</span><span style="display:flex;align-items:center;gap:8px">'+(col.clave&&col.items.length?'<button onclick="vaciarSeguimientoColumna(\''+col.clave+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;text-decoration:underline">Vaciar</button>':'')+'<span class="seg-count">'+col.items.length+'</span></span></div>'+
       (col.items.length?col.items.map(function(c){
         var dias=chkDiasSinAvance(c);
@@ -2587,7 +2601,8 @@ function reiniciarChecklist(){
 }
 
 // ─── Agregar un cliente existente al seguimiento (desde el Inicio) ───
-var CHK_AG_CLIENTE=null;
+var CHK_AG_CLIENTE=null,CHK_AG_ORIGEN='';
+function chkAgOrigen(v){CHK_AG_ORIGEN=v;chkAgRender();}
 function chkSugerirTipo(c){
   var t=((c.servicios||[]).join(' ')+' '+(c.motivo||'')).toLowerCase();
   if(t.indexOf('despido')>-1)return 'despido';
@@ -2596,7 +2611,7 @@ function chkSugerirTipo(c){
   return '';
 }
 function abrirAgregarChecklist(){
-  CHK_AG_CLIENTE=null;
+  CHK_AG_CLIENTE=null;CHK_AG_ORIGEN=SEG_VISTA;
   document.getElementById('chk-ag-search').value='';
   document.getElementById('chk-ag-sugerencia').textContent='';
   document.getElementById('chk-ag-tipo').innerHTML=Object.keys(CHECKLIST_PLANTILLAS).map(function(k){
@@ -2608,12 +2623,16 @@ function abrirAgregarChecklist(){
 function chkAgRender(){
   var q=document.getElementById('chk-ag-search').value.trim().toLowerCase();
   var cont=document.getElementById('chk-ag-lista');
+  document.getElementById('chk-ag-origen').innerHTML=[['','Todos'],['estudio','Del estudio'],['publicidad','Web / Publicidad']].map(function(o){
+    return '<button class="seg-tab'+(CHK_AG_ORIGEN===o[0]?' activa':'')+'" onclick="chkAgOrigen(\''+o[0]+'\')">'+o[1]+'</button>';
+  }).join('');
   var lista=CLIENTES_CACHE.filter(function(c){
+    if(CHK_AG_ORIGEN&&tipoCliente(c)!==CHK_AG_ORIGEN)return false;
     return esClienteActivo(c)&&!(c.checklist&&c.checklist.length)&&(!q||(c.nombre||'').toLowerCase().indexOf(q)>-1);
   }).sort(function(a,b){return (a.nombre||'').localeCompare(b.nombre||'');});
   if(!lista.length){cont.innerHTML='<div style="padding:12px;font-size:13px;color:var(--text3)">No hay clientes disponibles'+(q?' con ese nombre':'')+'</div>';return;}
   cont.innerHTML=lista.map(function(c){
-    var det=[c.tel,servLbl(c),c.empleador].filter(function(x){return x;}).map(chkEsc).join(' · ');
+    var det=[tipoCliente(c)==='publicidad'?'Web':'Estudio',c.tel,servLbl(c),c.empleador].filter(function(x){return x;}).map(chkEsc).join(' · ');
     var sel=CHK_AG_CLIENTE&&CHK_AG_CLIENTE.id===c.id?' sel':'';
     return '<div class="chk-ag-row'+sel+'" data-chk-id="'+c.id+'"><b>'+chkEsc(c.nombre)+'</b>'+(det?'<div class="chk-meta">'+det+'</div>':'')+'</div>';
   }).join('');
