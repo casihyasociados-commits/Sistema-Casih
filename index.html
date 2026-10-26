@@ -280,6 +280,13 @@ tr:hover td{background:var(--bg3);}
 .chk-row:last-child{border-bottom:none;}
 .chk-row.hecho .chk-txt{text-decoration:line-through;color:var(--text3);}
 .chk-meta{font-size:11px;color:var(--text3);}
+.chk-ag-row{padding:9px 12px;border-bottom:1px solid var(--border);border-left:3px solid transparent;cursor:pointer;font-size:13px;}
+.chk-ag-row:last-child{border-bottom:none;}
+.chk-ag-row:hover{background:var(--bg3);}
+.chk-ag-row.sel{background:var(--blue-bg);border-left-color:var(--blue);}
+.chk-info{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);}
+.chk-info b{color:var(--text3);font-weight:500;}
+.chk-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;}
 .chk-dots{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0;}
 .chk-dot{width:14px;height:14px;border-radius:50%;background:var(--border2);box-sizing:border-box;}
 .chk-dot.ok{background:var(--green);}
@@ -1673,16 +1680,12 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-chk-agregar" onclick="if(event.target===this)closeModal('m-chk-agregar')">
   <div class="modal"><h3>Agregar cliente al seguimiento</h3>
-    <div class="fg" style="position:relative">
-      <div class="fl">Buscar cliente *</div>
-      <input class="fi" id="chk-ag-search" placeholder="Escribí el nombre..." oninput="chkAgFiltrar()" onfocus="chkAgFiltrar()" autocomplete="off">
-      <div id="chk-ag-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+    <div class="fg">
+      <div class="fl">Elegí el cliente *</div>
+      <input class="fi" id="chk-ag-search" placeholder="Filtrar por nombre..." oninput="chkAgRender()" autocomplete="off">
+      <div id="chk-ag-lista" style="max-height:260px;overflow-y:auto;margin-top:8px;border:1px solid var(--border);border-radius:8px"></div>
     </div>
-    <div class="fg" id="chk-ag-sel-wrap" style="display:none">
-      <div class="fl">Cliente elegido</div>
-      <div id="chk-ag-sel" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:13px;color:var(--text)"></div>
-    </div>
-    <div class="fg"><div class="fl">Servicio *</div><select class="fs" id="chk-ag-tipo"></select></div>
+    <div class="fg"><div class="fl">Servicio *</div><select class="fs" id="chk-ag-tipo"></select><div class="hint" id="chk-ag-sugerencia" style="margin-top:4px"></div></div>
     <div class="hint">Solo aparecen clientes activos que todavía no tienen pasos de seguimiento.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-chk-agregar')">Cancelar</button><button class="btn-primary" onclick="guardarAgregarChecklist()">Agregar</button></div>
   </div>
@@ -2460,6 +2463,7 @@ function renderDashSeguimiento(){
         var hace=dias==null?'':(dias===0?'Avanzó hoy':'Sin avances hace '+dias+' día'+(dias===1?'':'s'));
         return '<div class="seg-card'+cls+'" onclick="abrirChecklist(\''+c.id+'\')">'+
           '<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span class="seg-name">'+chkEsc(c.nombre)+'</span><span class="seg-days">'+hace+'</span></div>'+
+          (c.tel?'<div class="chk-meta">📞 '+chkEsc(c.tel)+'</div>':'')+
           chkDotsHtml(c)+
           '<div class="chk-prox">'+pr.hechos+'/'+pr.total+' · Próximo: <b>'+chkEsc(prox.t)+'</b></div>'+
         '</div>';
@@ -2468,6 +2472,18 @@ function renderDashSeguimiento(){
   }).join('')+'</div>';
 }
 
+function chkInfoHtml(c){
+  var campos=[['Teléfono',c.tel],['DNI',c.dni],['Empleador',c.empleador],['Antigüedad',c.antiguedad],['Servicios',servLbl(c)],['Etapa',eLbl[c.etapa]||c.etapa],['Expediente',c.expte]]
+    .filter(function(p){return p[1];})
+    .map(function(p){return '<div><b>'+p[0]+':</b> '+chkEsc(p[1])+'</div>';}).join('');
+  var notas=(c.tareas?'<div style="margin-top:6px"><b>Tareas que hacía:</b> '+chkEsc(c.tareas)+'</div>':'')+
+    (c.notas?'<div style="margin-top:6px"><b>Descripción del caso:</b> '+chkEsc(c.notas)+'</div>':'')+
+    (c.notaAtencion?'<div style="margin-top:6px"><b>📌 '+chkEsc(c.notaAtencion)+'</b></div>':'');
+  var acciones='<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-sm" onclick="abrirClienteDesdeChecklist(\''+c.id+'\')">✏️ Ver / editar cliente</button>'+
+    (c.drive?'<a class="btn-cpub" href="'+chkEsc(c.drive)+'" target="_blank">📁 Carpeta en Drive</a>':'')+'</div>';
+  return '<div class="chk-info"><div class="chk-info-grid">'+(campos||'<div>Sin datos cargados</div>')+'</div>'+notas+acciones+'</div>';
+}
+function abrirClienteDesdeChecklist(id){closeModal('m-checklist');editCliente(id);}
 function abrirChecklist(id){CHK_ID=id;renderChecklistModal();openModal('m-checklist');}
 function refrescarChecklistAbierto(){
   var m=document.getElementById('m-checklist');
@@ -2479,7 +2495,7 @@ function renderChecklistModal(){
   if(!c||!body)return;
   document.getElementById('chk-titulo').textContent='Seguimiento — '+c.nombre;
   if(!c.checklist||!c.checklist.length){
-    body.innerHTML='<div class="hint" style="margin-bottom:10px">Elegí el tipo de caso y se arma la lista de pasos:</div>'+
+    body.innerHTML=chkInfoHtml(c)+'<div class="hint" style="margin-bottom:10px">Elegí el tipo de caso y se arma la lista de pasos:</div>'+
       Object.keys(CHECKLIST_PLANTILLAS).map(function(k){
         return '<button class="btn-sm" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:10px 12px" onclick="iniciarChecklist(\''+k+'\')"><b>'+CHECKLIST_PLANTILLAS[k].nombre+'</b><br><span style="color:var(--text3);font-size:11px">'+CHECKLIST_PLANTILLAS[k].pasos.length+' pasos</span></button>';
       }).join('');
@@ -2487,7 +2503,7 @@ function renderChecklistModal(){
     return;
   }
   var pr=chkProgreso(c);
-  body.innerHTML='<div class="chk-prox" style="margin-bottom:6px"><b>'+chkEsc(chkTipoNombre(c))+'</b> · '+pr.hechos+'/'+pr.total+' pasos</div>'+
+  body.innerHTML=chkInfoHtml(c)+'<div class="chk-prox" style="margin-bottom:6px"><b>'+chkEsc(chkTipoNombre(c))+'</b> · '+pr.hechos+'/'+pr.total+' pasos</div>'+
     '<div class="chk-bar"><span style="width:'+Math.round(pr.hechos*100/pr.total)+'%"></span></div>'+
     c.checklist.map(function(x,i){
       var meta=x.h&&x.f?'<div class="chk-meta">Hecho el '+x.f.split('-').reverse().join('/')+(x.p?' por '+chkEsc(x.p):'')+'</div>':'';
@@ -2532,37 +2548,42 @@ function reiniciarChecklist(){
 
 // ─── Agregar un cliente existente al seguimiento (desde el Inicio) ───
 var CHK_AG_CLIENTE=null;
+function chkSugerirTipo(c){
+  var t=((c.servicios||[]).join(' ')+' '+(c.motivo||'')).toLowerCase();
+  if(t.indexOf('despido')>-1)return 'despido';
+  if(t.indexOf('art')>-1||t.indexOf('enfermedad')>-1||t.indexOf('accidente')>-1)return 'enfermedad';
+  return '';
+}
 function abrirAgregarChecklist(){
   CHK_AG_CLIENTE=null;
   document.getElementById('chk-ag-search').value='';
-  document.getElementById('chk-ag-dropdown').style.display='none';
-  document.getElementById('chk-ag-sel-wrap').style.display='none';
+  document.getElementById('chk-ag-sugerencia').textContent='';
   document.getElementById('chk-ag-tipo').innerHTML=Object.keys(CHECKLIST_PLANTILLAS).map(function(k){
     return '<option value="'+k+'">'+CHECKLIST_PLANTILLAS[k].nombre+'</option>';
   }).join('');
+  chkAgRender();
   openModal('m-chk-agregar');
 }
-function chkAgFiltrar(){
+function chkAgRender(){
   var q=document.getElementById('chk-ag-search').value.trim().toLowerCase();
-  var dd=document.getElementById('chk-ag-dropdown');
+  var cont=document.getElementById('chk-ag-lista');
   var lista=CLIENTES_CACHE.filter(function(c){
     return esClienteActivo(c)&&!(c.checklist&&c.checklist.length)&&(!q||(c.nombre||'').toLowerCase().indexOf(q)>-1);
-  }).sort(function(a,b){return (a.nombre||'').localeCompare(b.nombre||'');}).slice(0,30);
-  if(!lista.length){dd.innerHTML='<div style="padding:10px;font-size:13px;color:var(--text3)">Ningún cliente disponible con ese nombre</div>';dd.style.display='block';return;}
-  dd.innerHTML=lista.map(function(c){
-    return '<div data-chk-id="'+c.id+'" style="padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)">'+chkEsc(c.nombre)+'<span style="color:var(--text3)">'+(c.tel?' · '+chkEsc(c.tel):'')+'</span></div>';
+  }).sort(function(a,b){return (a.nombre||'').localeCompare(b.nombre||'');});
+  if(!lista.length){cont.innerHTML='<div style="padding:12px;font-size:13px;color:var(--text3)">No hay clientes disponibles'+(q?' con ese nombre':'')+'</div>';return;}
+  cont.innerHTML=lista.map(function(c){
+    var det=[c.tel,servLbl(c),c.empleador].filter(function(x){return x;}).map(chkEsc).join(' · ');
+    var sel=CHK_AG_CLIENTE&&CHK_AG_CLIENTE.id===c.id?' sel':'';
+    return '<div class="chk-ag-row'+sel+'" data-chk-id="'+c.id+'"><b>'+chkEsc(c.nombre)+'</b>'+(det?'<div class="chk-meta">'+det+'</div>':'')+'</div>';
   }).join('');
-  dd.style.display='block';
-  dd.querySelectorAll('[data-chk-id]').forEach(function(el){
-    el.addEventListener('mousedown',function(e){
-      e.preventDefault();
+  cont.querySelectorAll('[data-chk-id]').forEach(function(el){
+    el.addEventListener('click',function(){
       CHK_AG_CLIENTE=CLIENTES_CACHE.find(function(x){return x.id===el.getAttribute('data-chk-id');})||null;
-      dd.style.display='none';
-      if(CHK_AG_CLIENTE){
-        document.getElementById('chk-ag-search').value=CHK_AG_CLIENTE.nombre;
-        document.getElementById('chk-ag-sel').innerHTML='<b>'+chkEsc(CHK_AG_CLIENTE.nombre)+'</b>'+(CHK_AG_CLIENTE.tel?' · '+chkEsc(CHK_AG_CLIENTE.tel):'');
-        document.getElementById('chk-ag-sel-wrap').style.display='block';
-      }
+      var sug=CHK_AG_CLIENTE?chkSugerirTipo(CHK_AG_CLIENTE):'';
+      var sugEl=document.getElementById('chk-ag-sugerencia');
+      if(sug){document.getElementById('chk-ag-tipo').value=sug;sugEl.textContent='Sugerido según el servicio cargado en la ficha del cliente.';}
+      else sugEl.textContent='';
+      chkAgRender();
     });
   });
 }
