@@ -500,7 +500,7 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
   <div class="card" style="margin-bottom:24px;border-left:3px solid var(--blue)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <span class="card-head-title">📋 Seguimiento de clientes — pasos pendientes</span>
+      <span class="card-head-title">📋 Seguimiento de clientes</span>
       <button class="btn-primary" onclick="abrirAgregarChecklist()" style="font-size:13px;padding:7px 16px">+ Agregar cliente existente</button>
     </div>
     <div id="dash-seguimiento-list"><div class="hint">Ningún cliente con pasos pendientes ✓</div></div>
@@ -2417,16 +2417,31 @@ function chkEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</
 function checklistDesdePlantilla(tipo){var pl=CHECKLIST_PLANTILLAS[tipo];return pl?pl.pasos.map(function(t){return {t:t,h:false,f:'',p:''};}):[];}
 function chkProgreso(c){var l=c.checklist||[];var h=l.filter(function(x){return x.h;}).length;return {hechos:h,total:l.length,pend:l.length-h};}
 function chkProximo(c){return (c.checklist||[]).find(function(x){return !x.h;});}
-function chkDiasSinAvance(c){if(!c.checklistActualizado)return null;var d=new Date(c.checklistActualizado+'T00:00:00');return Math.max(0,Math.round((today-d)/864e5));}
+function chkUltimoAvance(c){
+  var fechas=(c.checklist||[]).filter(function(x){return x.h&&x.f;}).map(function(x){return x.f;}).sort();
+  return fechas.length?fechas[fechas.length-1]:(c.checklistActualizado||'');
+}
+function chkDiasSinAvance(c){
+  var f=chkUltimoAvance(c);if(!f)return null;
+  var d=new Date(f+'T00:00:00');return Math.max(0,Math.round((today-d)/864e5));
+}
+function chkAvanceTxt(c){
+  var d=chkDiasSinAvance(c);if(d==null)return '';
+  return 'Último avance: '+(d===0?'hoy':'hace '+d+' día'+(d===1?'':'s'));
+}
 function chkTipoNombre(c){return (CHECKLIST_PLANTILLAS[c.checklistTipo]||{}).nombre||'Seguimiento';}
 
 function chkDotsHtml(c){
-  var primero=true;
-  return '<div class="chk-dots">'+(c.checklist||[]).map(function(x){
-    var cls='chk-dot';
-    if(x.h)cls+=' ok';else if(primero){cls+=' cur';primero=false;}
-    return '<span class="'+cls+'" title="'+chkEsc(x.t)+'"></span>';
-  }).join('')+'</div>';
+  // Solo los pasos hechos y el que sigue: la cantidad total cambia en cada caso.
+  var l=c.checklist||[],hechos=l.filter(function(x){return x.h;}).length;
+  var out='';
+  for(var i=0;i<hechos;i++)out+='<span class="chk-dot ok"></span>';
+  if(l.some(function(x){return !x.h;}))out+='<span class="chk-dot cur"></span>';
+  return '<div class="chk-dots">'+(out||'<span class="chk-meta">Sin pasos hechos todavía</span>')+'</div>';
+}
+function chkProxHtml(c){
+  var prox=chkProximo(c);
+  return prox?'Próximo: <b>'+chkEsc(prox.t)+'</b>':'<span style="color:var(--orange)">Sin próximo paso definido — agregá el siguiente</span>';
 }
 
 function chkCardHtml(c){
@@ -2434,38 +2449,37 @@ function chkCardHtml(c){
   if(!c.checklist||!c.checklist.length){
     return '<div style="margin-top:var(--sp-3)"><button class="btn-sm" onclick="abrirChecklist(\''+c.id+'\')">📋 Armar pasos de seguimiento</button></div>';
   }
-  var pr=chkProgreso(c),prox=chkProximo(c);
   return '<div class="chk-box" onclick="abrirChecklist(\''+c.id+'\')">'+
-    '<div class="chk-prox"><b>📋 '+chkEsc(chkTipoNombre(c))+'</b> · '+pr.hechos+'/'+pr.total+' pasos</div>'+
+    '<div class="chk-prox"><b>📋 '+chkEsc(chkTipoNombre(c))+'</b></div>'+
     chkDotsHtml(c)+
-    '<div class="chk-prox">'+(prox?'Próximo: <b>'+chkEsc(prox.t)+'</b>':'✅ Todos los pasos completos')+'</div>'+
+    '<div class="chk-prox">'+chkProxHtml(c)+'</div>'+
+    '<div class="chk-meta" style="margin-top:2px">'+chkAvanceTxt(c)+'</div>'+
   '</div>';
 }
 
 function renderDashSeguimiento(){
   var cont=document.getElementById('dash-seguimiento-list');
   if(!cont)return;
-  var list=CLIENTES_CACHE.filter(function(c){return esClienteActivo(c)&&c.checklist&&c.checklist.length&&chkProgreso(c).pend>0;});
-  if(list.length===0){cont.innerHTML='<div class="hint">Ningún cliente con pasos pendientes ✓</div>';return;}
+  var list=CLIENTES_CACHE.filter(function(c){return esClienteActivo(c)&&c.checklist&&c.checklist.length;});
+  if(list.length===0){cont.innerHTML='<div class="hint">Ningún cliente en seguimiento todavía. Usá "+ Agregar cliente existente".</div>';return;}
   list.sort(function(a,b){var da=chkDiasSinAvance(a),dbb=chkDiasSinAvance(b);return (dbb==null?0:dbb)-(da==null?0:da);});
   var tipos=Object.keys(CHECKLIST_PLANTILLAS);
   var cols=tipos.map(function(k){
-    var items=list.filter(function(c){return c.checklistTipo===k;});
-    return {nombre:CHECKLIST_PLANTILLAS[k].nombre,items:items};
+    return {nombre:CHECKLIST_PLANTILLAS[k].nombre,items:list.filter(function(c){return c.checklistTipo===k;})};
   });
   var otros=list.filter(function(c){return tipos.indexOf(c.checklistTipo)===-1;});
   if(otros.length)cols.push({nombre:'Otros',items:otros});
   cont.innerHTML='<div class="seg-grid">'+cols.map(function(col){
     return '<div><div class="seg-col-h"><span>'+col.nombre+'</span><span class="seg-count">'+col.items.length+'</span></div>'+
       (col.items.length?col.items.map(function(c){
-        var pr=chkProgreso(c),prox=chkProximo(c),dias=chkDiasSinAvance(c);
+        var dias=chkDiasSinAvance(c);
         var cls=dias!=null&&dias>14?' late':dias!=null&&dias>7?' warn':'';
-        var hace=dias==null?'':(dias===0?'Avanzó hoy':'Sin avances hace '+dias+' día'+(dias===1?'':'s'));
         return '<div class="seg-card'+cls+'" onclick="abrirChecklist(\''+c.id+'\')">'+
-          '<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span class="seg-name">'+chkEsc(c.nombre)+'</span><span class="seg-days">'+hace+'</span></div>'+
+          '<div class="seg-name">'+chkEsc(c.nombre)+'</div>'+
           (c.tel?'<div class="chk-meta">📞 '+chkEsc(c.tel)+'</div>':'')+
           chkDotsHtml(c)+
-          '<div class="chk-prox">'+pr.hechos+'/'+pr.total+' · Próximo: <b>'+chkEsc(prox.t)+'</b></div>'+
+          '<div class="chk-prox">'+chkProxHtml(c)+'</div>'+
+          '<div class="seg-days" style="margin-top:3px">'+chkAvanceTxt(c)+'</div>'+
         '</div>';
       }).join(''):'<div class="hint">Sin clientes</div>')+
     '</div>';
@@ -2502,19 +2516,18 @@ function renderChecklistModal(){
     foot.innerHTML='<button class="btn-sm" onclick="closeModal(\'m-checklist\')">Cerrar</button>';
     return;
   }
-  var pr=chkProgreso(c);
-  body.innerHTML=chkInfoHtml(c)+'<div class="chk-prox" style="margin-bottom:6px"><b>'+chkEsc(chkTipoNombre(c))+'</b> · '+pr.hechos+'/'+pr.total+' pasos</div>'+
-    '<div class="chk-bar"><span style="width:'+Math.round(pr.hechos*100/pr.total)+'%"></span></div>'+
+  var hechos=chkProgreso(c).hechos;
+  body.innerHTML=chkInfoHtml(c)+'<div class="chk-prox" style="margin-bottom:8px"><b>'+chkEsc(chkTipoNombre(c))+'</b> · '+hechos+' paso'+(hechos===1?'':'s')+' realizado'+(hechos===1?'':'s')+(chkAvanceTxt(c)?' · '+chkAvanceTxt(c):'')+'</div>'+
     c.checklist.map(function(x,i){
-      var meta=x.h&&x.f?'<div class="chk-meta">Hecho el '+x.f.split('-').reverse().join('/')+(x.p?' por '+chkEsc(x.p):'')+'</div>':'';
-      return '<div class="chk-row'+(x.h?' hecho':'')+'"><input type="checkbox" '+(x.h?'checked':'')+' onchange="toggleChecklistPaso('+i+')" style="margin-top:3px"><div style="flex:1"><div class="chk-txt">'+chkEsc(x.t)+'</div>'+meta+'</div><button onclick="quitarChecklistPaso('+i+')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px" title="Quitar paso">✕</button></div>';
+      var fecha=x.h?'<div class="chk-meta" style="display:flex;align-items:center;gap:6px;margin-top:3px">Hecho el <input type="date" value="'+chkEsc(x.f||'')+'" onchange="cambiarFechaChecklistPaso('+i+',this.value)" style="background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:2px 6px;font-size:11px;font-family:inherit">'+(x.p?' · por '+chkEsc(x.p):'')+'</div>':'';
+      return '<div class="chk-row'+(x.h?' hecho':'')+'"><input type="checkbox" '+(x.h?'checked':'')+' onchange="toggleChecklistPaso('+i+')" style="margin-top:3px"><div style="flex:1"><div class="chk-txt">'+chkEsc(x.t)+'</div>'+fecha+'</div><button onclick="quitarChecklistPaso('+i+')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px" title="Quitar paso">✕</button></div>';
     }).join('')+
     '<div style="display:flex;gap:8px;margin-top:12px"><input class="fi" id="chk-nuevo" placeholder="Agregar un paso..." onkeydown="if(event.key===\'Enter\')agregarChecklistPaso()"><button class="btn-sm" onclick="agregarChecklistPaso()">+ Agregar</button></div>';
   foot.innerHTML='<button class="btn-danger" onclick="reiniciarChecklist()">Reiniciar pasos</button><button class="btn-sm" onclick="closeModal(\'m-checklist\')">Cerrar</button>';
 }
 function guardarChecklistCliente(lista,tipo){
-  var upd={checklist:lista,checklistActualizado:fmt(today)};
-  if(tipo)upd.checklistTipo=tipo;
+  var upd={checklist:lista};
+  if(tipo){upd.checklistTipo=tipo;upd.checklistActualizado=fmt(today);}
   return db.collection('clientes').doc(CHK_ID).update(upd);
 }
 function chkLista(){
@@ -2527,6 +2540,11 @@ function toggleChecklistPaso(i){
   l[i].h=!l[i].h;
   l[i].f=l[i].h?fmt(today):'';
   l[i].p=l[i].h?((currentUserData&&currentUserData.nombre)||''):'';
+  guardarChecklistCliente(l);
+}
+function cambiarFechaChecklistPaso(i,valor){
+  var l=chkLista();if(!l[i])return;
+  l[i].f=valor||fmt(today);
   guardarChecklistCliente(l);
 }
 function agregarChecklistPaso(){
