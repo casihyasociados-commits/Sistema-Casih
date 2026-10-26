@@ -1679,7 +1679,7 @@ input.currency-input{letter-spacing:0.5px;}
 <div class="modal-bg" id="m-avanzar-cliente" onclick="if(event.target===this)closeModal('m-avanzar-cliente')">
   <div class="modal"><h3 id="m-avanzar-titulo">Avanzar con el cliente</h3>
     <div class="fg"><div class="fl">Origen</div><select class="fs" id="av-origen"><option value="">— Sin especificar —</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
-    <div class="fg"><div class="fl">Pasos de seguimiento</div><select class="fs" id="av-checklist"><option value="">— Sin pasos por ahora —</option><option value="negro">Trabajo en negro</option><option value="despido">Despido</option><option value="accidente">Accidente de trabajo</option><option value="enfermedad">Enfermedad profesional</option></select></div>
+    <div class="fg"><div class="fl">Pasos de seguimiento</div><select class="fs" id="av-checklist"><option value="">— Sin pasos por ahora —</option><option value="despido">Despido</option><option value="accidente">Accidente de trabajo</option><option value="enfermedad">Enfermedad profesional</option></select></div>
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Servicios a ofrecer</div>
     <div id="av-servicios-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
     <div class="fg"><div class="fl">Documentación a pedir / datos útiles</div><textarea class="fta" id="av-nota" placeholder="Ej: traer telegramas, recibos de sueldo, alta temprana..."></textarea></div>
@@ -2402,14 +2402,6 @@ function renderClientes(){
 
 // ─── SEGUIMIENTO POR PASOS (checklist según el tipo de caso) ───
 var CHECKLIST_PLANTILLAS={
-  negro:{nombre:'Trabajo en negro',pasos:[
-    'TCL de aclare de situación laboral',
-    'Seguimiento del TCL de aclare',
-    'TCL de despido indirecto (si no hay respuesta)',
-    'Seguimiento del TCL de despido indirecto',
-    'Denuncia al Ministerio de Trabajo',
-    'Denuncia en tribunales (si no hay oferta del empleador)'
-  ]},
   despido:{nombre:'Despido',pasos:[
     'TCL de despido indirecto',
     'Seguimiento del TCL de despido indirecto',
@@ -2503,7 +2495,7 @@ function renderDashSeguimiento(){
     return {clave:k,nombre:CHECKLIST_PLANTILLAS[k].nombre,items:list.filter(function(c){return c.checklistTipo===k;})};
   });
   var otros=list.filter(function(c){return tipos.indexOf(c.checklistTipo)===-1;});
-  if(otros.length)cols.push({nombre:'Otros',items:otros});
+  if(otros.length)cols.push({clave:'__otros',nombre:'Otros (servicio quitado)',items:otros});
   cont.innerHTML=tabs+'<div class="seg-grid">'+cols.map(function(col){
     return '<div><div class="seg-col-h"><span>'+col.nombre+'</span><span style="display:flex;align-items:center;gap:8px">'+(col.clave&&col.items.length?'<button onclick="vaciarSeguimientoColumna(\''+col.clave+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;text-decoration:underline">Vaciar</button>':'')+'<span class="seg-count">'+col.items.length+'</span></span></div>'+
       (col.items.length?col.items.map(function(c){
@@ -2619,9 +2611,12 @@ function quitarDelSeguimiento(){
   });
 }
 function vaciarSeguimientoColumna(tipo){
-  var lista=CLIENTES_CACHE.filter(function(c){return c.checklistTipo===tipo&&c.checklist&&c.checklist.length;});
+  var lista=CLIENTES_CACHE.filter(function(c){
+    if(!(c.checklist&&c.checklist.length))return false;
+    return tipo==='__otros'?!CHECKLIST_PLANTILLAS[c.checklistTipo]:c.checklistTipo===tipo;
+  });
   if(!lista.length)return;
-  var nombre=(CHECKLIST_PLANTILLAS[tipo]||{}).nombre||tipo;
+  var nombre=tipo==='__otros'?'Otros':((CHECKLIST_PLANTILLAS[tipo]||{}).nombre||tipo);
   if(!confirm('¿Quitar del seguimiento a los '+lista.length+' clientes de "'+nombre+'"?\n\nNo se borran de Clientes, solo salen del tablero y se pierden sus listas de pasos.'))return;
   Promise.all(lista.map(function(c){return db.collection('clientes').doc(c.id).update(CHK_VACIO);})).then(function(){
     showToast(lista.length+' clientes quitados de '+nombre);
