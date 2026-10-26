@@ -492,7 +492,10 @@ input.currency-input{letter-spacing:0.5px;}
     <div id="dash-nuevos-clientes-list"><div class="hint">Sin clientes nuevos para revisar ✓</div></div>
   </div>
   <div class="card" style="margin-bottom:24px;border-left:3px solid var(--blue)">
-    <div style="margin-bottom:14px"><span class="card-head-title">📋 Seguimiento de clientes — pasos pendientes</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <span class="card-head-title">📋 Seguimiento de clientes — pasos pendientes</span>
+      <button class="btn-primary" onclick="abrirAgregarChecklist()" style="font-size:13px;padding:7px 16px">+ Agregar cliente existente</button>
+    </div>
     <div id="dash-seguimiento-list"><div class="hint">Ningún cliente con pasos pendientes ✓</div></div>
   </div>
   <div class="home-nav">
@@ -1668,6 +1671,23 @@ input.currency-input{letter-spacing:0.5px;}
   </div>
 </div>
 
+<div class="modal-bg" id="m-chk-agregar" onclick="if(event.target===this)closeModal('m-chk-agregar')">
+  <div class="modal"><h3>Agregar cliente al seguimiento</h3>
+    <div class="fg" style="position:relative">
+      <div class="fl">Buscar cliente *</div>
+      <input class="fi" id="chk-ag-search" placeholder="Escribí el nombre..." oninput="chkAgFiltrar()" onfocus="chkAgFiltrar()" autocomplete="off">
+      <div id="chk-ag-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+    </div>
+    <div class="fg" id="chk-ag-sel-wrap" style="display:none">
+      <div class="fl">Cliente elegido</div>
+      <div id="chk-ag-sel" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:13px;color:var(--text)"></div>
+    </div>
+    <div class="fg"><div class="fl">Servicio *</div><select class="fs" id="chk-ag-tipo"></select></div>
+    <div class="hint">Solo aparecen clientes activos que todavía no tienen pasos de seguimiento.</div>
+    <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-chk-agregar')">Cancelar</button><button class="btn-primary" onclick="guardarAgregarChecklist()">Agregar</button></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="m-checklist" onclick="if(event.target===this)closeModal('m-checklist')">
   <div class="modal"><h3 id="chk-titulo">Seguimiento</h3>
     <div id="chk-body"></div>
@@ -2508,6 +2528,53 @@ function quitarChecklistPaso(i){
 function reiniciarChecklist(){
   if(!confirm('¿Borrar todos los pasos y empezar de nuevo?'))return;
   guardarChecklistCliente([]);
+}
+
+// ─── Agregar un cliente existente al seguimiento (desde el Inicio) ───
+var CHK_AG_CLIENTE=null;
+function abrirAgregarChecklist(){
+  CHK_AG_CLIENTE=null;
+  document.getElementById('chk-ag-search').value='';
+  document.getElementById('chk-ag-dropdown').style.display='none';
+  document.getElementById('chk-ag-sel-wrap').style.display='none';
+  document.getElementById('chk-ag-tipo').innerHTML=Object.keys(CHECKLIST_PLANTILLAS).map(function(k){
+    return '<option value="'+k+'">'+CHECKLIST_PLANTILLAS[k].nombre+'</option>';
+  }).join('');
+  openModal('m-chk-agregar');
+}
+function chkAgFiltrar(){
+  var q=document.getElementById('chk-ag-search').value.trim().toLowerCase();
+  var dd=document.getElementById('chk-ag-dropdown');
+  var lista=CLIENTES_CACHE.filter(function(c){
+    return esClienteActivo(c)&&!(c.checklist&&c.checklist.length)&&(!q||(c.nombre||'').toLowerCase().indexOf(q)>-1);
+  }).sort(function(a,b){return (a.nombre||'').localeCompare(b.nombre||'');}).slice(0,30);
+  if(!lista.length){dd.innerHTML='<div style="padding:10px;font-size:13px;color:var(--text3)">Ningún cliente disponible con ese nombre</div>';dd.style.display='block';return;}
+  dd.innerHTML=lista.map(function(c){
+    return '<div data-chk-id="'+c.id+'" style="padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)">'+chkEsc(c.nombre)+'<span style="color:var(--text3)">'+(c.tel?' · '+chkEsc(c.tel):'')+'</span></div>';
+  }).join('');
+  dd.style.display='block';
+  dd.querySelectorAll('[data-chk-id]').forEach(function(el){
+    el.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      CHK_AG_CLIENTE=CLIENTES_CACHE.find(function(x){return x.id===el.getAttribute('data-chk-id');})||null;
+      dd.style.display='none';
+      if(CHK_AG_CLIENTE){
+        document.getElementById('chk-ag-search').value=CHK_AG_CLIENTE.nombre;
+        document.getElementById('chk-ag-sel').innerHTML='<b>'+chkEsc(CHK_AG_CLIENTE.nombre)+'</b>'+(CHK_AG_CLIENTE.tel?' · '+chkEsc(CHK_AG_CLIENTE.tel):'');
+        document.getElementById('chk-ag-sel-wrap').style.display='block';
+      }
+    });
+  });
+}
+function guardarAgregarChecklist(){
+  if(!CHK_AG_CLIENTE){alert('Elegí un cliente de la lista.');return;}
+  var tipo=document.getElementById('chk-ag-tipo').value;
+  if(!CHECKLIST_PLANTILLAS[tipo]){alert('Elegí un servicio.');return;}
+  var id=CHK_AG_CLIENTE.id,nombre=CHK_AG_CLIENTE.nombre;
+  db.collection('clientes').doc(id).update({checklistTipo:tipo,checklist:checklistDesdePlantilla(tipo),checklistActualizado:fmt(today)}).then(function(){
+    closeModal('m-chk-agregar');
+    showToast(nombre+' agregado a '+CHECKLIST_PLANTILLAS[tipo].nombre+' ✓');
+  });
 }
 
 // ─── DASHBOARD: CLIENTES NUEVOS POR REVISAR ───
