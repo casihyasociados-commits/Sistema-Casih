@@ -767,6 +767,7 @@ input.currency-input{letter-spacing:0.5px;}
         <option value="telegrama_aclare">Telegrama (TCL) — Aclare situación laboral y blanqueo</option>
         <option value="telegrama_despido_indirecto">Telegrama (TCL) — Despido indirecto</option>
         <option value="telegrama_accidente">Telegrama (TCL) — Accidente de trabajo</option>
+        <option value="telegrama_enfermedad">Telegrama (TCL) — Denuncia de enfermedad profesional</option>
         <option value="demanda_art_rechazo">Demanda ART — Rechazo enfermedad profesional (trámite abreviado)</option>
         <option value="cedula_testigos">Cédula de notificación a testigos</option>
         <option value="acompana_cedulas">Acompaña cédulas de testigos diligenciadas</option>
@@ -1210,6 +1211,110 @@ input.currency-input{letter-spacing:0.5px;}
       </div>
       <textarea class="fta" id="ac-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
       <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable — podés retocarlo antes de imprimir.</div>
+    </div>
+  </div>
+
+  <div id="es-form-enfermedad" style="display:none">
+    <div class="card card-doc">
+      <div class="card-title">Cliente</div>
+      <div class="fg" style="position:relative">
+        <div class="fl">Buscar cliente existente (opcional)</div>
+        <input class="fi" id="en-cl-search" placeholder="Completa los datos del cliente y el empleador desde la base..." oninput="filtrarClientes('en-cl-search','en-cl-dropdown')" onfocus="filtrarClientes('en-cl-search','en-cl-dropdown')" autocomplete="off">
+        <div id="en-cl-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.4)"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Destinatario (la ART)</div>
+      <button class="btn-sm" onclick="enCompletarExperta()" style="margin-bottom:12px">Completar con Experta ART S.A.</button>
+      <div class="g2">
+        <div class="fg"><div class="fl">Razón social *</div><input class="fi" id="en-dest-nombre" placeholder="Ej: EXPERTA ART S.A."></div>
+        <div class="fg"><div class="fl">CUIT</div><input class="fi" id="en-dest-cuil" placeholder="30-68715616-8"></div>
+      </div>
+      <div class="fg"><div class="fl">Ramo o actividad principal</div><input class="fi" id="en-dest-ramo" placeholder="ASEGURADORA DE RIESGOS DEL TRABAJO"></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio</div><input class="fi" id="en-dest-domicilio" placeholder="AV RAFAEL NUÑEZ 3953"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="en-dest-cp" placeholder="5000"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="en-dest-localidad" value="CÓRDOBA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="en-dest-provincia" value="CÓRDOBA"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Remitente (el cliente)</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Apellido y nombre *</div><input class="fi" id="en-rem-nombre" placeholder="Ej: DOMINGUEZ SEVERO RICARDO"></div>
+        <div class="fg"><div class="fl">DNI</div><input class="fi" id="en-rem-dni" placeholder="17.630.036"></div>
+      </div>
+      <div class="fg"><div class="fl">Género (para "afectado/a")</div><select class="fs" id="en-rem-genero"><option value="masculino">Masculino</option><option value="femenino">Femenino</option></select></div>
+      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-top:6px">En el formulario, el remitente constituye domicilio en el estudio. Estos datos vienen cargados y normalmente no se tocan.</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Domicilio en el formulario</div><input class="fi" id="en-rem-domicilio" value="Arturo M. Bas Nº 389 1º Piso Of. A"></div>
+        <div class="fg"><div class="fl">Código postal</div><input class="fi" id="en-rem-cp" value="5000"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Localidad</div><input class="fi" id="en-rem-localidad" value="CÓRDOBA"></div>
+        <div class="fg"><div class="fl">Provincia</div><input class="fi" id="en-rem-provincia" value="CÓRDOBA"></div>
+      </div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Dictamen médico</div>
+      <div class="hint" style="margin-top:-6px;margin-bottom:10px">Subí el dictamen (PDF o foto) o pegá su texto y la IA pre-completa las patologías, los porcentajes, el factor de ponderación, la incapacidad total y la fecha de primera manifestación. <b>Revisá cada dato contra el original antes de generar.</b></div>
+      <div class="fg"><input class="fi" id="en-dictamen-file" type="file" accept=".pdf,image/*"></div>
+      <div class="fg"><div class="fl">O pegá el texto del dictamen</div><textarea class="fta" id="en-dictamen-texto" style="min-height:80px" placeholder="Pegá acá el texto del dictamen..."></textarea></div>
+      <button class="btn-sm" id="en-btn-leer" onclick="enLeerDictamen()">📄 Leer dictamen con IA</button>
+      <span id="en-dictamen-status" style="font-size:12px;margin-left:8px"></span>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Patologías e incapacidad</div>
+      <div id="en-patologias-list"></div>
+      <button class="btn-sm" onclick="enAgregarPatologia()">+ Agregar patología</button>
+      <div class="g2" style="margin-top:12px">
+        <div class="fg"><div class="fl">Factores de ponderación (%)</div><input class="fi" id="en-factor" placeholder="Ej: 2.56"></div>
+        <div class="fg"><div class="fl">Incapacidad total (%) *</div><input class="fi" id="en-incapacidad" placeholder="Ej: 18,56"></div>
+      </div>
+      <div class="hint">El porcentaje en letras ("DIECIOCHO CON CINCUENTA Y SEIS POR CIENTO") lo arma el sistema solo.</div>
+      <div class="fg" style="margin-top:10px"><div class="fl">Fecha de 1° manifestación invalidante *</div><input class="fi" id="en-fecha-manifestacion" placeholder="Ej: 01/05/2020"></div>
+    </div>
+
+    <div class="card card-doc">
+      <div class="card-title">Relación laboral y exposición</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Empleador *</div><input class="fi" id="en-emp-nombre" placeholder="Ej: CONIFERAL S.A."></div>
+        <div class="fg"><div class="fl">CUIT del empleador</div><input class="fi" id="en-emp-cuit" placeholder="30-54662890-2"></div>
+      </div>
+      <div class="fg"><div class="fl">Tareas / puesto (se inserta tal cual) *</div><input class="fi" id="en-tareas" placeholder='Ej: “Conductor Guarda” CCT 460/73'></div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Fecha de ingreso *</div><input class="fi" id="en-fecha-ingreso" placeholder="Ej: 04/10/1991"></div>
+        <div class="fg"><div class="fl">Horas diarias de jornal *</div><input class="fi" id="en-horas" placeholder="Ej: 7"></div>
+      </div>
+      <div class="fg">
+        <div class="fl">Antigüedad y exposición a agentes de riesgo</div>
+        <textarea class="fta" id="en-exposicion" style="min-height:90px" placeholder="Contalo informal: años trabajados, qué hacía y a qué estuvo expuesto (ruido, posiciones forzadas, movimientos repetitivos, vibraciones...). La IA lo redacta en estilo formal y no toca los números ni los nombres."></textarea>
+      </div>
+      <div class="fg"><div class="fl">Exámenes periódicos</div><select class="fs" id="en-tipo-examenes"><option value="res43">Los de la Res. 43/97 SRT</option><option value="periodicos">Periódicos, "que jamás fueron realizados"</option></select></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="en-chk-domicilio" checked> Constituir domicilio legal en el estudio al final del texto</label>
+    </div>
+
+    <div class="card card-doc">
+      <button class="btn-primary" id="en-btn-generar" onclick="generarTelegramaEnfermedad()" style="width:100%;padding:12px">✨ Generar telegrama</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">La IA solo redacta la antigüedad y exposición. El resto se arma con los datos cargados — revisá siempre antes de despachar.</div>
+    </div>
+
+    <div class="card card-doc" id="en-resultado-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Texto del telegrama</div>
+        <div class="btn-row">
+          <button class="btn-sm" onclick="copiarTextarea('en-resultado')">📋 Copiar texto</button>
+          <button class="btn-sm" id="en-btn-docx" onclick="descargarTelegramaEnfermedadDocx()">⬇️ Descargar formulario (.docx)</button>
+        </div>
+      </div>
+      <textarea class="fta" id="en-resultado" style="min-height:320px;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">El Word sale con el formulario oficial del Correo y cada dato en su renglón, en Arial y editable.</div>
     </div>
   </div>
 
@@ -3746,7 +3851,7 @@ function filtrarClientes(inputId,dropdownId){
   if(list.length===0){dropdown.style.display='none';return;}
   dropdown.innerHTML=list.map(function(cl){return '<div data-nombre="'+cl.nombre+'" style="padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)"><strong>'+cl.nombre+'</strong><span style="font-size:11px;color:var(--text3);margin-left:8px">'+cl.etapa+'</span></div>';}).join('');
   dropdown.style.display='block';
-  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='aced-cl-search'){var acedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});ACED_CLIENTE_VINCULADO_ID=acedCl?acedCl.id:null;}if(inputId==='mcbu-cl-search'){var mcbuCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});MCBU_CLIENTE_VINCULADO_ID=mcbuCl?mcbuCl.id:null;}if(inputId==='pc-cl-search'){var pcCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});PC_CLIENTE_VINCULADO_ID=pcCl?pcCl.id:null;}if(inputId==='al-cl-search'){var alCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});AL_CLIENTE_VINCULADO_ID=alCl?alCl.id:null;}});});
+  dropdown.querySelectorAll('[data-nombre]').forEach(function(item){item.addEventListener('mousedown',function(e){e.preventDefault();var nombre=this.getAttribute('data-nombre');input.value=nombre;var hiddenId=inputId.replace('-search','');var hidden=document.getElementById(hiddenId);if(hidden)hidden.value=nombre;dropdown.style.display='none';if(inputId==='doc-cliente-search'){docClienteActual=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;})||null;}if(inputId==='es-cl-search'){autocompletarClienteEscrito(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='tg-cl-search'){autocompletarClienteTelegrama(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='di-cl-search'){autocompletarClienteDespidoIndirecto(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='dart-cl-search'){autocompletarClienteDemandaArt(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='ced-cl-search'){var cedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});CED_CLIENTE_VINCULADO_ID=cedCl?cedCl.id:null;}if(inputId==='ac-cl-search'){autocompletarClienteAccidente(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='aced-cl-search'){var acedCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});ACED_CLIENTE_VINCULADO_ID=acedCl?acedCl.id:null;}if(inputId==='mcbu-cl-search'){var mcbuCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});MCBU_CLIENTE_VINCULADO_ID=mcbuCl?mcbuCl.id:null;}if(inputId==='pc-cl-search'){var pcCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});PC_CLIENTE_VINCULADO_ID=pcCl?pcCl.id:null;}if(inputId==='en-cl-search'){autocompletarClienteEnfermedad(CLIENTES_CACHE.find(function(x){return x.nombre===nombre;}));}if(inputId==='al-cl-search'){var alCl=CLIENTES_CACHE.find(function(x){return x.nombre===nombre;});AL_CLIENTE_VINCULADO_ID=alCl?alCl.id:null;}});});
   input.onblur=function(){setTimeout(function(){dropdown.style.display='none';},200);};
 }
 
@@ -3777,6 +3882,11 @@ var ESCRITO_CONFIG={
   telegrama_accidente:{
     cont:'es-form-accidente',dinamicos:[],resultado:'ac-resultado-card',
     contador:null,nombre:'TCL — Accidente de trabajo',campoTitulo:'ac-rem-nombre',
+    despues:function(){}
+  },
+  telegrama_enfermedad:{
+    cont:'es-form-enfermedad',dinamicos:['en-patologias-list'],resultado:'en-resultado-card',
+    contador:'EN_PAT_COUNTER',nombre:'TCL — Enfermedad profesional',campoTitulo:'en-rem-nombre',
     despues:function(){}
   },
   demanda_art_rechazo:{
@@ -3939,6 +4049,7 @@ function retomarBorradorEscrito(id){
     if(cfg.contador==='CED_TESTIGO_COUNTER')CED_TESTIGO_COUNTER=maxIdx+1;
     if(cfg.contador==='PC_POSICION_COUNTER')PC_POSICION_COUNTER=maxIdx+1;
     if(cfg.contador==='AL_JURIS_COUNTER')AL_JURIS_COUNTER=maxIdx+1;
+    if(cfg.contador==='EN_PAT_COUNTER')EN_PAT_COUNTER=maxIdx+1;
   }
 
   // 2) Ahora si los valores
@@ -4012,7 +4123,8 @@ function cambiarTipoEscrito(){
   var esManifiestaCbu=tipo==='manifiesta_cbu';
   var esPliegoConfesional=tipo==='pliego_confesional';
   var esAlegato=tipo==='alegato';
-  var otro=esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos||esAcompanaCedulas||esManifiestaCbu||esPliegoConfesional||esAlegato;
+  var esEnfermedad=tipo==='telegrama_enfermedad';
+  var otro=esEnfermedad||esTelegrama||esDespidoIndirecto||esAccidente||esDemandaArt||esCedulaTestigos||esAcompanaCedulas||esManifiestaCbu||esPliegoConfesional||esAlegato;
   document.getElementById('es-form-denuncia').style.display=otro?'none':'block';
   document.getElementById('es-form-telegrama').style.display=esTelegrama?'block':'none';
   document.getElementById('es-form-despido-indirecto').style.display=esDespidoIndirecto?'block':'none';
@@ -4023,11 +4135,12 @@ function cambiarTipoEscrito(){
   document.getElementById('es-form-manifiesta-cbu').style.display=esManifiestaCbu?'block':'none';
   document.getElementById('es-form-pliego-confesional').style.display=esPliegoConfesional?'block':'none';
   document.getElementById('es-form-alegato').style.display=esAlegato?'block':'none';
+  document.getElementById('es-form-enfermedad').style.display=esEnfermedad?'block':'none';
   // La representacion legal interviene en los escritos que se firman (denuncia
   // y demanda), no en los telegramas ni en las cedulas: esos cierran con el
   // nombre del estudio.
   var rep=document.getElementById('es-representacion');
-  var usaRep=!esTelegrama&&!esDespidoIndirecto&&!esAccidente&&!esCedulaTestigos;
+  var usaRep=!esTelegrama&&!esDespidoIndirecto&&!esAccidente&&!esCedulaTestigos&&!esEnfermedad;
   if(rep&&rep.parentNode)rep.parentNode.style.display=usaRep?'block':'none';
   if(esDemandaArt&&document.getElementById('dart-ripte-filas').children.length===0){
     for(var i=0;i<12;i++)dartAgregarFilaRipte();
@@ -4037,6 +4150,9 @@ function cambiarTipoEscrito(){
   }
   if(esPliegoConfesional&&document.getElementById('pc-posiciones-list').children.length===0){
     pcAgregarPosicion();
+  }
+  if(esEnfermedad&&document.getElementById('en-patologias-list').children.length===0){
+    enAgregarPatologia();
   }
   if(esAlegato&&document.getElementById('al-jurisprudencia-list').children.length===0){
     alAgregarJurisprudencia();
@@ -4055,7 +4171,7 @@ var DI_CLIENTE_VINCULADO_ID=null, DART_CLIENTE_VINCULADO_ID=null,
     TG_CLIENTE_VINCULADO_ID=null, ES_CLIENTE_VINCULADO_ID=null,
     CED_CLIENTE_VINCULADO_ID=null, AC_CLIENTE_VINCULADO_ID=null,
     ACED_CLIENTE_VINCULADO_ID=null, MCBU_CLIENTE_VINCULADO_ID=null, PC_CLIENTE_VINCULADO_ID=null,
-    AL_CLIENTE_VINCULADO_ID=null;
+    AL_CLIENTE_VINCULADO_ID=null, EN_CLIENTE_VINCULADO_ID=null;
 
 function subirEscritoADriveClienteVinculado(clienteId,nombreEsperado,blob,nombreArchivo){
   if(!clienteId)return;
@@ -4298,6 +4414,142 @@ function descargarTelegramaAccidenteDocx(){
   }).finally(function(){
     btn.disabled=false;btn.textContent=original;
   });
+}
+
+// ─── TCL — DENUNCIA DE ENFERMEDAD PROFESIONAL ───
+var EN_PAT_COUNTER=0;
+function enCompletarExperta(){
+  var set=function(id,v){var el=document.getElementById(id);if(el)el.value=v;};
+  set('en-dest-nombre','EXPERTA ART S.A.');set('en-dest-cuil','30-68715616-8');
+  set('en-dest-ramo','ASEGURADORA DE RIESGOS DEL TRABAJO');set('en-dest-domicilio','AV RAFAEL NUÑEZ 3953');
+  set('en-dest-cp','5000');set('en-dest-localidad','CÓRDOBA');set('en-dest-provincia','CÓRDOBA');
+}
+function autocompletarClienteEnfermedad(c){
+  if(!c)return;
+  EN_CLIENTE_VINCULADO_ID=c.id;
+  var setVal=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  setVal('en-rem-nombre',c.nombre);setVal('en-rem-dni',c.dni);
+  setVal('en-emp-nombre',c.empleador);setVal('en-tareas',c.tareas||c.categoria);
+  setVal('en-fecha-ingreso',c.fechaIngreso);
+  showToast('Datos del cliente completados ✓');
+}
+function enAgregarPatologia(nombre,porcentaje){
+  var idx=EN_PAT_COUNTER++;
+  var div=document.createElement('div');
+  div.id='en-pat-'+idx;
+  div.style.cssText='display:flex;gap:8px;align-items:flex-end;margin-bottom:8px';
+  div.innerHTML=
+    '<div class="fg" style="flex:1;margin-bottom:0"><div class="fl">Patología</div><input class="fi" id="en-pat-nombre-'+idx+'" placeholder="Ej: ESPONDILOARTROSIS LUMBAR"></div>'+
+    '<div class="fg" style="width:90px;margin-bottom:0"><div class="fl">%</div><input class="fi" id="en-pat-pct-'+idx+'" placeholder="8"></div>'+
+    '<button onclick="document.getElementById(\'en-pat-'+idx+'\').remove();" style="font-size:11px;padding:10px;border-radius:6px;border:1px solid var(--red-bg);background:transparent;color:var(--red);cursor:pointer">✕</button>';
+  document.getElementById('en-patologias-list').appendChild(div);
+  if(nombre)document.getElementById('en-pat-nombre-'+idx).value=nombre;
+  if(porcentaje)document.getElementById('en-pat-pct-'+idx).value=porcentaje;
+}
+function enLeerDictamen(){
+  var file=document.getElementById('en-dictamen-file').files[0];
+  var texto=document.getElementById('en-dictamen-texto').value.trim();
+  var status=document.getElementById('en-dictamen-status');
+  if(!file&&!texto){alert('Subí el dictamen (PDF o foto) o pegá su texto.');return;}
+  var btn=document.getElementById('en-btn-leer');
+  btn.disabled=true;status.textContent='Leyendo con IA...';status.style.color='var(--text3)';
+  var enviar=function(body){
+    fetch(BOT_URL+'/extraer-dictamen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();}).then(function(data){
+      if(data.status!=='ok'){status.textContent='⚠ '+(data.detalle||'No se pudo leer.');status.style.color='var(--orange)';return;}
+      var lista=document.getElementById('en-patologias-list');lista.innerHTML='';
+      (data.patologias||[]).forEach(function(p){enAgregarPatologia(p.nombre,p.porcentaje);});
+      if(!(data.patologias||[]).length)enAgregarPatologia();
+      if(data.factorPonderacion)document.getElementById('en-factor').value=data.factorPonderacion;
+      if(data.incapacidadTotal)document.getElementById('en-incapacidad').value=data.incapacidadTotal;
+      if(data.fechaManifestacion)document.getElementById('en-fecha-manifestacion').value=data.fechaManifestacion;
+      // Datos de la relación laboral: solo se completan los campos que están vacíos
+      var vacio=function(id){var el=document.getElementById(id);return el&&!el.value.trim();};
+      var poner=function(id,val){if(val&&vacio(id))document.getElementById(id).value=val;};
+      poner('en-emp-nombre',data.empleador);poner('en-tareas',data.puesto);poner('en-fecha-ingreso',data.fechaIngreso);
+      poner('en-rem-nombre',data.pacienteNombre);poner('en-rem-dni',data.pacienteDni);
+      if(vacio('en-exposicion')){
+        var borrador=[];
+        if(data.aniosTrabajados)borrador.push('Trabajó '+data.aniosTrabajados+(data.empleador?' para '+data.empleador:'')+' de forma ininterrumpida.');
+        if(data.tareasDetalle)borrador.push('Tareas: '+data.tareasDetalle);
+        if(data.agentesRiesgo)borrador.push('Agentes de riesgo: '+data.agentesRiesgo+'.');
+        document.getElementById('en-exposicion').value=borrador.join(' ');
+      }
+      var faltan=[];
+      if(!data.fechaManifestacion)faltan.push('fecha de 1° manifestación invalidante');
+      if(!document.getElementById('en-emp-cuit').value.trim())faltan.push('CUIT del empleador');
+      if(!document.getElementById('en-horas').value.trim())faltan.push('horas diarias de jornal');
+      if(!document.getElementById('en-dest-nombre').value.trim())faltan.push('datos de la ART');
+      status.textContent='✓ Leído — revisá cada dato contra el original.'+(faltan.length?' No figuran en el dictamen, cargalos a mano: '+faltan.join(', ')+'.':'');
+      status.style.color=faltan.length?'var(--orange)':'var(--green)';
+    }).catch(function(){
+      status.textContent='⚠ No se pudo conectar con el servidor.';status.style.color='var(--orange)';
+    }).finally(function(){btn.disabled=false;});
+  };
+  if(file){
+    var reader=new FileReader();
+    reader.onload=function(){enviar({archivo:reader.result.split(',')[1],mediaType:file.type||'application/pdf',texto:texto});};
+    reader.readAsDataURL(file);
+  }else enviar({texto:texto});
+}
+function datosEnfermedad(){
+  var v=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var patologias=[];
+  Array.prototype.forEach.call(document.getElementById('en-patologias-list').children,function(row){
+    var idx=row.id.replace('en-pat-','');
+    var nombre=v('en-pat-nombre-'+idx);
+    if(nombre)patologias.push({nombre:nombre,porcentaje:v('en-pat-pct-'+idx)});
+  });
+  return {
+    destNombre:v('en-dest-nombre'),destCuil:v('en-dest-cuil'),destRamo:v('en-dest-ramo'),
+    destDomicilio:v('en-dest-domicilio'),destCp:v('en-dest-cp'),
+    destLocalidad:v('en-dest-localidad'),destProvincia:v('en-dest-provincia'),
+    remNombre:v('en-rem-nombre'),remDni:v('en-rem-dni'),remGenero:v('en-rem-genero'),
+    remDomicilio:v('en-rem-domicilio'),remCp:v('en-rem-cp'),
+    remLocalidad:v('en-rem-localidad'),remProvincia:v('en-rem-provincia'),
+    empNombre:v('en-emp-nombre'),empCuit:v('en-emp-cuit'),tareas:v('en-tareas'),
+    fechaIngreso:v('en-fecha-ingreso'),horas:v('en-horas'),exposicion:v('en-exposicion'),
+    tipoExamenes:v('en-tipo-examenes'),constituirDomicilio:document.getElementById('en-chk-domicilio').checked,
+    patologias:patologias,factorPonderacion:v('en-factor'),incapacidadTotal:v('en-incapacidad'),
+    fechaManifestacion:v('en-fecha-manifestacion')
+  };
+}
+function generarTelegramaEnfermedad(){
+  var d=datosEnfermedad();
+  if(!d.destNombre){alert('Falta la razón social de la ART.');return;}
+  if(!d.remNombre){alert('Falta el nombre del remitente (el cliente).');return;}
+  if(!d.empNombre){alert('Falta el empleador.');return;}
+  if(!d.patologias.length){alert('Cargá al menos una patología.');return;}
+  if(!d.incapacidadTotal){alert('Falta el porcentaje total de incapacidad.');return;}
+  if(!d.fechaManifestacion){alert('Falta la fecha de primera manifestación invalidante.');return;}
+  var btn=document.getElementById('en-btn-generar');
+  btn.disabled=true;btn.textContent='Generando... (puede tardar 20-30 segundos)';
+  document.getElementById('en-resultado-card').style.display='none';
+  fetch(BOT_URL+'/generar-telegrama-enfermedad',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+  .then(function(r){return r.json();}).then(function(data){
+    if(data.status==='ok'){
+      document.getElementById('en-resultado').value=data.texto;
+      document.getElementById('en-resultado-card').style.display='block';
+      document.getElementById('en-resultado-card').scrollIntoView({behavior:'smooth'});
+    }else alert('No se pudo generar el telegrama: '+(data.detalle||'error desconocido'));
+  }).catch(function(){
+    alert('No se pudo conectar con el servidor. Puede que esté "despertando" (tarda hasta 1 minuto la primera vez) — probá de nuevo en unos segundos.');
+  }).finally(function(){btn.disabled=false;btn.textContent='✨ Generar telegrama';});
+}
+function descargarTelegramaEnfermedadDocx(){
+  var texto=document.getElementById('en-resultado').value;
+  if(!texto){showToast('No hay texto generado todavía.');return;}
+  var d=datosEnfermedad();d.cuerpo=texto;
+  var btn=document.getElementById('en-btn-docx');var original=btn.textContent;
+  btn.disabled=true;btn.textContent='Generando...';
+  fetch(BOT_URL+'/generar-telegrama-docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+  .then(function(r){if(!r.ok)throw new Error('error');return r.blob();}).then(function(blob){
+    var nombreArchivo=(d.remNombre?('Telegrama - '+d.remNombre):'Telegrama')+'.docx';
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');
+    a.href=url;a.download=nombreArchivo;document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);showToast('Formulario generado ✓');
+    subirEscritoADriveClienteVinculado(EN_CLIENTE_VINCULADO_ID,d.remNombre,blob,nombreArchivo);
+  }).catch(function(){showToast('⚠ No se pudo generar el Word.');}).finally(function(){btn.disabled=false;btn.textContent=original;});
 }
 
 // ─── DEMANDA ART — RECHAZO ENFERMEDAD PROFESIONAL ───

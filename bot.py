@@ -3397,6 +3397,275 @@ def extraer_telegrama():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp, 200
 
+# ─── TCL — Denuncia de enfermedad profesional ───
+# Todo lo duro (empleador, CUIT, fechas, patologías, porcentajes, incapacidad
+# total, factor de ponderación) sale de los campos cargados: los porcentajes en
+# letras los calcula el sistema, nunca la IA. La IA solo redacta, en estilo
+# formal, la descripción informal de las tareas y la exposición a agentes de
+# riesgo. El dictamen solo se usa para pre-completar los campos (revisables).
+
+def porcentaje_a_letras(valor):
+    t = str(valor or '').strip().replace('%', '').replace(' ', '')
+    if not re.match(r'^\d+([.,]\d{1,2})?$', t):
+        return None
+    ent, _, dec = t.replace(',', '.').partition('.')
+    letras = numero_a_letras(int(ent)).upper()
+    if dec:
+        letras += ' CON ' + numero_a_letras(int((dec + '0')[:2])).upper()
+    return '%s POR CIENTO (%s%%)' % (letras, t.replace('.', ','))
+
+def _sin_ceros(valor):
+    t = str(valor or '').strip().replace('%', '')
+    return re.sub(r'[.,]00$', '', t)
+
+def _lista_patologias(patologias):
+    items = []
+    for p in patologias:
+        nombre = (p.get('nombre') or '').strip().upper()
+        pct = _sin_ceros(p.get('porcentaje'))
+        if nombre:
+            items.append('%s (%s%%)' % (nombre, pct) if pct else nombre)
+    if not items:
+        return ''
+    partes = []
+    for i, it in enumerate(items, 1):
+        prefijo = 'y ' if (i == len(items) and len(items) > 1) else ''
+        partes.append('%s%d) %s' % (prefijo, i, it))
+    return ', '.join(partes)
+
+def armar_cuerpo_enfermedad(d, exposicion):
+    emp = (d.get('empNombre') or '').strip()
+    cuit = (d.get('empCuit') or '').strip()
+    fem = (d.get('remGenero') or '').strip().lower() == 'femenino'
+
+    txt = 'Trabajando a las órdenes de %s' % emp
+    if cuit:
+        txt += ' CUIT %s' % cuit
+    tareas = (d.get('tareas') or '').strip()
+    if tareas:
+        txt += ' realizando tareas de %s' % tareas
+    ingreso = (d.get('fechaIngreso') or '').strip()
+    if ingreso:
+        txt += ', con fecha de ingreso %s' % ingreso
+    if (d.get('tipoExamenes') or 'res43') == 'periodicos':
+        examenes = 'periódicos, que jamás fueron realizados'
+    else:
+        examenes = 'contemplados en la Res. 43/97 SRT'
+    txt += (', y frente a vuestro incumplimiento de la obligación de realizar los '
+            'exámenes %s, he debido concurrir a mi costa y cargo a médico particular, '
+            'quien previo los estudios pertinentes, diagnostico que a la fecha y luego '
+            'de una exhaustiva valoración clínica, semiológica, traumatológica y '
+            'neurológica' % examenes)
+    horas = (d.get('horas') or '').strip()
+    if horas:
+        txt += ', teniendo en cuenta que me desempeñé en jornales laborales de %s horas diarias' % horas
+    expo = (exposicion or '').strip().rstrip('.,;')
+    if expo:
+        txt += ', %s' % expo
+    txt += (', de acuerdo a la Ley y Decretos reglamentarios me encuentro afectad%s de las '
+            'siguientes patologías: ' % ('a' if fem else 'o'))
+    txt += _lista_patologias(d.get('patologias') or '') + '.'
+    factor = _sin_ceros(d.get('factorPonderacion'))
+    if factor:
+        txt += ' Factores de ponderación: %s%%.' % factor
+    txt += (' Las afecciones que padezco no obedecen a parámetros de normalidad esperables '
+            'en un adulto según tipo constitucional y pondo-estatural, y no guardan relación '
+            'con la edad cronológica y biológica. Estas afecciones que padezco me producen '
+            'un daño físico – anatomo funcional parcial, permanente y definitivo del %s de la '
+            'Total Obrera, según baremos orientativos consultados y a disposición, '
+            'calificándola como Enfermedad Profesional.'
+            % (porcentaje_a_letras(d.get('incapacidadTotal')) or (d.get('incapacidadTotal') or '').strip()))
+    fecha_man = (d.get('fechaManifestacion') or '').strip()
+    if fecha_man:
+        txt += ' FECHA DE 1° MANIFESTACION INVALIDANTE %s.' % fecha_man
+    txt += (' Atento lo denunciado, intimo les en termino de ley, a que procedan a '
+            'efectivizar las prestaciones a vuestro cargo, bajo apercibimientos legales. '
+            'Quedan debidamente notificados y constituidos en mora.')
+    if d.get('constituirDomicilio'):
+        txt += (' A los fines del presente, constituyo domicilio legal en el estudio '
+                'Jurídico Casih & Asoc., sito en Arturo M. Bas Nº 389 1º Piso Oficina '
+                '“A”, Ciudad de Córdoba (3516327201).')
+    return txt
+
+SYSTEM_PROMPT_TG_EXPOSICION_ENFERMEDAD = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. Vas a recibir la descripción informal de las tareas que hacía un "
+    "trabajador y de los agentes de riesgo a los que estuvo expuesto, y tenés que "
+    "convertirla en una frase corrida, en primera persona, que continúa SIN CORTE la "
+    "oración: 'teniendo en cuenta que me desempeñé en jornales laborales de N horas "
+    "diarias, [TU TEXTO], de acuerdo a la Ley y Decretos reglamentarios me encuentro "
+    "afectado de las siguientes patologías...'.\n\n"
+    "Ejemplos de salida: 'habiendo trabajado durante 28 años de forma ininterrumpida a "
+    "las órdenes de Coniferal, realizando tareas que implicaron la exposición a "
+    "agentes de riesgo tales como posiciones forzadas, movimientos repetitivos, "
+    "vibraciones de cuerpo entero'  /  'realizando tareas de trabajo en playa (colgado "
+    "de jaulas de 9 pollos cada una) y menudencia de aves de corral, lo que implican "
+    "tareas semiforzosas, ruidosas y repetitivas, viciosas y en posición anti "
+    "ergonómicas con movimientos y gestos inadecuados y parado'\n\n"
+    "Reglas:\n"
+    "- Arrancá en minúscula y sin punto final: tu frase se inserta en medio de una "
+    "oración más larga.\n"
+    "- Conservá EXACTOS los números, años, nombres de empresas y cantidades que aparezcan "
+    "en el texto.\n"
+    "- Nunca inventes tareas, agentes de riesgo, años ni datos que no estén en el texto "
+    "que te pasaron.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+@app.route('/generar-telegrama-enfermedad', methods=['POST', 'OPTIONS'])
+def generar_telegrama_enfermedad():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    d = request.get_json(silent=True) or {}
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    if not (d.get('destNombre') or '').strip():
+        return error('Falta el nombre o razón social de la ART.')
+    if not (d.get('remNombre') or '').strip():
+        return error('Falta el nombre del remitente (el cliente).')
+    if not (d.get('empNombre') or '').strip():
+        return error('Falta el empleador.')
+    if not [p for p in (d.get('patologias') or []) if (p.get('nombre') or '').strip()]:
+        return error('Cargá al menos una patología.')
+    if not (d.get('incapacidadTotal') or '').strip():
+        return error('Falta el porcentaje total de incapacidad.')
+    if not (d.get('fechaManifestacion') or '').strip():
+        return error('Falta la fecha de primera manifestación invalidante.')
+
+    exposicion = ''
+    relato = (d.get('exposicion') or '').strip()
+    if relato:
+        api_key = os.environ.get('ANTHROPIC_API_KEY')
+        if not api_key:
+            return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+        try:
+            client = anthropic.Anthropic(api_key=api_key)
+            exposicion = redactar_con_ia(client, SYSTEM_PROMPT_TG_EXPOSICION_ENFERMEDAD, relato)
+        except Exception as e:
+            print("Error redactando exposición de telegrama de enfermedad:", str(e))
+            return error('No se pudo generar el telegrama. Intentá de nuevo en un momento.', 500)
+
+    texto = armar_cuerpo_enfermedad(d, exposicion)
+    resp = jsonify({"status": "ok", "texto": texto})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
+@app.route('/extraer-dictamen', methods=['POST', 'OPTIONS'])
+def extraer_dictamen():
+    if request.method == 'OPTIONS':
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp, 200
+
+    def error(msg, code=400):
+        resp = jsonify({"status": "error", "detalle": msg})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, code
+
+    body = request.get_json(silent=True) or {}
+    archivo_b64 = body.get('archivo')
+    media_type = body.get('mediaType') or 'application/pdf'
+    texto_pegado = (body.get('texto') or '').strip()
+    if not archivo_b64 and not texto_pegado:
+        return error('Subí el dictamen (PDF o foto) o pegá su texto.')
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return error('El servidor no tiene configurada la clave de la API de Claude.', 500)
+
+    contenido = []
+    if archivo_b64:
+        if media_type == 'application/pdf':
+            contenido.append({"type": "document", "source": {"type": "base64", "media_type": media_type, "data": archivo_b64}})
+        elif media_type.startswith('image/'):
+            contenido.append({"type": "image", "source": {"type": "base64", "media_type": media_type, "data": archivo_b64}})
+        else:
+            return error('Formato no soportado. Subí una foto o un PDF, o pegá el texto.')
+    if texto_pegado:
+        contenido.append({"type": "text", "text": "Texto del dictamen:\n\n" + texto_pegado})
+    contenido.append({"type": "text", "text": "Extraé los datos del dictamen médico."})
+
+    system_prompt = (
+        "Sos un asistente que lee dictámenes médicos de incapacidad laboral para un estudio "
+        "jurídico. Copiá los datos EXACTAMENTE como están escritos, sin redondear, sin "
+        "calcular, sin sumar y sin corregir. Si un dato no figura o no se lee con confianza, "
+        "dejalo vacío en vez de adivinar. Datos a extraer:\n"
+        "- patologias: cada diagnóstico de la tabulación con su porcentaje (el nombre sin el "
+        "porcentaje, el porcentaje solo con el número, ej. '6,00').\n"
+        "- factorPonderacion: el valor total que aparece entre paréntesis en el título "
+        "'Factores de ponderación' (no los porcentajes de cada factor), ej. '0,96'.\n"
+        "- incapacidadTotal: el porcentaje de 'Incapacidad total' (de la Total Obrera), ej. '8,96'.\n"
+        "- fechaManifestacion: solo si el dictamen dice expresamente la fecha de primera "
+        "manifestación invalidante (DD/MM/AAAA); si no la dice, vacío. NO uses la fecha del "
+        "dictamen ni la de los estudios.\n"
+        "- empleador: nombre del empleador.\n"
+        "- puesto: el puesto en pocas palabras (ej. 'operario').\n"
+        "- tareasDetalle: el texto de las tareas realizadas, tal cual.\n"
+        "- fechaIngreso: fecha de ingreso tal cual figura (sin la palabra 'Mes de').\n"
+        "- aniosTrabajados: años trabajados, ej. '32 años'.\n"
+        "- agentesRiesgo: los agentes de riesgo listados, tal cual.\n"
+        "- pacienteNombre y pacienteDni: del apartado de datos personales.\n"
+        "- fechaDictamen: fecha en que se firmó el informe (DD/MM/AAAA)."
+    )
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=2048,
+            system=system_prompt,
+            output_config={"format": {
+                "type": "json_schema",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "patologias": {"type": "array", "items": {
+                            "type": "object",
+                            "properties": {"nombre": {"type": "string"}, "porcentaje": {"type": "string"}},
+                            "required": ["nombre", "porcentaje"],
+                            "additionalProperties": False
+                        }},
+                        "factorPonderacion": {"type": "string"},
+                        "incapacidadTotal": {"type": "string"},
+                        "fechaManifestacion": {"type": "string"},
+                        "empleador": {"type": "string"},
+                        "puesto": {"type": "string"},
+                        "tareasDetalle": {"type": "string"},
+                        "fechaIngreso": {"type": "string"},
+                        "aniosTrabajados": {"type": "string"},
+                        "agentesRiesgo": {"type": "string"},
+                        "pacienteNombre": {"type": "string"},
+                        "pacienteDni": {"type": "string"},
+                        "fechaDictamen": {"type": "string"}
+                    },
+                    "required": ["patologias", "factorPonderacion", "incapacidadTotal", "fechaManifestacion", "empleador", "puesto", "tareasDetalle", "fechaIngreso", "aniosTrabajados", "agentesRiesgo", "pacienteNombre", "pacienteDni", "fechaDictamen"],
+                    "additionalProperties": False
+                }
+            }},
+            messages=[{"role": "user", "content": contenido}]
+        )
+        datos = json.loads("".join([b.text for b in response.content if b.type == "text"]))
+    except Exception as e:
+        print("Error leyendo dictamen:", str(e))
+        return error('No se pudo leer el dictamen. Probá con otro archivo, pegá el texto, o cargá los datos a mano.', 500)
+
+    out = {"status": "ok", "patologias": datos.get('patologias', [])}
+    for k in ['factorPonderacion', 'incapacidadTotal', 'fechaManifestacion', 'empleador', 'puesto', 'tareasDetalle', 'fechaIngreso', 'aniosTrabajados', 'agentesRiesgo', 'pacienteNombre', 'pacienteDni', 'fechaDictamen']:
+        out[k] = datos.get(k, '')
+    resp = jsonify(out)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 200
+
 # ---------------------------------------------------------------------------
 # Presentaciones simples (sin IA): acompaña cédulas testigos, manifiesta CBU,
 # pliego de posiciones confesional. Mismo patrón de firma que construir_docx_denuncia,
