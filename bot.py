@@ -2041,6 +2041,69 @@ CIERRE_TELEGRAMA_DESPIDO = (
 )
 
 
+TG_DESPIDO_ART_80 = (
+    'Asimismo los INTIMO a que en el plazo de ley me haga entrega de la documentación '
+    'que se refiere el art. 80 de la LCT, bajo apercibimiento de peticionar la multa por '
+    'la falta de entrega de la misma.'
+)
+
+TG_DESPIDO_MULTAS_24013 = (
+    'Por último, lo INTIMO a que en igual plazo me abone las multas contempladas en los '
+    'arts. 8, 11 y 15 Ley 24.013, habida cuenta de que el despido acaecido deriva de '
+    'forma directa de la intimación cursada oportunamente para la correcta registración.'
+)
+
+TG_DESPIDO_RESERVAS_COBRO = (
+    'Hago expresas reservas de accionar administrativa o judicialmente para obtener su '
+    'cobro en caso de mora o resistencia al pago, con más intereses y costas hasta su '
+    'efectivo pago.'
+)
+
+
+def armar_apertura_despido_contestado(d, relato_redactado):
+    """Apertura cuando la empresa SI contesto el TCL previo: se rechaza su
+    respuesta, se ratifican las misivas anteriores y se hace efectivo el
+    apercibimiento."""
+    descripcion = (d.get('destDescripcion') or '').strip()
+    fantasia = (d.get('destFantasia') or '').strip()
+    encabezado = ''
+    if descripcion or fantasia:
+        encabezado = 'EN CARÁCTER DE TITULAR'
+        if descripcion:
+            encabezado += ' DE %s' % descripcion
+        if fantasia:
+            encabezado += ' QUE GIRA BAJO EL NOMBRE DE FANTASIA: “%s”' % fantasia
+        extension = (d.get('extension') or '').strip()
+        if extension:
+            encabezado += ' - %s' % extension
+        encabezado += ': '
+
+    numero = (d.get('tclNumero') or '').strip()
+    fecha_envio = (d.get('tclFechaEnvio') or '').strip()
+    fecha_recepcion = (d.get('tclFechaRecepcion') or '').strip()
+    rechazo = 'Por medio del presente RECHAZO en todos y en cada uno de sus términos Carta documento CD Nº %s' % numero
+    if fecha_envio:
+        rechazo += ' de fecha %s' % fecha_envio
+    if fecha_recepcion:
+        rechazo += ' recibida con fecha %s' % fecha_recepcion
+    rechazo += ' por falaz, improcedente y contraria a derecho.'
+
+    mi_tcl = (d.get('miTclFecha') or '').strip()
+    ratifico = 'Ratifico en todos y en cada uno de sus términos mis anteriores misivas'
+    if mi_tcl:
+        ratifico += ' (en especial mi TCL de fecha %s)' % mi_tcl
+    ratifico += ', atento a su desconocimiento insincero y falaz de la relación laboral'
+    relato = (relato_redactado or '').strip().rstrip('.')
+    if relato:
+        ratifico += ', %s' % relato
+    ratifico += (
+        ', hago efectivo el apercibimiento cursado oportunamente, colocándome en '
+        'situación de DESPIDO INDIRECTO, por exclusiva culpa y responsabilidad patronal.'
+    )
+
+    return encabezado + rechazo + ' ' + ratifico
+
+
 def armar_apertura_despido_indirecto(d, relato_redactado):
     descripcion = (d.get('destDescripcion') or '').strip()
     fantasia = (d.get('destFantasia') or '').strip()
@@ -2092,7 +2155,11 @@ def armar_cuerpo_despido_indirecto(d, relato_redactado):
     fem_dest = (d.get('destGenero') or '').strip().lower() == 'femenino'
     sufijo = 'a' if fem_dest else 'o'
 
-    partes = [armar_apertura_despido_indirecto(d, relato_redactado)]
+    contestado = (d.get('situacionTcl') or '').strip().lower() == 'contestado'
+    if contestado:
+        partes = [armar_apertura_despido_contestado(d, relato_redactado)]
+    else:
+        partes = [armar_apertura_despido_indirecto(d, relato_redactado)]
 
     regimen = (d.get('regimen') or 'lct').strip().lower()
     if regimen == 'construccion':
@@ -2102,9 +2169,17 @@ def armar_cuerpo_despido_indirecto(d, relato_redactado):
         partes.append(TG_DESPIDO_INTIMACION_LCT)
 
     if d.get('noRegistrado'):
+        if contestado:
+            partes.append(TG_DESPIDO_MULTAS_24013)
         partes.append(TG_DESPIDO_NO_REGISTRADO)
     if d.get('difAportes'):
         partes.append(TG_DESPIDO_DIF_APORTES)
+    if contestado:
+        if regimen != 'construccion':
+            partes.append(TG_DESPIDO_ART_80)
+        partes.append(TG_DESPIDO_RESERVAS_COBRO)
+        if d.get('reservaInconst'):
+            partes.append(TG_ACCIDENTE_RESERVA_INCONSTITUCIONALIDAD)
 
     partes.append(CIERRE_TELEGRAMA_DESPIDO % (sufijo, sufijo))
 
@@ -2127,6 +2202,25 @@ SYSTEM_PROMPT_TG_INJURIA_DESPIDO = (
     "oración más larga que ya arranca en mayúscula y sigue después con otro tramo fijo.\n"
     "- No repitas 'sin aclarar mi situación laboral', eso ya está antes de tu texto.\n"
     "- No agregues 'le comunico que...' al final, eso ya está después.\n"
+    "- Nunca inventes hechos, fechas ni datos que no estén en el texto que te pasaron.\n"
+    "- Devolvé únicamente la frase, sin comentarios antes o después."
+)
+
+SYSTEM_PROMPT_TG_RATIFICA_DESPIDO = (
+    "Sos un asistente de redacción para un estudio jurídico laboralista de Córdoba, "
+    "Argentina. La empresa contestó con una carta documento negando la relación laboral "
+    "del cliente. Vas a recibir, en lenguaje informal, qué datos de la relación laboral "
+    "quiere ratificar el cliente y/o qué puntos de la respuesta de la empresa quiere "
+    "rebatir. Tenés que convertirlo en una frase corrida, en primera persona, formal, "
+    "que continúa SIN CORTE la oración: 'atento a su desconocimiento insincero y falaz de "
+    "la relación laboral, [TU TEXTO], hago efectivo el apercibimiento cursado...'.\n\n"
+    "Ejemplo de salida: 'ratificando que ingresé a trabajar el 18/07/2022 como "
+    "electricista, cumpliendo jornada de lunes a viernes de 07:00 a 18:00 hs, y que "
+    "resulta falso que el vínculo sea inexistente'\n\n"
+    "Reglas:\n"
+    "- Arrancá en minúscula y sin punto final.\n"
+    "- No repitas 'desconocimiento insincero y falaz' ni agregues 'hago efectivo...', eso "
+    "ya está antes y después de tu texto.\n"
     "- Nunca inventes hechos, fechas ni datos que no estén en el texto que te pasaron.\n"
     "- Devolvé únicamente la frase, sin comentarios antes o después."
 )
@@ -2165,7 +2259,10 @@ def generar_telegrama_despido_indirecto():
         return error('Falta el nombre o razón social del destinatario.')
     if not (d.get('remNombre') or '').strip():
         return error('Falta el nombre del remitente (el cliente).')
+    contestado = (d.get('situacionTcl') or '').strip().lower() == 'contestado'
     if not (d.get('tclNumero') or '').strip():
+        if contestado:
+            return error('Falta el número de la carta documento con la que contestó la empresa.')
         return error('Falta el número del TCL previo no contestado.')
     regimen = (d.get('regimen') or 'lct').strip().lower()
     if regimen == 'construccion':
@@ -2182,7 +2279,10 @@ def generar_telegrama_despido_indirecto():
         client = anthropic.Anthropic(api_key=api_key)
         relato = ''
         if (d.get('relato') or '').strip():
-            relato = redactar_con_ia(client, SYSTEM_PROMPT_TG_INJURIA_DESPIDO, d['relato'])
+            relato = redactar_con_ia(
+                client,
+                SYSTEM_PROMPT_TG_RATIFICA_DESPIDO if contestado else SYSTEM_PROMPT_TG_INJURIA_DESPIDO,
+                d['relato'])
         jornada_redactada = d.get('jornada', '')
         if regimen == 'construccion' and (d.get('jornada') or '').strip():
             jornada_redactada = redactar_con_ia(

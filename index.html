@@ -1047,15 +1047,15 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
 
     <div class="card card-doc">
-      <div class="card-title">TCL previo no contestado</div>
-      <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:14px">
-        Este telegrama da por vencidos los plazos del TCL anterior (el de "aclare situación laboral") que la empresa no contestó. Cargá sus datos acá.
-      </div>
-      <div class="fg"><div class="fl">Número del TCL previo *</div><input class="fi" id="di-tcl-numero" placeholder="Ej: 371372272"></div>
+      <div class="card-title">TCL previo</div>
+      <div class="fg"><div class="fl">Situación</div><select class="fs" id="di-situacion" onchange="toggleSituacionDespidoIndirecto()"><option value="sin_respuesta">La empresa NO contestó mi TCL</option><option value="contestado">La empresa CONTESTÓ (rechaza mi TCL / niega la relación)</option></select></div>
+      <div class="fg" id="di-situacion-ayuda" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3);margin-bottom:14px"></div>
+      <div class="fg"><div class="fl" id="di-tcl-numero-lbl">Número del TCL previo *</div><input class="fi" id="di-tcl-numero" placeholder="Ej: 371372272"></div>
       <div class="g2">
-        <div class="fg"><div class="fl">Fecha de envío</div><input class="fi" id="di-tcl-fecha-envio" placeholder="Ej: 02/07/2026"></div>
-        <div class="fg"><div class="fl">Fecha de entrega/recepción</div><input class="fi" id="di-tcl-fecha-recepcion" placeholder="Ej: 08/07/2026"></div>
+        <div class="fg"><div class="fl" id="di-tcl-fecha-envio-lbl">Fecha de envío</div><input class="fi" id="di-tcl-fecha-envio" placeholder="Ej: 02/07/2026"></div>
+        <div class="fg"><div class="fl" id="di-tcl-fecha-recepcion-lbl">Fecha de entrega/recepción</div><input class="fi" id="di-tcl-fecha-recepcion" placeholder="Ej: 08/07/2026"></div>
       </div>
+      <div class="fg" id="di-mi-tcl-wrap" style="display:none"><div class="fl">Fecha de mi TCL que ellos contestaron (opcional)</div><input class="fi" id="di-mi-tcl-fecha" placeholder="Ej: 28/10/2026"></div>
     </div>
 
     <div class="card card-doc">
@@ -1073,13 +1073,14 @@ input.currency-input{letter-spacing:0.5px;}
     <div class="card card-doc">
       <div class="card-title">Reclamos adicionales</div>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="di-chk-no-registrado"> No estaba registrado (relación totalmente informal)</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="di-chk-dif-aportes"> Diferencia de aportes (retenciones no depositadas: jubilación, obra social, sindicato, etc.)</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px"><input type="checkbox" id="di-chk-dif-aportes"> Diferencia de aportes (retenciones no depositadas: jubilación, obra social, sindicato, etc.)</label>
+      <label id="di-chk-inconst-wrap" style="display:none;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer"><input type="checkbox" id="di-chk-inconst"> La empresa invocó el DNU 70/2023 / Ley 27.742 — agregar reserva de inconstitucionalidad</label>
     </div>
 
     <div class="card card-doc">
-      <div class="card-title">Motivo del despido indirecto</div>
+      <div class="card-title" id="di-relato-titulo">Motivo del despido indirecto</div>
       <div class="fg">
-        <div class="fl">Relato de los hechos *</div>
+        <div class="fl" id="di-relato-lbl">Relato de los hechos *</div>
         <textarea class="fta" id="di-relato" style="min-height:110px" placeholder="Contá en tus palabras por qué se considera despedido/a: impedimento de ingreso, falta de tareas, respuestas evasivas, falta de pago de haberes, negativa a registrar, etc. La IA lo redacta en estilo formal — no hace falta escribirlo ya en formato legal."></textarea>
       </div>
     </div>
@@ -3854,7 +3855,7 @@ var ESCRITO_CONFIG={
   telegrama_despido_indirecto:{
     cont:'es-form-despido-indirecto',dinamicos:[],resultado:'di-resultado-card',
     contador:null,nombre:'TCL — Despido indirecto',campoTitulo:'di-rem-nombre',
-    despues:function(){toggleRegimenDespidoIndirecto();}
+    despues:function(){toggleRegimenDespidoIndirecto();toggleSituacionDespidoIndirecto();}
   },
   telegrama_accidente:{
     cont:'es-form-accidente',dinamicos:[],resultado:'ac-resultado-card',
@@ -4132,6 +4133,25 @@ function cambiarTipoEscrito(){
   }
 }
 
+function toggleSituacionDespidoIndirecto(){
+  var c=document.getElementById('di-situacion').value==='contestado';
+  var set=function(id,t){var e=document.getElementById(id);if(e)e.textContent=t;};
+  var show=function(id,v){var e=document.getElementById(id);if(e)e.style.display=v;};
+  set('di-situacion-ayuda',c
+    ?'La empresa contestó con carta documento. El telegrama la rechaza, ratifica tus misivas anteriores y hace efectivo el despido indirecto, sin exigir un plazo vencido. Cargá los datos de SU carta documento.'
+    :'Este telegrama da por vencidos los plazos del TCL anterior (el de "aclare situación laboral") que la empresa no contestó. Cargá sus datos acá.');
+  set('di-tcl-numero-lbl',c?'Número de la carta documento de la empresa *':'Número del TCL previo *');
+  set('di-tcl-fecha-envio-lbl',c?'Fecha de su carta documento':'Fecha de envío');
+  set('di-tcl-fecha-recepcion-lbl',c?'Fecha en que la recibiste (opcional)':'Fecha de entrega/recepción');
+  set('di-relato-titulo',c?'Ratificación y respuesta a la empresa':'Motivo del despido indirecto');
+  set('di-relato-lbl',c?'Qué querés ratificar / rebatir (opcional)':'Relato de los hechos *');
+  document.getElementById('di-relato').placeholder=c
+    ?'Ej: ingresé el 18/07/2022 como electricista, de lunes a viernes de 7 a 18; es falso que no haya relación laboral. La IA lo redacta en estilo formal. Si lo dejás vacío, se usa solo el texto estándar.'
+    :'Contá en tus palabras por qué se considera despedido/a: impedimento de ingreso, falta de tareas, respuestas evasivas, falta de pago de haberes, negativa a registrar, etc. La IA lo redacta en estilo formal — no hace falta escribirlo ya en formato legal.';
+  show('di-mi-tcl-wrap',c?'block':'none');
+  show('di-chk-inconst-wrap',c?'flex':'none');
+}
+
 function toggleRegimenDespidoIndirecto(){
   var esConstruccion=document.getElementById('di-regimen').value==='construccion';
   document.getElementById('di-regimen-construccion-fields').style.display=esConstruccion?'block':'none';
@@ -4206,7 +4226,9 @@ function datosDespidoIndirecto(){
     tclFechaRecepcion:v('di-tcl-fecha-recepcion'),
     regimen:v('di-regimen'),categoria:v('di-categoria'),jornada:v('di-jornada'),
     noRegistrado:c('di-chk-no-registrado'),difAportes:c('di-chk-dif-aportes'),
-    relato:v('di-relato')
+    relato:v('di-relato'),
+    situacionTcl:v('di-situacion'),miTclFecha:v('di-mi-tcl-fecha'),
+    reservaInconst:c('di-chk-inconst')
   };
 }
 
@@ -4214,7 +4236,7 @@ function generarTelegramaDespidoIndirecto(){
   var d=datosDespidoIndirecto();
   if(!d.destNombre){alert('Falta el nombre o razón social del destinatario.');return;}
   if(!d.remNombre){alert('Falta el nombre del remitente (el cliente).');return;}
-  if(!d.tclNumero){alert('Falta el número del TCL previo no contestado.');return;}
+  if(!d.tclNumero){alert(d.situacionTcl==='contestado'?'Falta el número de la carta documento de la empresa.':'Falta el número del TCL previo no contestado.');return;}
   if(d.regimen==='construccion'&&(!d.categoria||!d.jornada)){alert('Régimen de la construcción: completá categoría y jornada.');return;}
 
   var btn=document.getElementById('di-btn-generar');
