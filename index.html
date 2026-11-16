@@ -149,6 +149,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .av-green{background:var(--green-bg);color:var(--green);}
 .av-purple{background:var(--purple-bg);color:var(--purple);}
 .av-orange{background:var(--orange-bg);color:var(--orange);}
+.av-teal{background:rgba(61,214,192,.14);color:var(--teal);}
 .row-info{flex:1;min-width:0;}
 .row-name{font-size:var(--fs-base);font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .row-sub{font-size:var(--fs-xs);color:var(--text3);margin-top:2px;}
@@ -265,6 +266,7 @@ tr:hover td{background:var(--bg3);}
 .client-card:hover{background:var(--bg3);}
 .client-card.estudio{border-left-color:var(--purple);}
 .client-card.publicidad{border-left-color:var(--blue);}
+.client-card.ananda{border-left-color:var(--teal);}
 .client-card.posible{border-left-color:var(--orange);}
 .client-card.uocra{border-left-color:var(--green);}
 .client-card.finalizado{border-left-color:var(--text3);opacity:0.75;}
@@ -542,16 +544,17 @@ input.currency-input{letter-spacing:0.5px;}
 <!-- CLIENTES -->
 <div class="section" id="sec-clientes">
   <div class="page-header">
-    <div><div class="page-title">Clientes</div><div class="page-sub">Del estudio · Publicidad · Defensa del Consumidor</div></div>
+    <div><div class="page-title">Clientes</div><div class="page-sub">Del estudio · Publicidad · Ananda · Defensa del Consumidor</div></div>
     <div class="btn-row">
       <button class="btn-sm" onclick="crearCarpetasClientesExistentes()" style="border-color:var(--blue);color:var(--blue)">📁 Crear carpetas Drive</button>
       <button id="btn-nuevo-cliente" class="btn-primary" onclick="abrirModalNuevoCliente()">+ Nuevo cliente</button>
     </div>
   </div>
-  <div class="metrics" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+  <div class="metrics" style="grid-template-columns:repeat(5,minmax(0,1fr))">
     <div class="metric"><div class="metric-label">Total</div><div class="metric-val" id="cs-total">—</div></div>
     <div class="metric"><div class="metric-label">Del estudio</div><div class="metric-val" style="color:var(--purple)" id="cs-est">—</div></div>
     <div class="metric"><div class="metric-label">Publicidad</div><div class="metric-val" style="color:var(--blue)" id="cs-pub">—</div></div>
+    <div class="metric"><div class="metric-label">Ananda</div><div class="metric-val" style="color:var(--teal)" id="cs-ananda">—</div></div>
     <div class="metric"><div class="metric-label">Der. Consumidor</div><div class="metric-val" style="color:var(--green)" id="cs-consumidor">—</div></div>
   </div>
   <div class="card" style="margin-bottom:24px;border-left:3px solid var(--blue)">
@@ -568,6 +571,7 @@ input.currency-input{letter-spacing:0.5px;}
   <div class="tabs" id="c-tabs">
     <button class="tab active" onclick="setCtab('estudio')">Del estudio</button>
     <button class="tab" onclick="setCtab('publicidad')">Publicidad</button>
+    <button class="tab" onclick="setCtab('ananda')">Ananda</button>
     <button class="tab" onclick="setCtab('consumidor')">⚖️ Defensa del Consumidor</button>
     <button class="tab" onclick="setCtab('finalizado')">✅ Finalizados</button>
   </div>
@@ -1752,7 +1756,7 @@ input.currency-input{letter-spacing:0.5px;}
     </div>
     <div class="fg"><div class="fl">Jornada / Horario</div><input class="fi" id="cn-jornada" placeholder="Ej: Lunes a Viernes, 7 a 17 hs"></div>
     <div class="fg"><div class="fl">Tareas que realizaba en su trabajo</div><textarea class="fta" id="cn-tareas" placeholder="Ej: atención al público, cobro en caja, reposición de mercadería..."></textarea></div>
-    <div class="fg" id="cn-tipo-wrap" style="display:none"><div class="fl">Carpeta</div><select class="fs" id="cn-tipo-edit"><option value="estudio">Del estudio</option><option value="publicidad">Publicidad</option></select></div>
+    <div class="fg" id="cn-tipo-wrap" style="display:none"><div class="fl">Carpeta</div><select class="fs" id="cn-tipo-edit"><option value="estudio">Del estudio</option><option value="publicidad">Publicidad</option><option value="ananda">Ananda</option></select></div>
     <div class="fg"><div class="fl">Descripción del caso</div><textarea class="fta" id="cn-no" placeholder="Descripción del caso, estado actual..."></textarea></div>
     <div class="fg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px;color:var(--text3)">📁 La carpeta de Google Drive se crea automáticamente al guardar.</div>
     <div class="modal-footer"><button class="btn-sm" onclick="closeModal('m-cliente')">Cancelar</button><button class="btn-primary" onclick="saveCliente()">Guardar</button></div>
@@ -1761,7 +1765,7 @@ input.currency-input{letter-spacing:0.5px;}
 
 <div class="modal-bg" id="m-avanzar-cliente" onclick="if(event.target===this)closeModal('m-avanzar-cliente')">
   <div class="modal"><h3 id="m-avanzar-titulo">Avanzar con el cliente</h3>
-    <div class="fg"><div class="fl">Origen</div><select class="fs" id="av-origen"><option value="">— Sin especificar —</option><option value="publicidad">Publicidad</option><option value="estudio">Del estudio</option></select></div>
+    <div class="fg"><div class="fl">Origen</div><select class="fs" id="av-origen"><option value="">— Sin especificar —</option><option value="publicidad">Publicidad</option><option value="ananda">Ananda</option><option value="estudio">Del estudio</option></select></div>
     <div class="fg"><div class="fl">Pasos de seguimiento</div><select class="fs" id="av-checklist"><option value="">— Sin pasos por ahora —</option><option value="despido">Despido</option><option value="accidente">Accidente de trabajo</option><option value="enfermedad">Enfermedad profesional</option></select></div>
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px">Servicios a ofrecer</div>
     <div id="av-servicios-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
@@ -2080,7 +2084,7 @@ function goTo(s){
 
 // ─── BUSCADOR GLOBAL DEL INICIO ───
 var DASH_SECCIONES=[
-  {label:'Clientes',ico:'👥',section:'clientes',kw:'clientes carpetas seguimiento correo tcl publicidad consumidor'},
+  {label:'Clientes',ico:'👥',section:'clientes',kw:'clientes carpetas seguimiento correo tcl publicidad ananda consumidor'},
   {label:'Agenda',ico:'📅',section:'tareas',kw:'agenda calendario recordatorios eventos whatsapp'},
   {label:'Contable',ico:'📊',section:'admin',kw:'contable gastos ingresos balance estudios medicos deudas'},
   {label:'Escritos IA',ico:'📝',section:'escritos',kw:'escritos ia denuncia telegrama despido indirecto demanda tcl'}
@@ -2302,7 +2306,7 @@ function initClientes(){
 // desaparezca de la vista.
 function tipoCliente(c){
   var t=c.tipo||'';
-  return (t==='publicidad'||t==='consumidor'||t==='finalizado')?t:'estudio';
+  return (t==='publicidad'||t==='ananda'||t==='consumidor'||t==='finalizado')?t:'estudio';
 }
 function esClienteActivo(c){return c.tipo!=='finalizado'&&c.tipo!=='consumidor'&&c.enRevision!==true;}
 
@@ -2313,6 +2317,7 @@ function updCStats(){
   document.getElementById('cs-total').textContent=enCarpeta.filter(esClienteActivo).length;
   document.getElementById('cs-est').textContent=enCarpeta.filter(function(c){return tipoCliente(c)==='estudio';}).length;
   document.getElementById('cs-pub').textContent=enCarpeta.filter(function(c){return tipoCliente(c)==='publicidad';}).length;
+  var anEl=document.getElementById('cs-ananda');if(anEl)anEl.textContent=enCarpeta.filter(function(c){return tipoCliente(c)==='ananda';}).length;
   var conEl=document.getElementById('cs-consumidor');if(conEl)conEl.textContent=CONSUMIDOR_CACHE.length;
   var dmc=document.getElementById('dm-clientes');if(dmc)dmc.textContent=enCarpeta.filter(esClienteActivo).length;
 }
@@ -2347,7 +2352,7 @@ function updateClienteSelects(){
 function setCtab(t){
   curCtab=t;
   clientesPaginaActual=1;
-  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','consumidor','finalizado'][i]===t?' active':'');});
+  document.querySelectorAll('#c-tabs .tab').forEach(function(b,i){b.className='tab'+(['estudio','publicidad','ananda','consumidor','finalizado'][i]===t?' active':'');});
   var isConsumidor=t==='consumidor';
   document.getElementById('client-grid').style.display=isConsumidor?'none':'grid';
   document.getElementById('client-empty').style.display='none';
@@ -2463,7 +2468,7 @@ function renderClientes(){
 
   gr.innerHTML=list.map(function(c){
     var t=tipoCliente(c);
-    var avCls=t==='estudio'?'av-purple':t==='publicidad'?'av-blue':'av-orange';
+    var avCls=t==='estudio'?'av-purple':t==='publicidad'?'av-blue':t==='ananda'?'av-teal':'av-orange';
     var nom=c.nombre.replace(/'/g,"\\'");
     var driveBtn=c.drive&&c.driveFolderId?
       '<a class="btn-cpub" href="'+c.drive+'" target="_blank">📁 Ver carpeta en Drive</a>'+
@@ -2561,13 +2566,15 @@ function renderDashSeguimiento(){
   if(!cont)return;
   var todos=CLIENTES_CACHE.filter(function(c){return esClienteActivo(c)&&c.checklist&&c.checklist.length;});
   if(todos.length===0){cont.innerHTML='<div class="hint">Ningún cliente en seguimiento todavía. Usá "+ Agregar cliente existente".</div>';return;}
-  var nEstudio=todos.filter(function(c){return tipoCliente(c)!=='publicidad';}).length;
-  var nWeb=todos.length-nEstudio;
+  var nEstudio=todos.filter(function(c){return tipoCliente(c)==='estudio';}).length;
+  var nWeb=todos.filter(function(c){return tipoCliente(c)==='publicidad';}).length;
+  var nAnanda=todos.filter(function(c){return tipoCliente(c)==='ananda';}).length;
   var tabs='<div class="seg-tabs">'+
     '<button class="seg-tab'+(SEG_VISTA==='estudio'?' activa':'')+'" onclick="cambiarVistaSeguimiento(\'estudio\')">Clientes del estudio ('+nEstudio+')</button>'+
     '<button class="seg-tab'+(SEG_VISTA==='publicidad'?' activa':'')+'" onclick="cambiarVistaSeguimiento(\'publicidad\')">Clientes web / publicidad ('+nWeb+')</button>'+
+    '<button class="seg-tab'+(SEG_VISTA==='ananda'?' activa':'')+'" onclick="cambiarVistaSeguimiento(\'ananda\')">Clientes Ananda ('+nAnanda+')</button>'+
   '</div>';
-  var list=todos.filter(function(c){return (tipoCliente(c)==='publicidad')===(SEG_VISTA==='publicidad');});
+  var list=todos.filter(function(c){return tipoCliente(c)===SEG_VISTA;});
   list.sort(function(a,b){
     var fa=a.chkNovedades?1:0,fb=b.chkNovedades?1:0;
     if(fa!==fb)return fb-fa;
@@ -2733,7 +2740,7 @@ function abrirAgregarChecklist(){
 function chkAgRender(){
   var q=document.getElementById('chk-ag-search').value.trim().toLowerCase();
   var cont=document.getElementById('chk-ag-lista');
-  document.getElementById('chk-ag-origen').innerHTML=[['','Todos'],['estudio','Del estudio'],['publicidad','Web / Publicidad']].map(function(o){
+  document.getElementById('chk-ag-origen').innerHTML=[['','Todos'],['estudio','Del estudio'],['publicidad','Web / Publicidad'],['ananda','Ananda']].map(function(o){
     return '<button class="seg-tab'+(CHK_AG_ORIGEN===o[0]?' activa':'')+'" onclick="chkAgOrigen(\''+o[0]+'\')">'+o[1]+'</button>';
   }).join('');
   var lista=CLIENTES_CACHE.filter(function(c){
@@ -2742,7 +2749,7 @@ function chkAgRender(){
   }).sort(function(a,b){return (a.nombre||'').localeCompare(b.nombre||'');});
   if(!lista.length){cont.innerHTML='<div style="padding:12px;font-size:13px;color:var(--text3)">No hay clientes disponibles'+(q?' con ese nombre':'')+'</div>';return;}
   cont.innerHTML=lista.map(function(c){
-    var det=[tipoCliente(c)==='publicidad'?'Web':'Estudio',c.tel,servLbl(c),c.empleador].filter(function(x){return x;}).map(chkEsc).join(' · ');
+    var det=[tipoCliente(c)==='publicidad'?'Web':tipoCliente(c)==='ananda'?'Ananda':'Estudio',c.tel,servLbl(c),c.empleador].filter(function(x){return x;}).map(chkEsc).join(' · ');
     var sel=CHK_AG_CLIENTE&&CHK_AG_CLIENTE.id===c.id?' sel':'';
     return '<div class="chk-ag-row'+sel+'" data-chk-id="'+c.id+'"><b>'+chkEsc(c.nombre)+'</b>'+(det?'<div class="chk-meta">'+det+'</div>':'')+'</div>';
   }).join('');
@@ -3260,7 +3267,9 @@ function resetClienteForm(){
 
 function abrirModalNuevoCliente(){
   if(curCtab==='consumidor'){openModal('m-consumidor');}
-  else{resetClienteForm();openModal('m-cliente');}
+  else{resetClienteForm();
+    if(curCtab==='ananda'){var tt=document.getElementById('m-cliente-titulo');if(tt)tt.textContent='Nuevo cliente — Ananda';}
+    openModal('m-cliente');}
 }
 
 function saveCliente(){
@@ -3287,12 +3296,12 @@ function saveCliente(){
     fechaIngreso:document.getElementById('cn-fecha-ingreso')?document.getElementById('cn-fecha-ingreso').value.trim():'',
     fechaEgreso:document.getElementById('cn-fecha-egreso')?document.getElementById('cn-fecha-egreso').value.trim():'',
     jornada:document.getElementById('cn-jornada')?document.getElementById('cn-jornada').value.trim():'',tareas:document.getElementById('cn-tareas')?document.getElementById('cn-tareas').value.trim():'',
-    tipo:'posible',
+    tipo:(curCtab==='ananda'?'ananda':'posible'),
     notas:document.getElementById('cn-no').value.trim(),
     tel:document.getElementById('cn-tel')?document.getElementById('cn-tel').value.trim():'',
     expte:'',etapa:'Cita',fecha:fmt(today),
     drive:'',driveFolderId:'',
-    enRevision:true,
+    enRevision:(curCtab==='ananda'?false:true),
     creadoEn:firebase.firestore.FieldValue.serverTimestamp()
   };
   db.collection('clientes').add(data).then(function(docRef){
@@ -3326,7 +3335,7 @@ function editCliente(id){
   setVal('cn-fecha-ingreso',c.fechaIngreso);setVal('cn-fecha-egreso',c.fechaEgreso);setVal('cn-jornada',c.jornada);setVal('cn-tareas',c.tareas);
   setVal('cn-no',c.notas);
   var tipoWrap=document.getElementById('cn-tipo-wrap');
-  var puedeElegirCarpeta=c.tipo==='estudio'||c.tipo==='publicidad';
+  var puedeElegirCarpeta=c.tipo==='estudio'||c.tipo==='publicidad'||c.tipo==='ananda';
   if(tipoWrap)tipoWrap.style.display=puedeElegirCarpeta?'block':'none';
   if(puedeElegirCarpeta)setVal('cn-tipo-edit',c.tipo);
   var titulo=document.getElementById('m-cliente-titulo');if(titulo)titulo.textContent='Editar cliente';
