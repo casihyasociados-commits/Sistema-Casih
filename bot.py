@@ -2081,7 +2081,11 @@ def armar_apertura_despido_contestado(d, relato_redactado):
     numero = (d.get('tclNumero') or '').strip()
     fecha_envio = (d.get('tclFechaEnvio') or '').strip()
     fecha_recepcion = (d.get('tclFechaRecepcion') or '').strip()
-    rechazo = 'Por medio del presente RECHAZO en todos y en cada uno de sus términos Carta documento CD Nº %s' % numero
+    if numero:
+        rechazo = ('Por medio del presente RECHAZO en todos y en cada uno de sus términos Carta documento %s'
+                   % (numero if numero.upper().startswith('CD') else 'CD Nº %s' % numero))
+    else:
+        rechazo = 'Por medio del presente RECHAZO en todos y en cada uno de sus términos su respuesta a mi intimación'
     if fecha_envio:
         rechazo += ' de fecha %s' % fecha_envio
     if fecha_recepcion:
@@ -2089,9 +2093,15 @@ def armar_apertura_despido_contestado(d, relato_redactado):
     rechazo += ' por falaz, improcedente y contraria a derecho.'
 
     mi_tcl = (d.get('miTclFecha') or '').strip()
+    mi_tcl_numero = (d.get('miTclNumero') or '').strip()
     ratifico = 'Ratifico en todos y en cada uno de sus términos mis anteriores misivas'
-    if mi_tcl:
-        ratifico += ' (en especial mi TCL de fecha %s)' % mi_tcl
+    if mi_tcl_numero or mi_tcl:
+        ref = 'en especial mi TCL'
+        if mi_tcl_numero:
+            ref += ' %s' % (mi_tcl_numero if mi_tcl_numero.upper().startswith('CD') else 'CD Nº %s' % mi_tcl_numero)
+        if mi_tcl:
+            ref += ' de fecha %s' % mi_tcl
+        ratifico += ' (%s)' % ref
     ratifico += ', atento a su desconocimiento insincero y falaz de la relación laboral'
     relato = (relato_redactado or '').strip().rstrip('.')
     if relato:
@@ -2218,6 +2228,8 @@ SYSTEM_PROMPT_TG_RATIFICA_DESPIDO = (
     "electricista, cumpliendo jornada de lunes a viernes de 07:00 a 18:00 hs, y que "
     "resulta falso que el vínculo sea inexistente'\n\n"
     "Reglas:\n"
+    "- Si el texto trae 'Respuesta de la empresa', rebatí puntualmente lo que la empresa "
+    "dijo, sin copiar su texto, y sin inventar nada que no esté en lo que te pasaron.\n"
     "- Arrancá en minúscula y sin punto final.\n"
     "- No repitas 'desconocimiento insincero y falaz' ni agregues 'hago efectivo...', eso "
     "ya está antes y después de tu texto.\n"
@@ -2260,9 +2272,7 @@ def generar_telegrama_despido_indirecto():
     if not (d.get('remNombre') or '').strip():
         return error('Falta el nombre del remitente (el cliente).')
     contestado = (d.get('situacionTcl') or '').strip().lower() == 'contestado'
-    if not (d.get('tclNumero') or '').strip():
-        if contestado:
-            return error('Falta el número de la carta documento con la que contestó la empresa.')
+    if not contestado and not (d.get('tclNumero') or '').strip():
         return error('Falta el número del TCL previo no contestado.')
     regimen = (d.get('regimen') or 'lct').strip().lower()
     if regimen == 'construccion':
@@ -2278,11 +2288,16 @@ def generar_telegrama_despido_indirecto():
     try:
         client = anthropic.Anthropic(api_key=api_key)
         relato = ''
-        if (d.get('relato') or '').strip():
+        relato_in = (d.get('relato') or '').strip()
+        respuesta_empresa = (d.get('respuestaEmpresa') or '').strip() if contestado else ''
+        if respuesta_empresa:
+            relato_in = ('Respuesta de la empresa: %s\n\nLo que el cliente quiere ratificar o rebatir: %s'
+                         % (respuesta_empresa, relato_in or '(nada en particular, rebatir lo que dijo la empresa)'))
+        if relato_in:
             relato = redactar_con_ia(
                 client,
                 SYSTEM_PROMPT_TG_RATIFICA_DESPIDO if contestado else SYSTEM_PROMPT_TG_INJURIA_DESPIDO,
-                d['relato'])
+                relato_in)
         jornada_redactada = d.get('jornada', '')
         if regimen == 'construccion' and (d.get('jornada') or '').strip():
             jornada_redactada = redactar_con_ia(
