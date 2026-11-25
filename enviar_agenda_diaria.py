@@ -79,6 +79,22 @@ def revisar_seguimientos_tareas():
     except Exception as e:
         print("No se pudo revisar seguimientos de tareas:", str(e))
 
+def enviar_telegram(mensaje):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_GROUP_ID")
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    # Mismo formato *negrita* de siempre; si Telegram lo rechaza (400), se manda como texto plano.
+    for parse_mode in ("Markdown", None):
+        payload = {"chat_id": chat_id, "text": mensaje}
+        if parse_mode:
+            payload["parse_mode"] = parse_mode
+        r = requests.post(url, json=payload, timeout=30)
+        print("Telegram respondió:", r.status_code, r.text[:200])
+        if r.status_code != 400:
+            break
+    r.raise_for_status()
+    return r.json()
+
 def enviar_whatsapp(mensaje):
     instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
     token = os.environ.get("GREEN_API_TOKEN")
@@ -173,13 +189,18 @@ if __name__ == "__main__":
             for t in tareas:
                 texto_mensaje += f"• {t['texto']}\n"
 
-        res = enviar_whatsapp(texto_mensaje)
-        print("Mensaje enviado con éxito:", res)
-        if not diagnosticar_envio(res):
+        if os.environ.get("TELEGRAM_BOT_TOKEN") and os.environ.get("TELEGRAM_GROUP_ID"):
+            res = enviar_telegram(texto_mensaje)
+            print("Mensaje enviado por Telegram:", res)
             revisar_seguimientos_tareas()
-            sys.exit(1)
+        else:
+            res = enviar_whatsapp(texto_mensaje)
+            print("Mensaje enviado con éxito:", res)
+            if not diagnosticar_envio(res):
+                revisar_seguimientos_tareas()
+                sys.exit(1)
 
-        revisar_seguimientos_tareas()
+            revisar_seguimientos_tareas()
 
     except Exception as e:
         print("Error al ejecutar el script:", str(e))

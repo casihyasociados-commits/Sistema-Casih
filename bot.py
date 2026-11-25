@@ -1,4 +1,5 @@
 import os
+import hmac
 import json
 import re
 import time
@@ -211,8 +212,37 @@ def extraer_monto(texto):
     texto_sin = texto[:m.start()] + texto[m.end():]
     return monto, texto_sin
 
-# --- RESPONDER POR WHATSAPP ---
+# --- ENVIAR MENSAJES (Telegram o WhatsApp/Green API) ---
+# Los chat ids de Telegram se guardan con prefijo "tg:" (ej. "tg:-1001234567");
+# cualquier otro id se manda por Green API como antes.
+def _enviar_telegram(chat_id, texto):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not token:
+        print("[TELEGRAM] falta TELEGRAM_BOT_TOKEN")
+        return False
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    # El formato *negrita* / _cursiva_ / `codigo` es el mismo que ya usan los textos.
+    # Si Telegram rechaza el formato (400, ej. un _ suelto), se reintenta como texto plano.
+    for parse_mode in ("Markdown", None):
+        payload = {"chat_id": chat_id, "text": texto}
+        if parse_mode:
+            payload["parse_mode"] = parse_mode
+        try:
+            r = requests.post(url, json=payload, timeout=15)
+        except Exception as e:
+            print("[TELEGRAM sendMessage] ERROR:", type(e).__name__)
+            return False
+        if r.status_code == 200:
+            return True
+        print("[TELEGRAM sendMessage] status=%s body=%s" % (r.status_code, r.text[:200]))
+        if r.status_code != 400:
+            break
+    return False
+
 def responder_whatsapp(chat_id, texto):
+    # (nombre historico: hoy tambien sirve para Telegram)
+    if str(chat_id).startswith("tg:"):
+        return _enviar_telegram(str(chat_id)[3:], texto)
     instance_id = os.environ.get("GREEN_API_INSTANCE_ID")
     token = os.environ.get("GREEN_API_TOKEN")
     url = f"https://api.green-api.com/waInstance{instance_id}/sendMessage/{token}"
@@ -223,6 +253,13 @@ def responder_whatsapp(chat_id, texto):
     except Exception as e:
         print("[GREEN-API sendMessage] ERROR:", str(e))
         return False
+
+def grupo_destino():
+    # Grupo del estudio: Telegram si esta configurado, si no el de WhatsApp (Green API).
+    tg = os.environ.get("TELEGRAM_GROUP_ID")
+    if tg:
+        return "tg:" + tg.strip()
+    return os.environ.get("GREEN_API_GROUP_ID")
 
 # --- AVISO DE CLIENTE NUEVO ARCHIVADO (grupo de WhatsApp) ---
 @app.route('/notificar-nuevo-cliente', methods=['POST', 'OPTIONS'])
@@ -250,7 +287,7 @@ def notificar_nuevo_cliente():
     nota = (d.get('notaAtencion') or '').strip()
     if nota:
         msg += "\n📌 *Documentación / a tener en cuenta:*\n*%s*" % nota
-    destino = (d.get('destino') or '').strip() or os.environ.get("GREEN_API_GROUP_ID")
+    destino = (d.get('destino') or '').strip() or grupo_destino()
     ok = responder_whatsapp(destino, msg)
     resp = jsonify({"ok": ok, "grupo_configurado": bool(destino)})
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -325,7 +362,7 @@ def nuevo_cliente_remoto():
         print("Error guardando cliente remoto:", str(e))
         return error('No se pudo guardar. Probá de nuevo en un momento.', 500)
 
-    grupo = os.environ.get("GREEN_API_GROUP_ID")
+    grupo = grupo_destino()
     if grupo:
         responder_whatsapp(grupo, "🆕 *Nuevo cliente desde el formulario web*\n\n👤 %s\n📞 %s\n\nRevisar en Inicio → Clientes nuevos por revisar." % (data['nombre'], data['tel'] or '—'))
 
@@ -347,7 +384,7 @@ def notificar_recordatorio():
     msg = "🔔 *Recordatorio*\n\n" + "%s\n" % d.get('desc', '—')
     if d.get('hora'):
         msg += "🕐 %shs\n" % d.get('hora')
-    destino = (d.get('destino') or '').strip() or os.environ.get("GREEN_API_GROUP_ID")
+    destino = (d.get('destino') or '').strip() or grupo_destino()
     ok = responder_whatsapp(destino, msg)
     resp = jsonify({"ok": ok, "grupo_configurado": bool(destino)})
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -358,7 +395,10 @@ def notificar_recordatorio():
 # en X dias": ese dia puntual (fechaRecordatorio) se avisa aparte, por privado,
 # al numero personal de seguimiento -- no al grupo. Se manda una sola vez
 # (recordatorioEnviado) aunque el cron pase de largo esa fecha.
-WHATSAPP_SEGUIMIENTO_TAREAS = os.environ.get("WHATSAPP_SEGUIMIENTO_PERSONAL") or "5493515102323@c.us"
+WHATSAPP_SEGUIMIENTO_TAREAS = (
+    ("tg:" + os.environ["TELEGRAM_SEGUIMIENTO_PERSONAL"].strip())
+    if os.environ.get("TELEGRAM_SEGUIMIENTO_PERSONAL")
+    else (os.environ.get("WHATSAPP_SEGUIMIENTO_PERSONAL") or "5493515102323@c.us"))
 
 @app.route('/revisar-seguimientos-tareas', methods=['GET'])
 def revisar_seguimientos_tareas():
@@ -491,7 +531,7 @@ def webhook():
         if type_webhook == 'incomingMessageReceived':
             message_data = data.get('messageData', {})
             chat_id = data.get('senderData', {}).get('chatId')
-            
+
             text_message = ""
             if 'textMessageData' in message_data:
                 text_message = message_data['textMessageData'].get('textMessage', '').strip()
@@ -500,7 +540,15 @@ def webhook():
 
             if not text_message:
                 return jsonify({"status": "ignored"}), 200
+            procesar_mensaje(chat_id, text_message)
+    except Exception as e:
+        print("Error procesando Webhook:", str(e))
+    return jsonify({"status": "success"}), 200
 
+def procesar_mensaje(chat_id, text_message):
+    """Interpreta un comando (gasto, ingreso, evento, recordame...) venga del canal que venga."""
+    try:
+        if text_message:
             text_lower = text_message.lower()
             tz = pytz.timezone('America/Argentina/Buenos_Aires')
             ahora = datetime.now(tz)
@@ -667,9 +715,61 @@ def webhook():
                     )
 
     except Exception as e:
-        print("Error procesando Webhook:", str(e))
-        
+        print("Error procesando mensaje:", str(e))
+
+# --- TELEGRAM: RECEPCION DE MENSAJES ---
+# Telegram llama a esta ruta por cada mensaje que le escriben al bot. Solo se
+# atiende a las personas de TELEGRAM_ALLOWED_IDS (ids numericos separados por
+# coma); cualquier otra recibe unicamente su propio id con /id.
+def _telegram_secret_ok(valor):
+    esperado = os.environ.get("TELEGRAM_WEBHOOK_SECRET") or ""
+    return bool(esperado) and hmac.compare_digest(valor or "", esperado)
+
+@app.route('/telegram-webhook', methods=['POST'])
+def telegram_webhook():
+    if not _telegram_secret_ok(request.headers.get('X-Telegram-Bot-Api-Secret-Token')):
+        return jsonify({"status": "forbidden"}), 403
+    update = request.get_json(silent=True) or {}
+    try:
+        msg = update.get('message') or {}
+        texto = (msg.get('text') or '').strip()
+        chat = msg.get('chat') or {}
+        remitente = (msg.get('from') or {}).get('id')
+        if not texto or chat.get('id') is None:
+            return jsonify({"status": "ignored"}), 200
+        chat_id = "tg:%s" % chat['id']
+
+        # "/gasto 100 x", "/ayuda@mi_bot" -> "gasto 100 x", "ayuda"
+        if texto.startswith('/'):
+            texto = re.sub(r'^/(\w+)@\w+', r'/\1', texto)[1:].strip()
+        if texto.lower() in ('id', 'start'):
+            responder_whatsapp(chat_id, "Tu id: %s\nId de este chat: %s" % (remitente, chat['id']))
+            return jsonify({"status": "ok"}), 200
+
+        permitidos = {x.strip() for x in (os.environ.get("TELEGRAM_ALLOWED_IDS") or "").split(',') if x.strip()}
+        if str(remitente) not in permitidos:
+            print("[TELEGRAM] mensaje de id no autorizado:", remitente)
+            return jsonify({"status": "unauthorized"}), 200
+        procesar_mensaje(chat_id, texto)
+    except Exception as e:
+        print("Error procesando Telegram:", str(e))
     return jsonify({"status": "success"}), 200
+
+# Registra el webhook en Telegram (se abre una sola vez desde el navegador).
+@app.route('/telegram-configurar', methods=['GET'])
+def telegram_configurar():
+    if not _telegram_secret_ok(request.args.get('clave')):
+        return jsonify({"status": "forbidden"}), 403
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not token:
+        return jsonify({"status": "error", "detalle": "falta TELEGRAM_BOT_TOKEN"}), 500
+    r = requests.post(
+        f"https://api.telegram.org/bot{token}/setWebhook",
+        json={"url": "https://sistema-casih.onrender.com/telegram-webhook",
+              "secret_token": os.environ["TELEGRAM_WEBHOOK_SECRET"],
+              "allowed_updates": ["message"]},
+        timeout=15)
+    return jsonify({"status": "ok" if r.status_code == 200 else "error", "telegram": r.json()}), r.status_code
 
 # --- RUTA PARA REVISAR Y ENVIAR RECORDATORIOS PENDIENTES ---
 # La llama cron-job.org cada 5 minutos (GET simple). De paso, ese mismo
@@ -869,7 +969,7 @@ def revisar_correos():
         print("Error leyendo correos:", str(e))
         return jsonify({"status": "error", "detalle": str(e)}), 500
 
-    grupo = os.environ.get("GREEN_API_GROUP_ID")
+    grupo = grupo_destino()
 
     for doc in docs:
         data = doc.to_dict()
@@ -927,7 +1027,7 @@ def revisar_correo_individual():
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 400
 
-    grupo = os.environ.get("GREEN_API_GROUP_ID")
+    grupo = grupo_destino()
     resultado = procesar_pieza_correo(ref, data, grupo)
 
     resp = jsonify({"status": "ok", "resultado": resultado})
@@ -2527,8 +2627,16 @@ def _numero_a_letras_grupo(n):
         return 'cien'
     c = (n // 100) * 100
     resto = n % 100
-    base = centenas[c]
+    base = 'ciento' if c == 100 else centenas[c]
     return base + (' ' + _numero_a_letras_grupo(resto) if resto else '')
+
+def _apocopar_uno(texto):
+    # "treinta y uno mil" -> "treinta y un mil", "veintiuno millones" -> "veintiún millones"
+    if texto.endswith('veintiuno'):
+        return texto[:-len('veintiuno')] + 'veintiún'
+    if texto.endswith('uno'):
+        return texto[:-1]
+    return texto
 
 def numero_a_letras(n):
     n = int(n)
@@ -2540,9 +2648,9 @@ def numero_a_letras(n):
     miles = resto // 1000
     resto2 = resto % 1000
     if millones:
-        partes.append('un millón' if millones == 1 else _numero_a_letras_grupo(millones) + ' millones')
+        partes.append('un millón' if millones == 1 else _apocopar_uno(_numero_a_letras_grupo(millones)) + ' millones')
     if miles:
-        partes.append('mil' if miles == 1 else _numero_a_letras_grupo(miles) + ' mil')
+        partes.append('mil' if miles == 1 else _apocopar_uno(_numero_a_letras_grupo(miles)) + ' mil')
     if resto2:
         partes.append(_numero_a_letras_grupo(resto2))
     return ' '.join(partes)
