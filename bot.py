@@ -568,7 +568,7 @@ def procesar_mensaje(chat_id, text_message):
                     "💰 *Gasto*\n`gasto MONTO CONCEPTO`\n_Ej: gasto 12000 librería_\n\n"
                     "💵 *Ingreso / Honorario*\n`ingreso MONTO CLIENTE`\n_Ej: ingreso 150000 Garcia_\n\n"
                     "📅 *Evento* (se crea en Google Calendar)\n`evento DÍA [HORA] TÍTULO`\n_Ej: evento miercoles 17:00 cita cliente Walter Figueroa_\n\n"
-                    "⏰ *Recordatorio* (te llega a este chat a esa hora; con la palabra *grupo* sale en el grupo de WhatsApp del estudio)\n`recordame [grupo] DÍA [HORA] TEXTO`\n_Ej: recordame mañana 15:00 llamar a García_\n_Ej: recordame grupo viernes 10:00 audiencia Pérez_\n\n"
+                    "⏰ *Recordatorio*\n`recordame DÍA [HORA] TEXTO` → te llega a vos, en este chat\n`recorda DÍA [HORA] TEXTO` → sale en el *grupo de WhatsApp* del estudio\n_Ej: recordame mañana 15:00 llamar a García_\n_Ej: recorda viernes 10:00 audiencia Pérez_\n\n"
                     "📆 *Formas de indicar el día:* hoy, mañana, pasado mañana, un día de la semana (lunes, martes...), o una fecha exacta (15/08 o 15/08/2026).\n\n"
                     "🕐 Si no indicás la hora, se asume automáticamente las *08:30 hs*.\n\n"
                     "⚠️ El comando va siempre *al principio* del mensaje, y la hora en formato 24hs (15:00, no 3pm)."
@@ -672,11 +672,9 @@ def procesar_mensaje(chat_id, text_message):
 
             # 4. COMANDO: RECORDATORIO
             elif text_lower.startswith('recordame') or text_lower.startswith('recordá') or text_lower.startswith('recorda'):
-                # "recordame grupo ..." -> el aviso sale al grupo de WhatsApp del estudio
-                # (lo ve todo el equipo); sin "grupo" vuelve a este mismo chat.
-                para_grupo = bool(re.match(r'^\s*record\w+\s+grupo\b', text_message, flags=re.IGNORECASE))
-                if para_grupo:
-                    text_message = re.sub(r'^(\s*record\w+)\s+grupo\b', r'\1', text_message, count=1, flags=re.IGNORECASE)
+                # "recordame ..." -> aviso para quien lo escribe (vuelve a este mismo chat);
+                # "recorda ..." / "recordá ..." -> sale al grupo de WhatsApp del estudio.
+                para_grupo = bool(re.match(r'^\s*record(?:a|á)(?!me)', text_message, flags=re.IGNORECASE))
                 inicio, fin, hora_str, fecha_detectada, hora_default = parsear_fecha_hora(text_message)
 
                 texto_recordatorio = re.sub(
