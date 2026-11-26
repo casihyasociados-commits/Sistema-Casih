@@ -81,6 +81,24 @@ var EXTRAS=[
   {id:'x3',nombre:'Eduardo Raúl',apellido:'Lopez',extra:true},
   {id:'x4',nombre:'Kevin Thomas',apellido:'Valdez',extra:true}
 ];
+// Borrador: lo que va marcando y escribiendo se guarda solo (en la base y en este navegador),
+// así si cierra la página puede seguir otro día sin perder nada.
+var BORR=db.collection('clientes_art').doc('borrador_ananda'),guardarT=null,cargado=false;
+function guardarBorrador(){
+  try{localStorage.setItem('anandaArtBorrador',JSON.stringify({resp:RESP,obs:OBS}));}catch(e){}
+  clearTimeout(guardarT);
+  guardarT=setTimeout(function(){BORR.set({resp:RESP,obs:OBS,actualizado:new Date().toISOString()}).catch(function(){});},600);
+}
+function cargarBorrador(){
+  if(cargado)return;cargado=true;
+  var l={};try{l=JSON.parse(localStorage.getItem('anandaArtBorrador')||'{}');}catch(e){}
+  BORR.get().then(function(d){
+    var r=d.exists?d.data():{};
+    RESP=Object.assign({},r.resp||{},l.resp||{},RESP);
+    OBS=Object.assign({},r.obs||{},l.obs||{},OBS);
+    render();
+  }).catch(function(){RESP=Object.assign({},l.resp||{},RESP);OBS=Object.assign({},l.obs||{},OBS);render();});
+}
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
 function nombreCompleto(c){return c.extra?(c.apellido?c.nombre+' '+c.apellido:c.nombre):(c.nombre||'');}
 function $(id){return document.getElementById(id);}
@@ -113,7 +131,7 @@ auth.onAuthStateChanged(function(u){
       if(!yaEsta)CLIENTES.push(e);
     });
     CLIENTES.sort(function(a,b){return nombreCompleto(a).localeCompare(nombreCompleto(b),'es');});
-    render();
+    render();cargarBorrador();
   },function(){$('lista').innerHTML='<div class="err">No se pudo cargar la lista. Revisá tu conexión.</div>';});
 });
 
@@ -125,14 +143,15 @@ function render(){
     return '<div class="row'+(r==='si'?' si':r==='no'?' no':'')+'"><div class="top"><div class="nm">'+esc(nombreCompleto(c)||'(sin nombre)')+(c.tel?'<small>'+esc(c.tel)+'</small>':'')+'</div>'+
       '<div class="sn"><button class="'+(r==='si'?'on-si':'')+'" onclick="marcar(\''+c.id+'\',\'si\')">Sí</button>'+
       '<button class="'+(r==='no'?'on-no':'')+'" onclick="marcar(\''+c.id+'\',\'no\')">No</button></div></div>'+
-      '<textarea class="ob" placeholder="Observaciones (opcional)" oninput="OBS[\''+c.id+'\']=this.value">'+esc(OBS[c.id]||'')+'</textarea></div>';
+      '<textarea class="ob" placeholder="Observaciones (opcional)" oninput="OBS[\''+c.id+'\']=this.value;guardarBorrador()">'+esc(OBS[c.id]||'')+'</textarea></div>';
   }).join(''):'<div class="sub">No hay clientes de Ananda pendientes de revisar.</div>';
   var n=Object.keys(RESP).filter(function(k){return CLIENTES.some(function(c){return c.id===k;});});
   var si=n.filter(function(k){return RESP[k]==='si';}).length;
-  $('cnt').textContent=n.length?('Marcados: '+n.length+' de '+CLIENTES.length+' · Sí: '+si+' · No: '+(n.length-si)):('Clientes sin responder: '+CLIENTES.length);
+  var sinMarcar=Object.keys(OBS).filter(function(k){return (OBS[k]||'').trim()&&!RESP[k]&&CLIENTES.some(function(c){return c.id===k;});}).length;
+  $('cnt').textContent=(sinMarcar?'⚠ '+sinMarcar+' con observación pero sin Sí/No (se guarda el borrador, no se envía) · ':'')+n.length?('Marcados: '+n.length+' de '+CLIENTES.length+' · Sí: '+si+' · No: '+(n.length-si)):('Clientes sin responder: '+CLIENTES.length);
   $('btn-enviar').disabled=!n.length;
 }
-function marcar(id,v){RESP[id]=(RESP[id]===v)?undefined:v;if(RESP[id]===undefined)delete RESP[id];render();}
+function marcar(id,v){RESP[id]=(RESP[id]===v)?undefined:v;if(RESP[id]===undefined)delete RESP[id];guardarBorrador();render();}
 $('buscar').oninput=render;
 
 $('btn-enviar').onclick=function(){
@@ -165,7 +184,7 @@ $('btn-enviar').onclick=function(){
     }
   });
   b.commit().then(function(){
-    RESP={};OBS={};
+    ids.forEach(function(k){delete RESP[k];delete OBS[k];});guardarBorrador();
     $('lista').innerHTML='<div class="ok"><b>✓ Enviado</b><div class="sub" style="margin-top:8px">Los que marcaste Sí ya están en el seguimiento de Ananda por enfermedad profesional.</div></div>';
     $('btn-enviar').textContent='Enviar';
     setTimeout(render,2500);
