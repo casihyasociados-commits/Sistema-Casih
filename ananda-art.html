@@ -70,7 +70,17 @@ firebase.initializeApp({
 });
 var auth=firebase.auth(),db=firebase.firestore();
 var PASOS=['Cita médica','El cliente se realiza los estudios','Visita al médico para el certificado'];
-var CLIENTES=[],RESP={},unsub=null;
+var CLIENTES=[],RESP={},unsub=null,TODOS=[];
+// Clientes que están en las carpetas de Drive pero todavía no cargados en el Sistema.
+// Si ya existen en la carpeta Ananda del Sistema, no se muestran de nuevo.
+var EXTRAS=[
+  {id:'x1',nombre:'Peralta',apellido:'',extra:true},
+  {id:'x2',nombre:'Alexis',apellido:'Carranza',extra:true},
+  {id:'x3',nombre:'Eduardo Raúl',apellido:'Lopez',extra:true},
+  {id:'x4',nombre:'Kevin Thomas',apellido:'Valdez',extra:true}
+];
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
+function nombreCompleto(c){return c.extra?(c.apellido?c.nombre+' '+c.apellido:c.nombre):(c.nombre||'');}
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function hoy(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
@@ -88,23 +98,29 @@ auth.onAuthStateChanged(function(u){
   if(unsub){unsub();unsub=null;}
   if(!u)return;
   unsub=db.collection('clientes').onSnapshot(function(snap){
-    CLIENTES=[];
+    CLIENTES=[];TODOS=[];
     snap.forEach(function(d){
       var c=d.data();c.id=d.id;
       // Ananda, activo (no en revisión) y que todavía no esté en ningún seguimiento
+      TODOS.push(c);
       if(c.tipo==='ananda'&&c.enRevision!==true&&c.aptoArt!==false&&!(c.checklist&&c.checklist.length))CLIENTES.push(c);
     });
-    CLIENTES.sort(function(a,b){return String(a.nombre||'').localeCompare(String(b.nombre||''),'es');});
+    EXTRAS.forEach(function(e){
+      var n=norm(nombreCompleto(e));
+      var yaEsta=TODOS.some(function(c){return c.tipo==='ananda'&&norm(c.nombre)===n;});
+      if(!yaEsta)CLIENTES.push(e);
+    });
+    CLIENTES.sort(function(a,b){return nombreCompleto(a).localeCompare(nombreCompleto(b),'es');});
     render();
   },function(){$('lista').innerHTML='<div class="err">No se pudo cargar la lista. Revisá tu conexión.</div>';});
 });
 
 function render(){
   var q=$('buscar').value.trim().toLowerCase();
-  var l=CLIENTES.filter(function(c){return !q||String(c.nombre||'').toLowerCase().indexOf(q)>-1;});
+  var l=CLIENTES.filter(function(c){return !q||nombreCompleto(c).toLowerCase().indexOf(q)>-1;});
   $('lista').innerHTML=l.length?l.map(function(c){
     var r=RESP[c.id];
-    return '<div class="row'+(r==='si'?' si':r==='no'?' no':'')+'"><div class="nm">'+esc(c.nombre||'(sin nombre)')+(c.tel?'<small>'+esc(c.tel)+'</small>':'')+'</div>'+
+    return '<div class="row'+(r==='si'?' si':r==='no'?' no':'')+'"><div class="nm">'+esc(nombreCompleto(c)||'(sin nombre)')+(c.tel?'<small>'+esc(c.tel)+'</small>':'')+'</div>'+
       '<div class="sn"><button class="'+(r==='si'?'on-si':'')+'" onclick="marcar(\''+c.id+'\',\'si\')">Sí</button>'+
       '<button class="'+(r==='no'?'on-no':'')+'" onclick="marcar(\''+c.id+'\',\'no\')">No</button></div></div>';
   }).join(''):'<div class="sub">No hay clientes de Ananda pendientes de revisar.</div>';
@@ -123,6 +139,16 @@ $('btn-enviar').onclick=function(){
   $('btn-enviar').disabled=true;$('btn-enviar').textContent='Enviando…';
   var b=db.batch();
   ids.forEach(function(id){
+    var cl=CLIENTES.find(function(c){return c.id===id;});
+    if(cl&&cl.extra){
+      // Cliente nuevo: se crea en la carpeta Ananda del Sistema
+      var nuevo={nombre:nombreCompleto(cl),apellido:cl.apellido||'',dni:'',edad:'',cuil:'',tel:'',email:'',domicilio:'',ciudad:'',empleador:'',notas:'',
+        tipo:'ananda',enRevision:false,expte:'',etapa:'Cita',fecha:hoy(),drive:'',driveFolderId:'',
+        creadoEn:firebase.firestore.FieldValue.serverTimestamp(),aptoArt:RESP[id]==='si'};
+      if(RESP[id]==='si'){nuevo.checklistTipo='enfermedad';nuevo.checklist=PASOS.map(function(t){return {t:t,h:false,f:'',p:''};});nuevo.checklistActualizado=hoy();}
+      b.set(db.collection('clientes').doc(),nuevo);
+      return;
+    }
     var ref=db.collection('clientes').doc(id);
     if(RESP[id]==='si'){
       b.update(ref,{aptoArt:true,checklistTipo:'enfermedad',
